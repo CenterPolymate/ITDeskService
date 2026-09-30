@@ -1,11 +1,15 @@
 <?php
+
+use App\Models\HelpdeskCase;
+use App\Models\User;
+
 require 'vendor/autoload.php';
 $app = require_once 'bootstrap/app.php';
 $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
-$user = App\Models\User::where('name', 'like', '%ปริญญา%')->first();
+$user = User::where('name', 'like', '%ปริญญา%')->first();
 if ($user) {
-    $ticket = App\Models\HelpdeskCase::where('ticket_no', 'IT-20260924-1206')->first();
+    $ticket = HelpdeskCase::where('ticket_no', 'IT-20260924-1206')->first();
     if ($ticket) {
         $ticket->preventive_measure = 'pending_review';
         $ticket->pcar_analyzed_at = '2026-09-24 21:40:00';
