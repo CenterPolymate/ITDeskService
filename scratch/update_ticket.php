@@ -1,11 +1,15 @@
 <?php
+
+use App\Models\HelpdeskCase;
+use App\Models\User;
+
 require 'vendor/autoload.php';
 $app = require_once 'bootstrap/app.php';
 $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
-$user = App\Models\User::where('name', 'like', '%ณัฏฐนันท์%')->first();
+$user = User::where('name', 'like', '%ณัฏฐนันท์%')->first();
 if ($user) {
-    $ticket = App\Models\HelpdeskCase::where('ticket_no', 'IT-20260924-1206')->first();
+    $ticket = HelpdeskCase::where('ticket_no', 'IT-20260924-1206')->first();
     if ($ticket) {
         $ticket->requires_preventive_measure = 1;
         $ticket->preventive_measure = 'in_progress';
