@@ -23,9 +23,9 @@ class TicketController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title' => 'required|string|max:100',
             'category' => 'nullable|string|max:100',
-            'description' => 'required|string',
+            'description' => 'required|string|max:400',
             'location' => 'required|string|max:255',
             'requester_phone' => ['required', 'string', 'regex:/^0[0-9]{1,2}-?[0-9]{3}-?[0-9]{4}$/'],
             'attachment' => 'nullable|file|mimes:jpg,jpeg,png|max:5120', // 5MB max, images only
@@ -43,13 +43,24 @@ class TicketController extends Controller
             $attachmentPath = $request->file('attachment')->store('attachments', 'public');
         }
 
-        // Generate Ticket Number (e.g., IT-20260917-1234)
-        $ticketNo = 'IT-'.now()->format('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        // Generate Ticket Number: IT-YYYYMM-XXXX
+        $prefix = 'IT-'.now()->format('Ym').'-';
 
-        // Ensure uniqueness (simple way)
-        while (HelpdeskCase::where('ticket_no', $ticketNo)->exists()) {
-            $ticketNo = 'IT-'.now()->format('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        // Find the last ticket created in this month
+        $lastTicket = HelpdeskCase::where('ticket_no', 'like', $prefix.'%')
+            ->orderBy('ticket_no', 'desc')
+            ->first();
+
+        if ($lastTicket) {
+            // Extract the last 4 digits and increment
+            $lastNumber = (int) substr($lastTicket->ticket_no, -4);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Start from 1 if no tickets exist this month
+            $newNumber = 1;
         }
+
+        $ticketNo = $prefix.str_pad($newNumber, 4, '0', STR_PAD_LEFT);
 
         // Create Case
         $ticket = HelpdeskCase::create([
@@ -92,6 +103,22 @@ class TicketController extends Controller
     }
 
     /**
+     * Print the specified ticket report (P-CAR Form).
+     */
+    public function print($id)
+    {
+        $ticket = HelpdeskCase::with(['analyzingBy', 'inProgressBy', 'resolvedBy', 'closedBy', 'cancelledBy'])->findOrFail($id);
+
+        // Check if user has permission to view
+        $user = Auth::user();
+        if ($user->role === 'user' && $ticket->requester_email !== $user->email) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('tickets.print', compact('ticket'));
+    }
+
+    /**
      * Update the specified ticket (Triage & Escalate).
      */
     public function assign(Request $request, $id)
@@ -123,6 +150,8 @@ class TicketController extends Controller
             'priority' => $request->priority,
             'escalated_to_team' => $request->escalated_to_team === 'None' ? null : $request->escalated_to_team,
             'status' => $status,
+            'assigned_at' => now(),
+            'assigned_by' => auth()->id(),
         ];
 
         // Determine SLA based on priority and company from database
@@ -169,12 +198,12 @@ class TicketController extends Controller
         $ticket = HelpdeskCase::findOrFail($id);
 
         // Allow manager to 'close' (review) and allow IT team to submit 'preventive_action' even if closed
-        if ($ticket->status === 'closed' && !($request->action === 'close' && Auth::user()->role === 'manager') && !in_array($request->action, ['preventive_action', 'close_preventive_measure'])) {
+        if ($ticket->status === 'closed' && ! ($request->action === 'close' && Auth::user()->role === 'manager') && ! in_array($request->action, ['start_preventive_measure', 'preventive_action', 'close_preventive_measure'])) {
             return redirect()->back()->withErrors('ไม่สามารถดำเนินการได้ เนื่องจากใบงานถูกปิดแล้ว');
         }
 
         $request->validate([
-            'action' => 'required|in:start_analyzing,start_progress,resolve,update_notes,update_analysis,accept_resolution,close,cancel,preventive_action,close_preventive_measure',
+            'action' => 'required|in:start_analyzing,start_progress,resolve,update_notes,update_analysis,accept_resolution,close,cancel,start_preventive_measure,preventive_action,close_preventive_measure',
             'resolution_notes' => 'required_if:action,resolve|nullable|string',
             'analysis_notes' => 'nullable|array',
             'analysis_notes.root_cause' => 'required_with:analysis_notes|nullable|string',
@@ -295,9 +324,7 @@ class TicketController extends Controller
 
             if ($request->requires_preventive_measure == 1 && $request->filled('escalated_to_team')) {
                 $updateData['escalated_to_team'] = $request->escalated_to_team;
-                $updateData['preventive_measure'] = 'in_progress';
-                $updateData['pcar_opened_at'] = now();
-                $updateData['pcar_opened_by'] = Auth::id();
+                $updateData['preventive_measure'] = 'assigned';
             } elseif ($request->requires_preventive_measure == 0) {
                 $updateData['preventive_measure'] = null;
             }
@@ -305,6 +332,14 @@ class TicketController extends Controller
             $ticket->update($updateData);
 
             return redirect()->route('tickets.show', $id)->with('success', 'บันทึกการตรวจสอบและส่งต่องานเรียบร้อยแล้ว');
+        } elseif ($request->action === 'start_preventive_measure') {
+            $ticket->update([
+                'preventive_measure' => 'in_progress',
+                'pcar_opened_at' => now(),
+                'pcar_opened_by' => Auth::id(),
+            ]);
+
+            return redirect()->route('tickets.show', $id)->with('success', 'เริ่มดำเนินการสืบสภาพ (Task 2) เรียบร้อยแล้ว');
         } elseif ($request->action === 'preventive_action') {
             $ticket->update([
                 'why_1' => $request->why_1,
@@ -321,7 +356,7 @@ class TicketController extends Controller
                 'pcar_analyzed_at' => now(),
                 'pcar_analyzed_by' => Auth::id(),
             ]);
-            
+
             return redirect()->route('tickets.show', $id)->with('success', 'บันทึกข้อมูล Task 2 แล้ว รอหัวหน้าตรวจสอบและปิดมาตรการ');
         } elseif ($request->action === 'close_preventive_measure') {
             $ticket->update([
@@ -329,7 +364,7 @@ class TicketController extends Controller
                 'pcar_closed_at' => now(),
                 'pcar_closed_by' => Auth::id(),
             ]);
-            
+
             return redirect()->route('tickets.show', $id)->with('success', 'ปิดมาตรการป้องกันเรียบร้อยแล้ว');
         }
 
