@@ -5,10 +5,10 @@
                 {{ __('รายละเอียดใบแจ้งซ่อม (Ticket Details) #') . $ticket->ticket_no }}
             </h2>
             <div class="flex items-center space-x-4 print:hidden">
-                <button onclick="window.print()" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                <a href="{{ route('tickets.print', $ticket->id) }}" target="_blank" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
                     <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                     พิมพ์ใบงาน (Print)
-                </button>
+                </a>
                 <a href="{{ route('dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700">
                     &larr; กลับไปยัง Dashboard
                 </a>
@@ -384,6 +384,19 @@
                             Task 2: การป้องกันปัญหาไม่ให้เกิดซ้ำ (Preventive Action)
                         </h3>
                         
+                        @if($ticket->preventive_measure === 'assigned')
+                            <div class="text-center py-6 bg-teal-50 rounded-lg border border-teal-100">
+                                <p class="text-teal-800 font-medium mb-4">ผู้จัดการได้มอบหมายงาน Task 2 ให้กับทีมของคุณ กรุณากดปุ่มด้านล่างเพื่อเริ่มดำเนินการสืบสภาพและวิเคราะห์ปัญหา</p>
+                                <form action="{{ route('tickets.updateStatus', $ticket->id) }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="action" value="start_preventive_measure">
+                                    <button type="submit" class="inline-flex items-center px-6 py-3 bg-teal-600 border border-transparent rounded-md font-bold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors">
+                                        ▶️ เริ่มดำเนินการสืบสภาพ (Start Task 2)
+                                    </button>
+                                </form>
+                            </div>
+                        @else
                         <form action="{{ route('tickets.updateStatus', $ticket->id) }}" method="POST">
                             @csrf
                             @method('PUT')
@@ -565,6 +578,7 @@
                             </div>
                             @endif
                         </form>
+                        @endif
                     </div>
                     @endif
 
@@ -673,7 +687,7 @@
                                     <input type="hidden" name="action" value="cancel">
                                     
                                     <div class="mb-4">
-                                        <label for="cancellation_reason" class="block font-medium text-sm text-gray-700 mb-1">เหตุผลการยกเลิก (Required)</label>
+                                        <label for="cancellation_reason" class="block font-medium text-sm text-gray-700 mb-1">เหตุผลการยกเลิก <span class="text-red-500">*</span></label>
                                         <textarea id="cancellation_reason" name="cancellation_reason" rows="3" required class="block w-full border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm" placeholder="ระบุเหตุผลสั้นๆ เช่น แจ้งซ้ำ, ผู้ใช้แก้ปัญหาได้เองแล้ว"></textarea>
                                     </div>
                                     
@@ -1013,89 +1027,11 @@
                         </div>
                     </div>
                     
-                    @if($ticket->requires_preventive_measure)
-                    <!-- ไทม์ไลน์ Task 2 (Preventive Action) -->
-                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mt-6 border-t-4 border-teal-500">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center border-b pb-2">
-                            <svg class="w-5 h-5 mr-2 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                            ไทม์ไลน์สถานะ Task 2
-                        </h3>
-                        
-                        <div class="relative pl-4 space-y-5">
-                            <!-- Vertical Line -->
-                            <div class="absolute top-2 bottom-2 left-5 w-0.5 bg-gray-200"></div>
-                            
-                            @php
-                                $isCancelled = $ticket->status === 'cancelled';
-                            @endphp
-
-                            <!-- Task 2: เปิด P-CAR -->
-                            <div class="relative flex items-start gap-3 {{ (!$ticket->pcar_opened_at || $isCancelled) ? 'opacity-40' : '' }}">
-                                <div class="relative flex items-center justify-center w-2.5 h-2.5 mt-1.5 z-10 ring-4 ring-white rounded-full {{ ($ticket->pcar_opened_at && !$isCancelled) ? 'bg-indigo-500' : 'bg-gray-300' }}">
-                                </div>
-                                <div class="w-full">
-                                    <p class="text-sm font-semibold text-gray-800">1. เปิด P-CAR</p>
-                                    @if($ticket->pcar_opened_at)
-                                        <p class="text-xs text-gray-500 mt-1">{{ $ticket->pcar_opened_at->translatedFormat('d F Y H:i น.') }}</p>
-                                        @if($ticket->pcarOpenedBy)
-                                            <p class="text-xs text-indigo-600 font-medium mt-1">อนุมัติโดย: {{ $ticket->pcarOpenedBy->name }}</p>
-                                        @endif
-                                    @endif
-                                </div>
-                            </div>
-
-                            <!-- Task 2: สืบสภาพและวิเคราะห์ P-CAR -->
-                            <div class="relative flex items-start gap-3 {{ (!in_array($ticket->preventive_measure, ['in_progress', 'pending_review', 'done']) || $isCancelled) ? 'opacity-40' : '' }}">
-                                <div class="relative flex items-center justify-center w-2.5 h-2.5 mt-1.5 z-10 ring-4 ring-white rounded-full {{ (in_array($ticket->preventive_measure, ['pending_review', 'done']) && !$isCancelled) ? 'bg-teal-500' : 'bg-gray-300' }}">
-                                    @if($ticket->preventive_measure === 'in_progress')
-                                        <span class="absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75 animate-ping"></span>
-                                    @endif
-                                </div>
-                                <div class="w-full">
-                                    <p class="text-sm font-semibold text-gray-800">2. หาสาเหตุรากเหง้า และสร้างมาตรการป้องกัน</p>
-                                    @if(in_array($ticket->preventive_measure, ['pending_review', 'done']))
-                                        @if($ticket->pcar_analyzed_at)
-                                            <p class="text-xs text-gray-500 mt-1">{{ $ticket->pcar_analyzed_at->translatedFormat('d F Y H:i น.') }}</p>
-                                        @endif
-                                        @if($ticket->pcarAnalyzedBy)
-                                            <p class="text-xs text-teal-700 font-medium mt-1">บันทึกโดย: {{ $ticket->pcarAnalyzedBy->name }}</p>
-                                        @endif
-                                    @else
-                                        <p class="text-xs text-gray-400 mt-1">รอการดำเนินการจากช่างเฉพาะทาง</p>
-                                    @endif
-                                </div>
-                            </div>
-                            
-                            <!-- Task 2: ตรวจสอบและปิดมาตรการป้องกัน -->
-                            <div class="relative flex items-start gap-3 {{ (!in_array($ticket->preventive_measure, ['pending_review', 'done']) || $isCancelled) ? 'opacity-40' : '' }}">
-                                <div class="relative flex items-center justify-center w-2.5 h-2.5 mt-1.5 z-10 ring-4 ring-white rounded-full {{ ($ticket->preventive_measure === 'done' && !$isCancelled) ? 'bg-blue-500' : 'bg-gray-300' }}">
-                                    @if($ticket->preventive_measure === 'pending_review')
-                                        <span class="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping"></span>
-                                    @endif
-                                </div>
-                                <div class="w-full">
-                                    <p class="text-sm font-semibold text-gray-800">3. ตรวจสอบและปิดมาตรการป้องกัน</p>
-                                    @if($ticket->preventive_measure === 'done')
-                                        @if($ticket->pcar_closed_at)
-                                            <p class="text-xs text-gray-500 mt-1">{{ $ticket->pcar_closed_at->translatedFormat('d F Y H:i น.') }}</p>
-                                        @endif
-                                        @if($ticket->pcarClosedBy)
-                                            <p class="text-xs text-blue-700 font-medium mt-1">ตรวจสอบโดย: {{ $ticket->pcarClosedBy->name }}</p>
-                                        @endif
-                                    @else
-                                        <p class="text-xs text-gray-400 mt-1">รอหัวหน้าตรวจสอบ</p>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-                    
-                    <!-- สรุปเวลาการทำงาน (Case Summary) -->
+                    <!-- สรุปเวลาการทำงาน Task 1 (Case Summary) -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mt-6 border-t-4 border-indigo-500">
                         <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center border-b pb-2">
                             <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            สรุปเวลาการทำงาน
+                            สรุปเวลาการทำงาน Task 1
                         </h3>
                         
                         <div class="space-y-4 text-sm">
@@ -1108,7 +1044,7 @@
                                 @php
                                     $end_date = $ticket->status === 'closed' ? ($ticket->closed_at ?? $ticket->updated_at) : ($ticket->cancelled_at ?? $ticket->updated_at);
                                     $end_carbon = \Carbon\Carbon::parse($end_date);
-                                    $diff = $ticket->created_at->diff($end_carbon);
+                                    $diff = $ticket->created_at->copy()->startOfMinute()->diff($end_carbon->copy()->startOfMinute());
                                     $totalTimeStr = '';
                                     if ($diff->d > 0) $totalTimeStr .= $diff->d . ' วัน ';
                                     if ($diff->h > 0) $totalTimeStr .= $diff->h . ' ชั่วโมง ';
@@ -1153,6 +1089,144 @@
                             @endif
                         </div>
                     </div>
+                    
+                    @if($ticket->requires_preventive_measure && Auth::user()->role !== 'user')
+                    <!-- ไทม์ไลน์ Task 2 (Preventive Action) -->
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mt-6 border-t-4 border-teal-500">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center border-b pb-2">
+                            <svg class="w-5 h-5 mr-2 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                            ไทม์ไลน์สถานะ Task 2
+                        </h3>
+                        
+                        <div class="relative pl-4 space-y-5">
+                            <!-- Vertical Line -->
+                            <div class="absolute top-2 bottom-2 left-5 w-0.5 bg-gray-200"></div>
+                            
+                            @php
+                                $isCancelled = $ticket->status === 'cancelled';
+                            @endphp
+
+                            <!-- Task 2: เปิด P-CAR -->
+                            <div class="relative flex items-start gap-3 {{ (!$ticket->pcar_opened_at || $isCancelled) ? 'opacity-40' : '' }}">
+                                <div class="relative flex items-center justify-center w-2.5 h-2.5 mt-1.5 z-10 ring-4 ring-white rounded-full {{ ($ticket->pcar_opened_at && !$isCancelled) ? 'bg-indigo-500' : 'bg-gray-300' }}">
+                                </div>
+                                <div class="w-full">
+                                    <p class="text-sm font-semibold text-gray-800">1. เปิด P-CAR</p>
+                                    @if($ticket->pcar_opened_at)
+                                        <p class="text-xs text-gray-500 mt-1">{{ $ticket->pcar_opened_at->translatedFormat('d F Y H:i น.') }}</p>
+                                        @if($ticket->pcarOpenedBy)
+                                            <p class="text-xs text-indigo-600 font-medium mt-1">อนุมัติโดย: {{ $ticket->pcarOpenedBy->name }}</p>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Task 2: สืบสภาพและวิเคราะห์ P-CAR -->
+                            <div class="relative flex items-start gap-3 {{ (!in_array($ticket->preventive_measure, ['in_progress', 'pending_review', 'done']) || $isCancelled) ? 'opacity-40' : '' }}">
+                                <div class="relative flex items-center justify-center w-2.5 h-2.5 mt-1.5 z-10 ring-4 ring-white rounded-full {{ (in_array($ticket->preventive_measure, ['pending_review', 'done']) && !$isCancelled) ? 'bg-teal-500' : 'bg-gray-300' }}">
+                                    @if($ticket->preventive_measure === 'in_progress')
+                                        <span class="absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75 animate-ping"></span>
+                                    @endif
+                                </div>
+                                <div class="w-full">
+                                    <p class="text-sm font-semibold text-gray-800">2. หาสาเหตุรากเหง้า และสร้างมาตรการป้องกัน</p>
+                                    @if(in_array($ticket->preventive_measure, ['in_progress', 'pending_review', 'done']))
+                                        @if($ticket->pcar_opened_at)
+                                            <p class="text-xs text-gray-500 mt-1">เริ่ม: {{ $ticket->pcar_opened_at->translatedFormat('d F Y H:i น.') }}</p>
+                                        @endif
+                                        @if($ticket->pcar_analyzed_at)
+                                            <p class="text-xs text-gray-500 mt-0.5">สิ้นสุด: {{ $ticket->pcar_analyzed_at->translatedFormat('d F Y H:i น.') }}</p>
+                                        @endif
+                                        @if($ticket->pcarAnalyzedBy)
+                                            <p class="text-xs text-teal-700 font-medium mt-1">บันทึกโดย: {{ $ticket->pcarAnalyzedBy->name }}</p>
+                                        @endif
+                                    @else
+                                        <p class="text-xs text-gray-400 mt-1">รอการดำเนินการจากช่างเฉพาะทาง</p>
+                                    @endif
+                                </div>
+                            </div>
+                            
+                            <!-- Task 2: ตรวจสอบและปิดมาตรการป้องกัน -->
+                            <div class="relative flex items-start gap-3 {{ (!in_array($ticket->preventive_measure, ['pending_review', 'done']) || $isCancelled) ? 'opacity-40' : '' }}">
+                                <div class="relative flex items-center justify-center w-2.5 h-2.5 mt-1.5 z-10 ring-4 ring-white rounded-full {{ ($ticket->preventive_measure === 'done' && !$isCancelled) ? 'bg-blue-500' : 'bg-gray-300' }}">
+                                    @if($ticket->preventive_measure === 'pending_review')
+                                        <span class="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75 animate-ping"></span>
+                                    @endif
+                                </div>
+                                <div class="w-full">
+                                    <p class="text-sm font-semibold text-gray-800">3. ตรวจสอบและปิดมาตรการป้องกัน</p>
+                                    @if($ticket->preventive_measure === 'done')
+                                        @if($ticket->pcar_closed_at)
+                                            <p class="text-xs text-gray-500 mt-1">{{ $ticket->pcar_closed_at->translatedFormat('d F Y H:i น.') }}</p>
+                                        @endif
+                                        @if($ticket->pcarClosedBy)
+                                            <p class="text-xs text-blue-700 font-medium mt-1">ตรวจสอบโดย: {{ $ticket->pcarClosedBy->name }}</p>
+                                        @endif
+                                    @else
+                                        <p class="text-xs text-gray-400 mt-1">รอหัวหน้าตรวจสอบ</p>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- สรุปเวลาการทำงาน Task 2 (Case Summary Task 2) -->
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mt-6 border-t-4 border-teal-500">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center border-b pb-2">
+                            <svg class="w-5 h-5 mr-2 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            สรุปเวลาการทำงาน Task 2
+                        </h3>
+                        
+                        <div class="space-y-4 text-sm">
+                            <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+                                <span class="text-gray-500">เริ่มเปิด P-CAR เมื่อ:</span>
+                                <span class="font-semibold text-gray-800">{{ $ticket->pcar_opened_at ? $ticket->pcar_opened_at->translatedFormat('d F Y H:i น.') : '-' }}</span>
+                            </div>
+                            
+                            @if($ticket->preventive_measure === 'done')
+                                @php
+                                    $end_carbon_t2 = \Carbon\Carbon::parse($ticket->pcar_closed_at ?? clone $ticket->updated_at);
+                                    $diff_t2 = $ticket->pcar_opened_at ? $ticket->pcar_opened_at->copy()->startOfMinute()->diff($end_carbon_t2->copy()->startOfMinute()) : null;
+                                    $totalTimeStrT2 = '';
+                                    if ($diff_t2) {
+                                        if ($diff_t2->d > 0) $totalTimeStrT2 .= $diff_t2->d . ' วัน ';
+                                        if ($diff_t2->h > 0) $totalTimeStrT2 .= $diff_t2->h . ' ชั่วโมง ';
+                                        if ($diff_t2->i > 0) $totalTimeStrT2 .= $diff_t2->i . ' นาที';
+                                        if ($totalTimeStrT2 === '') $totalTimeStrT2 = 'น้อยกว่า 1 นาที';
+                                    }
+                                @endphp
+                                <div class="flex justify-between items-center pb-2 border-b border-gray-100">
+                                    <span class="text-gray-500">ปิดมาตรการป้องกันเมื่อ:</span>
+                                    <span class="font-semibold text-gray-800">{{ $ticket->pcar_closed_at ? $ticket->pcar_closed_at->translatedFormat('d F Y H:i น.') : '-' }}</span>
+                                </div>
+                                <div class="flex justify-between items-center bg-teal-50 p-3 rounded-md border border-teal-100 mt-2">
+                                    <span class="text-teal-700 font-bold">เวลารวม Task 2 ทั้งหมด:</span>
+                                    <span class="text-teal-700 font-black text-base">{{ $totalTimeStrT2 ?: '-' }}</span>
+                                </div>
+                            @else
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-500">สถานะปัจจุบัน (Task 2):</span>
+                                    <span class="font-semibold {{ match($ticket->preventive_measure) {
+                                        'in_progress' => 'text-teal-600',
+                                        'pending_review' => 'text-blue-600',
+                                        default => 'text-gray-600'
+                                    } }}">
+                                        {{ match($ticket->preventive_measure) {
+                                            'in_progress' => 'หาสาเหตุรากเหง้า และสร้างมาตรการ',
+                                            'pending_review' => 'รอหัวหน้าตรวจสอบและปิดมาตรการ',
+                                            default => 'รอดำเนินการเปิด P-CAR'
+                                        } }}
+                                        @if($ticket->pcar_opened_at)
+                                            (ผ่านไปแล้ว {{ $ticket->pcar_opened_at->diffForHumans(null, true) }})
+                                        @endif
+                                    </span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
+                    
+
                 </div>
 
             </div>
