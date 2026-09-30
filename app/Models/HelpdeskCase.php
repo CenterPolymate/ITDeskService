@@ -79,6 +79,7 @@ class HelpdeskCase extends Model
     {
         return [
             'sla_due_at' => 'datetime',
+            'assigned_at' => 'datetime',
             'analyzing_at' => 'datetime',
             'in_progress_at' => 'datetime',
             'resolved_at' => 'datetime',
@@ -97,11 +98,14 @@ class HelpdeskCase extends Model
 
     public function getPreventiveMeasureSpecificAttribute($value)
     {
-        if (empty($value)) return [];
+        if (empty($value)) {
+            return [];
+        }
         $decoded = json_decode($value, true);
         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
             return $decoded;
         }
+
         return [['detail' => $value, 'due_date' => optional($this->preventive_measure_specific_due_date)->format('Y-m-d')]];
     }
 
@@ -112,11 +116,14 @@ class HelpdeskCase extends Model
 
     public function getPreventiveMeasureSystemicAttribute($value)
     {
-        if (empty($value)) return [];
+        if (empty($value)) {
+            return [];
+        }
         $decoded = json_decode($value, true);
         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
             return $decoded;
         }
+
         return [['detail' => $value, 'due_date' => optional($this->preventive_measure_systemic_due_date)->format('Y-m-d')]];
     }
 
@@ -143,6 +150,11 @@ class HelpdeskCase extends Model
     public function resolvedBy()
     {
         return $this->belongsTo(User::class, 'resolved_by');
+    }
+
+    public function assignedBy()
+    {
+        return $this->belongsTo(User::class, 'assigned_by');
     }
 
     public function approvedBy()
@@ -210,24 +222,24 @@ class HelpdeskCase extends Model
                     $query->whereIn('status', ['pending', 'assigned']);
                 } elseif ($status === 'manager_review' || $status === 'task2_manager_review') {
                     $query->where('status', 'closed')
-                          ->whereNull('requires_preventive_measure');
+                        ->whereNull('requires_preventive_measure');
                 } elseif ($status === 'task2_all') {
                     $query->where('status', 'closed');
                 } elseif ($status === 'task2_in_progress') {
                     $query->where('status', 'closed')
-                          ->where('requires_preventive_measure', true)
-                          ->where(function($q) {
-                              $q->whereNull('preventive_measure')
-                                ->orWhere('preventive_measure', 'in_progress');
-                          });
+                        ->where('requires_preventive_measure', true)
+                        ->where(function ($q) {
+                            $q->whereNull('preventive_measure')
+                                ->orWhereIn('preventive_measure', ['assigned', 'in_progress']);
+                        });
                 } elseif ($status === 'task2_pending_review') {
                     $query->where('status', 'closed')
-                          ->where('requires_preventive_measure', true)
-                          ->where('preventive_measure', 'pending_review');
+                        ->where('requires_preventive_measure', true)
+                        ->where('preventive_measure', 'pending_review');
                 } elseif ($status === 'task2_completed') {
                     $query->where('status', 'closed')
-                          ->where('requires_preventive_measure', true)
-                          ->where('preventive_measure', 'done');
+                        ->where('requires_preventive_measure', true)
+                        ->where('preventive_measure', 'done');
                 } elseif ($status !== 'all') {
                     $query->where('status', $status);
                 }
