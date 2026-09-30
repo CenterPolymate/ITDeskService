@@ -105,7 +105,7 @@
                         @endif
 
                         <!-- บันทึกการสืบสภาพและวิเคราะห์ -->
-                        @if($ticket->analysis_notes && is_array($ticket->analysis_notes))
+                        @if($ticket->analysis_notes && is_array($ticket->analysis_notes) && Auth::user()->role !== 'user')
                         <div class="mt-6 border-t pt-4">
                             <h4 class="text-md font-semibold text-purple-700 mb-3">การวิเคราะห์หาสาเหตุ (Root Cause Analysis):</h4>
                             <div class="bg-purple-50 p-4 rounded-md border border-purple-200 text-sm space-y-3">
