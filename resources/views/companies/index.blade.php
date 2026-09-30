@@ -26,6 +26,7 @@
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อบริษัท</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อย่อ (ถ้ามี)</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">โดเมน (Email Domains)</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">จัดการ</th>
                                 </tr>
@@ -35,6 +36,17 @@
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap font-medium">{{ $company->name }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $company->short_name ?? '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        @if($company->email_domains)
+                                            @foreach(explode(',', $company->email_domains) as $domain)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 mr-1">
+                                                    {{ trim($domain) }}
+                                                </span>
+                                            @endforeach
+                                        @else
+                                            <span class="text-gray-400 italic">ไม่ได้จำกัด</span>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if($company->is_active)
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">เปิดใช้งาน</span>
