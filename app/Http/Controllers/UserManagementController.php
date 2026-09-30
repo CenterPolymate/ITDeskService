@@ -40,7 +40,7 @@ class UserManagementController extends Controller
     public function create()
     {
         $this->authorizeAdminOrManager();
-        $companies = Company::where('is_active', true)->orderBy('name')->get();
+        $companies = Company::with('departments')->where('is_active', true)->orderBy('name')->get();
 
         return view('users.create', compact('companies'));
     }
@@ -55,6 +55,7 @@ class UserManagementController extends Controller
             'password' => ['required', 'confirmed', Password::defaults()],
             'role' => ['required', 'string', 'in:helpdesk,team_hardware,team_network,team_software,manager,administrator'],
             'company' => ['required', 'string', 'exists:companies,name'],
+            'department' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
         ]);
 
@@ -64,6 +65,7 @@ class UserManagementController extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'company' => $request->company,
+            'department' => $request->department,
             'phone' => $request->phone,
         ]);
 
@@ -73,7 +75,7 @@ class UserManagementController extends Controller
     public function edit(User $user)
     {
         $this->authorizeAdminOrManager();
-        $companies = Company::where('is_active', true)->orderBy('name')->get();
+        $companies = Company::with('departments')->where('is_active', true)->orderBy('name')->get();
 
         return view('users.edit', compact('user', 'companies'));
     }
@@ -87,6 +89,7 @@ class UserManagementController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'role' => ['required', 'string', 'in:helpdesk,team_hardware,team_network,team_software,manager,administrator,user'],
             'company' => ['required', 'string', 'exists:companies,name'],
+            'department' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
         ];
 
@@ -100,6 +103,7 @@ class UserManagementController extends Controller
             'email' => $request->email,
             'role' => $request->role,
             'company' => $request->company,
+            'department' => $request->department,
             'phone' => $request->phone,
         ];
 
