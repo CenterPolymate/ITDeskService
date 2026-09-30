@@ -25,7 +25,7 @@ return new class extends Migration
         Schema::table('helpdesk_cases', function (Blueprint $table) {
             $table->dropColumn([
                 'preventive_measure_specific_due_date',
-                'preventive_measure_systemic_due_date'
+                'preventive_measure_systemic_due_date',
             ]);
         });
     }
