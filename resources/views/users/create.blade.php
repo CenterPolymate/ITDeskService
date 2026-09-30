@@ -10,40 +10,40 @@
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <form method="POST" action="{{ route('users.store') }}">
+                    <form method="POST" action="{{ route('users.store') }}" x-data="userForm()">
                         @csrf
                         
                         <!-- Name -->
                         <div>
-                            <x-input-label for="name" :value="__('ชื่อ-นามสกุล')" />
+                            <x-input-label for="name">ชื่อ-นามสกุล <span class="text-red-500">*</span></x-input-label>
                             <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus />
                             <x-input-error :messages="$errors->get('name')" class="mt-2" />
                         </div>
 
                         <!-- Email -->
                         <div class="mt-4">
-                            <x-input-label for="email" :value="__('อีเมล')" />
+                            <x-input-label for="email">อีเมล <span class="text-red-500">*</span></x-input-label>
                             <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required />
                             <x-input-error :messages="$errors->get('email')" class="mt-2" />
                         </div>
 
                         <!-- Password -->
                         <div class="mt-4">
-                            <x-input-label for="password" :value="__('รหัสผ่าน')" />
+                            <x-input-label for="password">รหัสผ่าน <span class="text-red-500">*</span></x-input-label>
                             <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
                             <x-input-error :messages="$errors->get('password')" class="mt-2" />
                         </div>
 
                         <!-- Confirm Password -->
                         <div class="mt-4">
-                            <x-input-label for="password_confirmation" :value="__('ยืนยันรหัสผ่าน')" />
+                            <x-input-label for="password_confirmation">ยืนยันรหัสผ่าน <span class="text-red-500">*</span></x-input-label>
                             <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
                             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                         </div>
 
                         <!-- Role -->
                         <div class="mt-4">
-                            <x-input-label for="role" :value="__('ตำแหน่ง (Role)')" />
+                            <x-input-label for="role">ตำแหน่ง (Role) <span class="text-red-500">*</span></x-input-label>
                             <select id="role" name="role" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                                 <option value="helpdesk" {{ old('role') == 'helpdesk' ? 'selected' : '' }}>Helpdesk (Tier 1)</option>
                                 <option value="team_hardware" {{ old('role') == 'team_hardware' ? 'selected' : '' }}>Team Hardware</option>
@@ -59,14 +59,27 @@
 
                         <!-- Company -->
                         <div class="mt-4">
-                            <x-input-label for="company" :value="__('บริษัท')" />
-                            <select id="company" name="company" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                            <x-input-label for="company">บริษัท <span class="text-red-500">*</span></x-input-label>
+                            <select id="company" name="company" x-model="selectedCompany" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                                 <option value="">เลือกบริษัท</option>
-                                @foreach($companies as $company)
-                                    <option value="{{ $company->name }}" @selected(old('company') == $company->name)>{{ $company->name }}</option>
-                                @endforeach
+                                <template x-for="comp in companies" :key="comp.id">
+                                    <option :value="comp.name" x-text="comp.name"></option>
+                                </template>
                             </select>
                             <x-input-error :messages="$errors->get('company')" class="mt-2" />
+                        </div>
+
+                        <!-- Department -->
+                        <div class="mt-4">
+                            <x-input-label for="department" :value="__('หน่วยงาน/แผนก (Department)')" />
+                            <select id="department" name="department" x-model="selectedDepartment" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" :disabled="!selectedCompany || departments.length === 0">
+                                <option value="">เลือกแผนก</option>
+                                <template x-for="dept in departments" :key="dept.id">
+                                    <option :value="dept.name" x-text="dept.name"></option>
+                                </template>
+                            </select>
+                            <p x-show="selectedCompany && departments.length === 0" class="mt-1 text-sm text-gray-500">บริษัทนี้ยังไม่มีการตั้งค่าแผนก</p>
+                            <x-input-error :messages="$errors->get('department')" class="mt-2" />
                         </div>
 
                         <!-- Phone -->
@@ -89,4 +102,29 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function userForm() {
+            return {
+                companies: @json($companies),
+                selectedCompany: '{{ old('company', '') }}',
+                selectedDepartment: '{{ old('department', '') }}',
+                
+                get departments() {
+                    if (!this.selectedCompany) return [];
+                    const company = this.companies.find(c => c.name === this.selectedCompany);
+                    return company && company.departments ? company.departments : [];
+                },
+                
+                init() {
+                    this.$watch('selectedCompany', (value, oldValue) => {
+                        // Reset department only if company changed manually (not on load)
+                        if (oldValue !== undefined) {
+                            this.selectedDepartment = '';
+                        }
+                    });
+                }
+            }
+        }
+    </script>
 </x-app-layout>
