@@ -12,7 +12,7 @@
    - **การแจ้งซ่อม:** พนักงานกรอกข้อมูลผ่านแบบฟอร์มออนไลน์ โดยมีเงื่อนไขดังนี้:
      - **ข้อมูลบังคับ (Required):** เบอร์โทรศัพท์ติดต่อกลับ (ต้องเป็นรูปแบบเบอร์โทรศัพท์ 10 หลัก), สถานที่/จุดที่เกิดปัญหา, และรายละเอียดอาการ (บังคับกรอกครบตามหลัก 5W2H)
      - **ข้อมูลไม่บังคับ (Optional):** หมวดหมู่ปัญหา (หากไม่เลือกจะถูกตั้งเป็น "อื่นๆ" อัตโนมัติ) และไฟล์แนบรูปภาพ (จำกัดเฉพาะไฟล์รูปภาพ ขนาดไม่เกิน 5MB)
-   - **ระบบอัตโนมัติ:** เมื่อแจ้งสำเร็จ ระบบจะสร้างเลขที่ใบแจ้งซ่อม (Ticket ID) และส่งแจ้งเตือน (Notification) ไปยังอีเมลผู้แจ้ง และ **กลุ่ม Line ของฝ่าย IT** ทันที
+   - **ระบบอัตโนมัติ:** เมื่อแจ้งสำเร็จ ระบบจะสร้างเลขที่ใบแจ้งซ่อม (Ticket ID) ในรูปแบบ Running Number รายเดือน (`IT-YYYYMM-XXXX`) และส่งแจ้งเตือน (Notification) ไปยังอีเมลผู้แจ้ง และ **กลุ่ม Line ของฝ่าย IT** ทันที
    - **Dashboard ส่วนตัว:** ผู้ใช้จะมองเห็นสถานะใบงาน (Ticket) **เฉพาะเคสที่ตัวเองเป็นคนแจ้งเท่านั้น**
 
 2. **ขั้นตอนการคัดกรองและมอบหมายงาน (Helpdesk Triage & Assignment - Tier 1):**
@@ -73,6 +73,7 @@
    - **Dashboard (Admin/Helpdesk/Tier 2):** ปรับปรุง Layout ให้แสดงผลสวยงาม เน้นอ่านง่าย ซ่อนเมนู Task 2 สำหรับ Helpdesk (Tier 1) และจัดการสถานะย่อยให้รวมกันได้อย่างเป็นระเบียบ (แสดงเปอร์เซ็นต์เสมอ)
    - **LINE OA Webhook Integration:** รองรับการเปิดเคส (พิมพ์ "แจ้งซ่อม") และติดตามสถานะ (พิมพ์ "เช็คสถานะ") ผ่านช่องทางแชทของ LINE Official Account โดยระบบจะประมวลผลและสร้าง Ticket อัตโนมัติ พร้อมส่งข้อความยืนยันและรายงานสถานะผ่านระบบ Reply Message (แบบไม่มีค่าใช้จ่าย)
    - **Read-only Date Display:** ช่องวันที่ในมาตรการป้องกันจะแสดงเป็นข้อความภาษาไทยเมื่อปิดงานหรือ Manager เข้ามาดู แต่จะยังเป็นช่อง Input Date Picker ให้ช่างกดเลือกได้ตามปกติเมื่อแก้ไขข้อมูล
+   - **P-CAR Form 4 (Printable Report):** มีฟังก์ชันสั่งพิมพ์ใบรายงาน P-CAR Form 4 ที่ถูกออกแบบมาให้มีสัดส่วน (Pixel-perfect) ตรงกับหน้ากระดาษแบบฟอร์มเดิมของบริษัท 100% พร้อมดึงข้อมูลแบบอัตโนมัติ
 5. **มาตรฐานข้อมูล (Data Standards):**
    - **Date Format:** รูปแบบการแสดงผลวันที่ในระบบทั้งหมด กำหนดให้ใช้มาตรฐาน `dd/MMMM/yyyy` (เช่น 10 มกราคม 2026) หรือเทียบเท่ากับฟอร์แมต `d F Y` ในภาษา PHP
 
@@ -84,11 +85,12 @@
 
 ## บัญชีสำหรับทดสอบระบบ (Test Accounts)
 
-
-| Role | Name | Email | Password | Department |
+| ตำแหน่ง (Role) | ชื่อ (Name) | อีเมล (Email) | รหัสผ่าน (Password) | บริษัท (Company) |
 |---|---|---|---|---|
-| User ทั่วไป | General User | `user@example.com` | `password` | HR |
-| Helpdesk (Tier 1) | Helpdesk Agent | `helpdesk@example.com` | `password` | IT |
-| Team Hardware (Tier 2) | Hardware Specialist | `hardware@example.com` | `password` | IT |
-| Manager | IT Manager | `manager@example.com` | `password` | IT |
-| Administrator | System Admin | `admin@example.com` | `password` | IT |
+| team_network | อาทิตย์ พรมจันทร์ | `network_02@polymate.co.th` | `password` | Polymate |
+| administrator | admin | `admin@example.com` | `password` | Polymate |
+| manager | ณัฏฐนันท์ สถิตกุลธรรม | `hardware_01@polymate.co.th` | `password` | Polymate |
+| helpdesk | จรัญนวัฒน์ ศิรินาโพธิ์ | `contact@polymate.co.th` | `password` | Polymate |
+| team_hardware | ปริญญา แตงทอง | `hardware_02@polymate.co.th` | `password` | Polymate |
+| user | General User | `user@example.com` | `password` | Polymate |
+| user | รชต วงศาสวัสดิ์ | `` | `password` | Polymate |
