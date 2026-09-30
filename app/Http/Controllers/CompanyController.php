@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\Department;
+use App\Models\User;
 use App\Models\Sla;
 use Illuminate\Http\Request;
 
@@ -37,12 +39,14 @@ class CompanyController extends Controller
             'name' => 'required|string|max:255|unique:companies,name',
             'short_name' => 'nullable|string|max:50',
             'is_active' => 'boolean',
+            'email_domains' => 'required|string|max:255',
         ]);
 
         $company = Company::create([
             'name' => $request->name,
             'short_name' => $request->short_name,
             'is_active' => $request->has('is_active'),
+            'email_domains' => $request->email_domains,
         ]);
 
         // Create default SLAs for the new company
@@ -72,6 +76,7 @@ class CompanyController extends Controller
             'name' => 'required|string|max:255|unique:companies,name,'.$company->id,
             'short_name' => 'nullable|string|max:50',
             'is_active' => 'boolean',
+            'email_domains' => 'required|string|max:255',
         ]);
 
         $oldName = $company->name;
@@ -81,6 +86,7 @@ class CompanyController extends Controller
             'name' => $newName,
             'short_name' => $request->short_name,
             'is_active' => $request->has('is_active'),
+            'email_domains' => $request->email_domains,
         ]);
 
         // Update related SLAs if the name changed
@@ -98,5 +104,49 @@ class CompanyController extends Controller
         $company->delete();
 
         return redirect()->route('companies.index')->with('success', 'ลบบริษัทและ SLA ที่เกี่ยวข้องสำเร็จ');
+    }
+
+    public function storeDepartment(Request $request, Company $company)
+    {
+        $this->authorizeAdministrator();
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $company->departments()->firstOrCreate(['name' => $request->name]);
+
+        return redirect()->route('companies.edit', $company)->with('success', 'เพิ่มหน่วยงานสำเร็จ');
+    }
+
+    public function updateDepartment(Request $request, Department $department)
+    {
+        $this->authorizeAdministrator();
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $company = $department->company;
+        $oldName = $department->name;
+        $newName = $request->name;
+
+        if ($oldName !== $newName) {
+            $department->update(['name' => $newName]);
+
+            // Cascade update to users
+            User::where('company', $company->name)
+                ->where('department', $oldName)
+                ->update(['department' => $newName]);
+        }
+
+        return redirect()->route('companies.edit', $company->id)->with('success', 'แก้ไขหน่วยงาน และอัปเดตข้อมูลพนักงานที่เกี่ยวข้องเรียบร้อยแล้ว');
+    }
+
+    public function destroyDepartment(Department $department)
+    {
+        $this->authorizeAdministrator();
+        $companyId = $department->company_id;
+        $department->delete();
+
+        return redirect()->route('companies.edit', $companyId)->with('success', 'ลบหน่วยงานสำเร็จ');
     }
 }
