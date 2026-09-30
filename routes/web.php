@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/tickets/create', [TicketController::class, 'create'])->name('tickets.create');
     Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
     Route::get('/tickets/{id}', [TicketController::class, 'show'])->name('tickets.show');
+    Route::get('/tickets/{id}/print', [TicketController::class, 'print'])->name('tickets.print');
     Route::put('/tickets/{id}/assign', [TicketController::class, 'assign'])->name('tickets.assign');
     Route::put('/tickets/{id}/status', [TicketController::class, 'updateStatus'])->name('tickets.updateStatus');
 
@@ -47,6 +48,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('normal_users', NormalUserController::class)->except(['show']);
     Route::resource('categories', CategoryController::class)->except(['show']);
     Route::resource('companies', CompanyController::class)->except(['show']);
+    Route::post('companies/{company}/departments', [CompanyController::class, 'storeDepartment'])->name('companies.departments.store');
+    Route::put('companies/departments/{department}', [CompanyController::class, 'updateDepartment'])->name('companies.departments.update');
+    Route::delete('companies/departments/{department}', [CompanyController::class, 'destroyDepartment'])->name('companies.departments.destroy');
 
     Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
