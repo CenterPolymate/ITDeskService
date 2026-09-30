@@ -32,7 +32,7 @@
                                     <x-text-input id="email" class="block mt-1 w-full bg-gray-100 text-gray-500" type="email" value="{{ Auth::user()->email }}" disabled />
                                 </div>
                                 <div>
-                                    <label for="requester_phone" class="block font-medium text-sm text-red-600 mb-1">เบอร์โทรศัพท์ติดต่อกลับ <span class="text-red-500 text-lg">*</span></label>
+                                    <label for="requester_phone" class="block font-medium text-sm text-red-600 mb-1">เบอร์โทรศัพท์ติดต่อกลับ <span class="text-red-500">*</span></label>
                                     <x-text-input id="requester_phone" class="block mt-1 w-full border-red-300 border-l-4 border-l-red-500 bg-red-50/30 focus:border-red-500 focus:ring-red-500" type="text" name="requester_phone" :value="old('requester_phone')" placeholder="เช่น 081-123-4567" required pattern="^0[0-9]{1,2}-?[0-9]{3}-?[0-9]{4}$" title="กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (เช่น 081-123-4567 หรือ 0811234567)" />
                                     <x-input-error :messages="$errors->get('requester_phone')" class="mt-2" />
                                 </div>
@@ -42,9 +42,9 @@
                         <!-- Template ช่วยกรอกด่วน (Quick Issue Templates) -->
                         <div class="mb-8 p-4 bg-blue-50 rounded-lg border border-blue-100" x-data="{
                             fillTemplate(title, category, desc) {
-                                document.getElementById('title').value = title;
+                                let t = document.getElementById('title'); t.value = title; t.dispatchEvent(new Event('input'));
                                 document.getElementById('category').value = category;
-                                document.getElementById('description').value = desc;
+                                let d = document.getElementById('description'); d.value = desc; d.dispatchEvent(new Event('input'));
                             }
                         }">
                             <h3 class="text-sm font-semibold text-blue-800 uppercase tracking-wider mb-3 flex items-center">
@@ -52,16 +52,16 @@
                                 อาการที่พบบ่อย (Quick Templates)
                             </h3>
                             <div class="flex flex-wrap gap-2">
-                                <button type="button" @click="fillTemplate('เปิดคอมพิวเตอร์ไม่ติด / ไม่มีภาพหน้าจอ', 'Hardware', 'Who: \nWhat: เปิดคอมพิวเตอร์ไม่ติด ไม่มีภาพขึ้นหน้าจอ\nWhere: \nWhen: \nWhy: \nHow: \nHow many: ')" class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-full text-blue-700 bg-white hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                <button type="button" @click="fillTemplate('เปิดคอมพิวเตอร์ไม่ติด / ไม่มีภาพหน้าจอ', 'Hardware', 'What: เปิดคอมพิวเตอร์ไม่ติด ไม่มีภาพขึ้นหน้าจอ\nWhere/When: \nWhy/How: ')" class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-full text-blue-700 bg-white hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                                     💻 เปิดคอมไม่ติด
                                 </button>
-                                <button type="button" @click="fillTemplate('อินเทอร์เน็ตใช้งานไม่ได้ / หลุดบ่อย', 'Network', 'Who: \nWhat: อินเทอร์เน็ตเชื่อมต่อไม่ได้ หรือหลุดบ่อย\nWhere: \nWhen: \nWhy: \nHow: \nHow many: ')" class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-full text-blue-700 bg-white hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                <button type="button" @click="fillTemplate('อินเทอร์เน็ตใช้งานไม่ได้ / หลุดบ่อย', 'Network', 'What: อินเทอร์เน็ตเชื่อมต่อไม่ได้ หรือหลุดบ่อย\nWhere/When: \nWhy/How: ')" class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-full text-blue-700 bg-white hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                                     🌐 เน็ตหลุด/เข้าไม่ได้
                                 </button>
-                                <button type="button" @click="fillTemplate('เครื่องพิมพ์ปริ้นงานไม่ออก / กระดาษติด', 'Hardware', 'Who: \nWhat: ปริ้นเตอร์ปริ้นไม่ออก หรือกระดาษติด\nWhere: \nWhen: \nWhy: \nHow: \nHow many: ')" class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-full text-blue-700 bg-white hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                <button type="button" @click="fillTemplate('เครื่องพิมพ์ปริ้นงานไม่ออก / กระดาษติด', 'Hardware', 'What: ปริ้นเตอร์ปริ้นไม่ออก หรือกระดาษติด\nWhere/When: \nWhy/How: ')" class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-full text-blue-700 bg-white hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                                     🖨️ ปริ้นงานไม่ออก
                                 </button>
-                                <button type="button" @click="fillTemplate('ลืมรหัสผ่าน / เข้าใช้งานระบบไม่ได้', 'Software', 'Who: \nWhat: ลืมรหัสผ่านเข้าใช้งานระบบ \nWhere: \nWhen: \nWhy: \nHow: \nHow many: ')" class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-full text-blue-700 bg-white hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                                <button type="button" @click="fillTemplate('ลืมรหัสผ่าน / เข้าใช้งานระบบไม่ได้', 'Software', 'What: ลืมรหัสผ่านเข้าใช้งานระบบ \nWhere/When: \nWhy/How: ')" class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-full text-blue-700 bg-white hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                                     🔑 ลืมรหัสผ่าน
                                 </button>
                             </div>
@@ -85,22 +85,31 @@
                                 </div>
 
                                 <div class="col-span-2 md:col-span-1">
-                                    <label for="location" class="block font-medium text-sm text-red-600 mb-1">สถานที่/จุดที่เกิดปัญหา <span class="text-red-500 text-lg">*</span></label>
+                                    <label for="location" class="block font-medium text-sm text-red-600 mb-1">สถานที่/จุดที่เกิดปัญหา <span class="text-red-500">*</span></label>
                                     <x-text-input id="location" class="block mt-1 w-full border-red-300 border-l-4 border-l-red-500 bg-red-50/30 focus:border-red-500 focus:ring-red-500" type="text" name="location" :value="old('location')" required placeholder="เช่น อาคาร A ชั้น 2" />
                                     <x-input-error :messages="$errors->get('location')" class="mt-2" />
                                 </div>
                             </div>
 
                             <div class="mb-6">
-                                <label for="title" class="block font-medium text-sm text-red-600 mb-1">หัวข้อปัญหา (Subject) <span class="text-red-500 text-lg">*</span></label>
-                                <x-text-input id="title" class="block mt-1 w-full border-red-300 border-l-4 border-l-red-500 bg-red-50/30 focus:border-red-500 focus:ring-red-500" type="text" name="title" :value="old('title')" required placeholder="สรุปอาการสั้นๆ เช่น เปิดคอมไม่ติด, เน็ตหลุดบ่อย" />
+                                <label for="title" class="block font-medium text-sm text-red-600 mb-1 flex justify-between">
+                                    <span>หัวข้อปัญหา (Subject) <span class="text-red-500">*</span></span>
+                                    <span class="text-xs text-gray-500"><span id="title-counter">0</span>/100</span>
+                                </label>
+                                <x-text-input id="title" class="block mt-1 w-full border-red-300 border-l-4 border-l-red-500 bg-red-50/30 focus:border-red-500 focus:ring-red-500" type="text" name="title" :value="old('title')" maxlength="100" required placeholder="สรุปอาการสั้นๆ เช่น เปิดคอมไม่ติด, เน็ตหลุดบ่อย" oninput="document.getElementById('title-counter').innerText = this.value.length;" />
                                 <x-input-error :messages="$errors->get('title')" class="mt-2" />
                             </div>
 
                             <div class="mb-6">
-                                <label for="description" class="block font-medium text-sm text-red-600 mb-1">รายละเอียดอาการ (Description) <span class="text-red-500 text-lg">*</span></label>
-                                <p class="text-xs text-red-500 mt-1 mb-2 font-medium">กรุณาใส่อาการของปัญหาให้ครบ (5W2H)</p>
-                                <textarea id="description" name="description" rows="8" class="block w-full border-red-300 border-l-4 border-l-red-500 bg-red-50/30 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm" required placeholder="อธิบายปัญหาอย่างละเอียด หรือข้อความแจ้งเตือนที่ขึ้นบนหน้าจอ...">{{ old('description') }}</textarea>
+                                <label for="description" class="block font-medium text-sm text-red-600 mb-1 flex justify-between items-end">
+                                    <span>รายละเอียดอาการ (Description) <span class="text-red-500">*</span></span>
+                                    <span class="text-xs text-gray-500">
+                                        บรรทัด: <span id="line-counter">1</span>/4 | 
+                                        ตัวอักษร: <span id="desc-counter">0</span>/400
+                                    </span>
+                                </label>
+                                <p class="text-xs text-red-500 mt-1 mb-2 font-medium">กรุณาใส่อาการของปัญหาให้ครบ (5W2H) - จำกัดสูงสุด 4 บรรทัด (เพื่อความพอดีในใบงาน)</p>
+                                <textarea id="description" name="description" rows="4" maxlength="400" class="block w-full border-red-300 border-l-4 border-l-red-500 bg-red-50/30 focus:border-red-500 focus:ring-red-500 rounded-md shadow-sm resize-none" required placeholder="อธิบายปัญหาอย่างละเอียด หรือข้อความแจ้งเตือนที่ขึ้นบนหน้าจอ...">{{ old('description') }}</textarea>
                                 <x-input-error :messages="$errors->get('description')" class="mt-2" />
                             </div>
 
@@ -152,6 +161,42 @@
                                 });
                                 dropZone.addEventListener('drop', (e) => {
                                     dropZone.classList.remove('bg-gray-100', 'border-indigo-500');
+                                });
+
+                                // Script for character and line limits
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const titleInput = document.getElementById('title');
+                                    const titleCounter = document.getElementById('title-counter');
+                                    if (titleInput) {
+                                        titleCounter.innerText = titleInput.value.length;
+                                    }
+
+                                    const descInput = document.getElementById('description');
+                                    const descCounter = document.getElementById('desc-counter');
+                                    const lineCounter = document.getElementById('line-counter');
+
+                                    if (descInput) {
+                                        const updateDescInfo = () => {
+                                            descCounter.innerText = descInput.value.length;
+                                            let lines = descInput.value.split('\n');
+                                            lineCounter.innerText = lines.length;
+                                            
+                                            if (lines.length > 4) {
+                                                descInput.value = lines.slice(0, 4).join('\n');
+                                                lineCounter.innerText = 4;
+                                            }
+                                        };
+                                        
+                                        descInput.addEventListener('input', updateDescInfo);
+                                        descInput.addEventListener('keydown', function(e) {
+                                            if (e.key === 'Enter') {
+                                                if (this.value.split('\n').length >= 4) {
+                                                    e.preventDefault();
+                                                }
+                                            }
+                                        });
+                                        updateDescInfo();
+                                    }
                                 });
                             </script>
                         </div>
