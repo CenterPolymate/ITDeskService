@@ -28,6 +28,14 @@
                             @enderror
                         </div>
 
+                        <div class="mb-4">
+                            <label for="email_domains" class="block text-sm font-medium text-gray-700">โดเมนอีเมลที่อนุญาต (คั่นด้วยลูกน้ำ) <span class="text-red-500">*</span></label>
+                            <input type="text" name="email_domains" id="email_domains" required placeholder="เช่น @polymate.co.th, @gmail.com" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="{{ old('email_domains') }}">
+                            @error('email_domains')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <div class="mb-6">
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="is_active" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
