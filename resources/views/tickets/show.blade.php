@@ -1027,11 +1027,11 @@
                         </div>
                     </div>
                     
-                    <!-- สรุปเวลาการทำงาน Task 1 (Case Summary) -->
+                    <!-- สรุปเวลาการทำงาน (Case Summary) -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mt-6 border-t-4 border-indigo-500">
                         <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center border-b pb-2">
                             <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            สรุปเวลาการทำงาน Task 1
+                            สรุปเวลาการทำงาน
                         </h3>
                         
                         <div class="space-y-4 text-sm">
