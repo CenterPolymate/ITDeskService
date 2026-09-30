@@ -28,7 +28,7 @@ erDiagram
 
     HELPDESK_CASES {
         bigint id PK
-        string ticket_no "รหัสใบงาน (Unique) เช่น ITD-2026-001"
+        string ticket_no "รหัสใบงาน (Unique) รูปแบบ IT-YYYYMM-XXXX (Running Number รายเดือน)"
         string title "หัวข้อปัญหา"
         text description "รายละเอียด"
         string category "ประเภทอุปกรณ์ / หมวดหมู่"
@@ -52,6 +52,7 @@ erDiagram
         text preventive_measure_specific "มาตรการป้องกันเฉพาะกรณี"
         text preventive_measure_systemic "มาตรการป้องกันทั้งระบบ"
         timestamp sla_due_at "กำหนดเสร็จ SLA"
+        timestamp assigned_at "เวลารับแจ้ง/มอบหมายงาน"
         timestamp analyzing_at "เวลาสืบสภาพ"
         timestamp in_progress_at "เวลาเริ่มแก้ไข"
         timestamp resolved_at "เวลาส่งมอบ"
@@ -60,6 +61,7 @@ erDiagram
         timestamp cancelled_at "เวลายกเลิก"
         bigint analyzing_by "FK -> USERS (ผู้สืบสภาพ)"
         bigint in_progress_by "FK -> USERS (ผู้ดำเนินการ)"
+        bigint assigned_by "FK -> USERS (ผู้มอบหมายงาน/รับแจ้ง)"
         bigint resolved_by "FK -> USERS (ผู้ส่งมอบ)"
         bigint approved_by "FK -> USERS (ผู้รับงาน)"
         bigint closed_by "FK -> USERS (ผู้ปิดเคส)"
@@ -84,6 +86,7 @@ erDiagram
     COMPANIES ||--o{ USERS : "มีพนักงานสังกัด"
     USERS ||--o{ HELPDESK_CASES : "ผู้แจ้ง (user_id)"
     USERS ||--o{ HELPDESK_CASES : "สืบสภาพโดย (analyzing_by)"
+    USERS ||--o{ HELPDESK_CASES : "มอบหมายโดย (assigned_by)"
     USERS ||--o{ HELPDESK_CASES : "แก้ไขโดย (in_progress_by)"
     USERS ||--o{ HELPDESK_CASES : "ส่งมอบโดย (resolved_by)"
     USERS ||--o{ HELPDESK_CASES : "อนุมัติโดย (approved_by)"
