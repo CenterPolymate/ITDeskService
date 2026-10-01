@@ -10,6 +10,27 @@ class HelpdeskCase extends Model
 {
     use HasFactory;
 
+    protected $guarded = [];
+
+    protected $casts = [
+        'sla_due_at' => 'datetime',
+        'assigned_at' => 'datetime',
+        'analyzing_at' => 'datetime',
+        'in_progress_at' => 'datetime',
+        'resolved_at' => 'datetime',
+        'approved_at' => 'datetime',
+        'closed_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+        'pcar_opened_at' => 'datetime',
+        'pcar_analyzed_at' => 'datetime',
+        'pcar_closed_at' => 'datetime',
+    ];
+
+    public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
+    }
+
     /**
      * The attributes that are mass assignable.
      *
