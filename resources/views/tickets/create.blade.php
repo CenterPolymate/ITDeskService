@@ -116,40 +116,96 @@
                             <!-- แนบไฟล์รูปภาพ -->
                             <div class="mb-6">
                                 <x-input-label for="attachment" value="แนบไฟล์รูปภาพ (Optional)" />
-                                <div id="drop-zone" class="mt-1 relative flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:bg-gray-50 transition-colors">
-                                    <input id="attachment" name="attachment" type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/png, image/jpeg, image/jpg" onchange="handleFileSelect(this)">
-                                    <div class="space-y-1 text-center pointer-events-none">
+                                <div id="drop-zone" class="mt-1 relative flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:bg-gray-50 transition-colors min-h-[200px]">
+                                    <input id="attachments" name="attachments[]" type="file" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" accept="image/*" capture="environment" onchange="handleFileSelect(this)">
+                                    <div class="space-y-1 text-center pointer-events-none absolute inset-0 flex flex-col items-center justify-center z-10" id="upload-content">
                                         <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                                             <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                         </svg>
                                         <div class="flex text-sm text-gray-600 justify-center">
                                             <span class="relative bg-transparent rounded-md font-medium text-indigo-600">
-                                                <span id="file-upload-text">อัปโหลดไฟล์รูปภาพ</span>
+                                                <span id="file-upload-text">อัปโหลดไฟล์รูปภาพ (ได้สูงสุด 2 รูป)</span>
                                             </span>
                                             <p class="pl-1" id="drag-text">หรือลากไฟล์มาวางที่นี่</p>
                                         </div>
                                         <p class="text-xs text-gray-500">PNG, JPG ขนาดไม่เกิน 5MB</p>
                                     </div>
+                                    <div id="image-preview-container" class="hidden w-full relative z-30 flex flex-col items-center">
+                                        <div id="preview-grid" class="flex flex-wrap gap-4 justify-center mb-2 w-full"></div>
+                                        <button type="button" onclick="removeImage(event)" class="mt-2 text-xs text-red-500 font-medium hover:text-red-700 pointer-events-auto bg-white px-3 py-1.5 rounded shadow-sm border border-red-200">ลบรูปภาพทั้งหมด / ถ่ายใหม่</button>
+                                    </div>
                                 </div>
-                                <x-input-error :messages="$errors->get('attachment')" class="mt-2" />
+                                <x-input-error :messages="$errors->get('attachments')" class="mt-2" />
                             </div>
                             
                             <script>
                                 function handleFileSelect(input) {
-                                    if (input.files && input.files[0]) {
-                                        if (input.files[0].size > 5242880) { // 5MB
-                                            alert('ไฟล์มีขนาดใหญ่เกิน 5MB กรุณาเลือกไฟล์ใหม่');
-                                            input.value = '';
-                                            document.getElementById('file-upload-text').innerText = 'อัปโหลดไฟล์';
-                                            document.getElementById('drag-text').style.display = 'block';
+                                    const uploadContent = document.getElementById('upload-content');
+                                    const previewContainer = document.getElementById('image-preview-container');
+                                    const previewGrid = document.getElementById('preview-grid');
+
+                                    if (input.files && input.files.length > 0) {
+                                        if (input.files.length > 2) {
+                                            alert('สามารถแนบรูปภาพได้สูงสุด 2 รูปเท่านั้น');
+                                            removeImage(new Event('click'));
                                             return;
                                         }
-                                        document.getElementById('file-upload-text').innerText = input.files[0].name;
-                                        document.getElementById('drag-text').style.display = 'none';
+
+                                        let hasOversizedFile = false;
+                                        Array.from(input.files).forEach(file => {
+                                            if (file.size > 5242880) hasOversizedFile = true;
+                                        });
+
+                                        if (hasOversizedFile) {
+                                            alert('มีไฟล์ขนาดใหญ่เกิน 5MB กรุณาเลือกไฟล์ใหม่');
+                                            removeImage(new Event('click'));
+                                            return;
+                                        }
+                                        
+                                        // Clear previous previews
+                                        previewGrid.innerHTML = '';
+                                        
+                                        // Show previews
+                                        Array.from(input.files).forEach(file => {
+                                            const reader = new FileReader();
+                                            reader.onload = function(e) {
+                                                const imgWrapper = document.createElement('div');
+                                                imgWrapper.className = 'flex flex-col items-center';
+                                                
+                                                const img = document.createElement('img');
+                                                img.src = e.target.result;
+                                                img.className = 'h-32 object-contain rounded-md shadow-sm border border-gray-200 mb-1 bg-white';
+                                                
+                                                const name = document.createElement('span');
+                                                name.className = 'text-xs text-gray-500 truncate w-32 text-center';
+                                                name.innerText = file.name;
+                                                
+                                                imgWrapper.appendChild(img);
+                                                imgWrapper.appendChild(name);
+                                                previewGrid.appendChild(imgWrapper);
+                                            }
+                                            reader.readAsDataURL(file);
+                                        });
+
+                                        uploadContent.classList.add('hidden');
+                                        previewContainer.classList.remove('hidden');
                                     } else {
-                                        document.getElementById('file-upload-text').innerText = 'อัปโหลดไฟล์';
-                                        document.getElementById('drag-text').style.display = 'block';
+                                        removeImage(new Event('click'));
                                     }
+                                }
+
+                                function removeImage(e) {
+                                    if(e) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                    }
+                                    
+                                    const input = document.getElementById('attachments');
+                                    if(input) input.value = '';
+                                    
+                                    document.getElementById('upload-content').classList.remove('hidden');
+                                    document.getElementById('image-preview-container').classList.add('hidden');
+                                    document.getElementById('preview-grid').innerHTML = '';
                                 }
 
                                 const dropZone = document.getElementById('drop-zone');
