@@ -64,7 +64,7 @@ class RegisteredUserController extends Controller
                 }
             ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'department' => ['nullable', 'string', 'max:100'],
+            'department' => ['required', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:20'],
         ]);
 
