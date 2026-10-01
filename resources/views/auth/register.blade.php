@@ -38,7 +38,7 @@
 
         <!-- Department -->
         <div>
-            <label for="department" class="block text-sm font-medium text-gray-700 mb-1">แผนก (Department)</label>
+            <label for="department" class="block text-sm font-medium text-gray-700 mb-1">แผนก (Department) <span class="text-red-500">*</span></label>
             <!-- Dropdown สำหรับเมื่อมีแผนก -->
             <div class="relative" x-show="departments.length > 0 && selectedDepartment !== 'other'" style="display: none;">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -46,7 +46,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                 </div>
-                <select id="department_select" x-bind:name="(departments.length > 0 && selectedDepartment !== 'other') ? 'department' : ''" x-model="selectedDepartment" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white/50 backdrop-blur-sm transition duration-200" :disabled="!selectedCompany">
+                <select id="department_select" x-bind:name="(departments.length > 0 && selectedDepartment !== 'other') ? 'department' : ''" x-model="selectedDepartment" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white/50 backdrop-blur-sm transition duration-200" :disabled="!selectedCompany" x-bind:required="departments.length > 0 && selectedDepartment !== 'other'">
                     <option value="">กรุณาเลือกแผนกที่ท่านสังกัด</option>
                     <template x-for="dept in departments" :key="dept.id">
                         <option :value="dept.name" x-text="dept.name"></option>
@@ -62,7 +62,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                 </div>
-                <input id="department" type="text" x-bind:name="(departments.length === 0 || selectedDepartment === 'other') ? 'department' : ''" x-model="customDepartment" placeholder="กรุณาระบุแผนกที่ท่านสังกัด" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white/50 backdrop-blur-sm transition duration-200" :disabled="!selectedCompany">
+                <input id="department" type="text" x-bind:name="(departments.length === 0 || selectedDepartment === 'other') ? 'department' : ''" x-model="customDepartment" placeholder="กรุณาระบุแผนกที่ท่านสังกัด" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white/50 backdrop-blur-sm transition duration-200" :disabled="!selectedCompany" x-bind:required="departments.length === 0 || selectedDepartment === 'other'">
                 <button type="button" x-show="departments.length > 0 && selectedDepartment === 'other'" @click="selectedDepartment = ''" class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-indigo-600 hover:text-indigo-800 font-medium">กลับไปเลือก</button>
             </div>
             
