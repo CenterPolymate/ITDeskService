@@ -186,25 +186,25 @@
                     <table class="w-full h-full border-hidden">
                         <tr>
                             <td class="w-1/2 p-1 align-top border-r-0">
-                                <div class="mb-[2px]"><span class="w-14 inline-block">หน่วยงาน :</span> <span
-                                        class="dotted-line w-[75%] val text-center">{{ $ticket->department }}</span>
+                                <div class="mb-[2px] flex items-end"><span class="w-16 shrink-0 inline-block">หน่วยงาน :</span> <span
+                                        class="dotted-line flex-1 val text-left">{{ $ticket->department }}</span>
                                 </div>
-                                <div class="mb-[2px]"><span class="w-14 inline-block">ชื่อผู้แจ้ง :</span> <span
-                                        class="dotted-line w-[75%] val text-center">{{ $ticket->requester_name }}</span>
+                                <div class="mb-[2px] flex items-end"><span class="w-16 shrink-0 inline-block">ชื่อผู้แจ้ง :</span> <span
+                                        class="dotted-line flex-1 val text-left">{{ $ticket->requester_name }}</span>
                                 </div>
-                                <div class="mb-[2px]"><span class="w-14 inline-block">ชื่อผู้ใช้งาน :</span> <span
-                                        class="dotted-line w-[75%] text-center val">คุณ{{ $ticket->user->name ?? $ticket->requester_name }} บริษัท {{ $ticket->user->company->short_name ?? '' }} - {{ $ticket->user->department ?? '' }}</span></div>
-                                <div class="mb-[2px]"><span class="w-14 inline-block">ชื่อเครื่อง :</span> <span
-                                        class="dotted-line w-[75%] text-center">&nbsp;</span></div>
-                                <div><span class="w-14 inline-block">รหัสเครื่อง :</span> <span
-                                        class="dotted-line w-[75%] text-center">&nbsp;</span></div>
+                                <div class="mb-[2px] flex items-end"><span class="w-16 shrink-0 inline-block">ชื่อผู้ใช้งาน :</span> <span
+                                        class="dotted-line flex-1 text-left val">คุณ{{ $ticket->user->name ?? $ticket->requester_name }} บริษัท {{ $ticket->user->company ?? '' }} - {{ $ticket->user->department ?? '' }}</span></div>
+                                <div class="mb-[2px] flex items-end"><span class="w-16 shrink-0 inline-block">ชื่อเครื่อง :</span> <span
+                                        class="dotted-line flex-1 text-left">&nbsp;</span></div>
+                                <div class="flex items-end"><span class="w-16 shrink-0 inline-block">รหัสเครื่อง :</span> <span
+                                        class="dotted-line flex-1 text-left">&nbsp;</span></div>
                             </td>
                             <td class="w-1/2 p-1 align-top border-l-0">
                                 <div class="mb-2 whitespace-nowrap text-right pr-4">
                                     วันที่เครื่องขัดข้อง : <span
                                         class="dotted-line w-28 text-center val">{{ $ticket->created_at->locale('th')->translatedFormat('d F Y') }}</span>
-                                    เวลา : <span
-                                        class="dotted-line w-12 text-center val">{{ $ticket->created_at->format('H:i') }}</span>
+                                    เวลา <span
+                                        class="dotted-line w-16 text-center val">{{ $ticket->created_at->format('H:i') }}</span>
                                     น.
                                 </div>
                                 <div class="mb-1 ml-10"><span class="checkbox"></span> เครื่องจักรหยุด</div>
@@ -305,9 +305,9 @@
                                 <div class="flex-1 text-center text-[9px] pb-[2px] whitespace-nowrap">( ผู้รับแจ้ง :
                                     ฝ่ายวิศวกรรม/ฝ่ายINS )</div>
                                 <div class="w-28 ml-4 flex items-end text-[9px]">
-                                    <span class="mr-1">เวลา :</span>
+                                    <span class="mr-1">เวลา</span>
                                     <div
-                                        class="w-12 border-b border-dotted border-black text-center val leading-none pb-[2px]">
+                                        class="w-16 border-b border-dotted border-black text-center val leading-none pb-[2px]">
                                         {{ $receivedAt->format('H:i') }}</div>
                                     <span class="ml-1">น.</span>
                                 </div>
@@ -352,8 +352,8 @@
                         <div class="w-28 dotted-line text-center val">
                             {{ $ticket->analyzing_at ? $ticket->analyzing_at->locale('th')->translatedFormat('d F Y') : '' }}
                         </div>
-                        <span class="mx-1">เวลา :</span>
-                        <div class="w-12 dotted-line text-center val">
+                        <span class="mx-1">เวลา</span>
+                        <div class="w-16 dotted-line text-center val">
                             {{ $ticket->analyzing_at ? $ticket->analyzing_at->format('H:i') : '' }}</div><span
                             class="ml-1 mr-8">น.</span>
                         <span class="mr-1">รวม</span>
@@ -424,9 +424,9 @@
                 @endphp
                 <td colspan="2" class="p-1 border-b border-black text-center text-[9px]">
                     เสร็จวันที่ <span
-                        class="dotted-line w-28 text-blue-700">{{ $calculated_finish ? $calculated_finish->translatedFormat('d M Y') : '' }}</span>
-                    เวลา <span
-                        class="dotted-line w-12 text-blue-700">{{ $calculated_finish ? $calculated_finish->format('H:i') : '' }}</span>
+                        class="dotted-line w-28 text-blue-700">{{ $calculated_finish ? $calculated_finish->locale('th')->translatedFormat('d F Y') : '' }}</span>
+                    <span class="ml-2">เวลา</span> <span
+                        class="dotted-line w-16 text-blue-700">{{ $calculated_finish ? $calculated_finish->format('H:i') : '' }}</span>
                     น.
                     <span class="ml-4">ระยะเวลาวิเคราะห์</span> <span
                         class="dotted-line w-16 text-blue-700">{{ $t3_val !== null ? $t3_val : '' }}</span> นาที ( T3
@@ -476,10 +476,10 @@
             </tr>
             <tr>
                 <td colspan="2" class="p-1 border-b border-black text-center text-[9px] whitespace-nowrap">
-                    เริ่มวันที่ <span class="dotted-line w-20"></span> เวลา <span class="dotted-line w-8"></span> น.
-                    <span class="ml-1">เสร็จวันที่</span> <span class="dotted-line w-20"></span> เวลา <span
-                        class="dotted-line w-8"></span> น.
-                    <span class="ml-1">ระยะเวลาซ่อมแซม</span> <span class="dotted-line w-12"></span> นาที ( T4 )
+                    เริ่มวันที่ <span class="dotted-line w-28"></span> <span class="ml-2">เวลา</span> <span class="dotted-line w-16"></span> น.
+                    <span class="ml-2">เสร็จวันที่</span> <span class="dotted-line w-28"></span> <span class="ml-2">เวลา</span> <span
+                        class="dotted-line w-16"></span> น.
+                    <span class="ml-2">ระยะเวลาซ่อมแซม</span> <span class="dotted-line w-12"></span> นาที ( T4 )
                 </td>
             </tr>
 
@@ -506,8 +506,8 @@
                 <td rowspan="3" class="align-middle text-center text-[10px] border-b border-black">T 5</td>
             </tr>
             <tr>
-                <td class="p-1 border-r border-black align-top border-b-0 pb-0">
-                    <div class="flex my-2 px-4">
+                <td class="p-1 border-r-0 border-black align-top border-b-0 pb-0">
+                    <div class="flex mt-1 px-4">
                         <span class="mr-2">ลงชื่อ</span>
                         <div class="flex-1 dotted-line val text-blue-700 text-center pb-[2px]">
                             {{ $ticket->resolvedBy ? $ticket->resolvedBy->name : '' }}</div><span
@@ -515,7 +515,7 @@
                     </div>
                 </td>
                 <td class="p-1 border-l-0 border-black align-top border-b-0 pb-0">
-                    <div class="flex my-2 px-4">
+                    <div class="flex mt-1 px-4">
                         <span class="mr-2">ลงชื่อ</span>
                         <div class="flex-1 dotted-line val text-blue-700 text-center pb-[2px]">
                             {{ $ticket->requester_name }}</div><span class="ml-2">ผู้รับงาน</span>
@@ -534,14 +534,14 @@
                     $t5_start = $calculated_finish;
                     $t5_finish = $t5_start && $t5_val !== null ? $t5_start->copy()->addMinutes($t5_val) : null;
                 @endphp
-                <td colspan="2" class="p-1 border-b border-black text-center text-[9px] whitespace-nowrap">
+                <td colspan="2" class="p-1 border-b border-t-0 border-black text-center text-[9px] whitespace-nowrap">
                     เริ่มซ่อมวันที่ <span
-                        class="dotted-line w-20 text-blue-700">{{ $t5_start ? $t5_start->translatedFormat('d M Y') : '' }}</span>
+                        class="dotted-line w-28 text-blue-700">{{ $t5_start ? $t5_start->locale('th')->translatedFormat('d F Y') : '' }}</span>
                     เวลา <span
                         class="dotted-line w-8 text-blue-700">{{ $t5_start ? $t5_start->format('H:i') : '' }}</span>
                     น.
                     <span class="ml-2">เสร็จวันที่</span> <span
-                        class="dotted-line w-20 text-blue-700">{{ $t5_finish ? $t5_finish->translatedFormat('d M Y') : '' }}</span>
+                        class="dotted-line w-28 text-blue-700">{{ $t5_finish ? $t5_finish->locale('th')->translatedFormat('d F Y') : '' }}</span>
                     เวลา <span
                         class="dotted-line w-8 text-blue-700">{{ $t5_finish ? $t5_finish->format('H:i') : '' }}</span>
                     น.
@@ -553,29 +553,29 @@
 
             <!-- SECTION 7 ทดสอบ -->
             <tr>
-                <td class="section-title  border-b border-black">ทดสอบและ<br>ส่งมอบงาน</td>
-                <td class="p-1 border-r border-b border-black align-top">
+                <td rowspan="2" class="section-title border-b border-black">ทดสอบและ<br>ส่งมอบงาน</td>
+                <td class="p-1 border-r-0 border-black align-top border-b-0 pb-0">
                     <div class="flex mt-1 px-4">
                         <span class="mr-2">ลงชื่อ</span>
                         <div class="flex-1 dotted-line"></div><span class="ml-2">ผู้ส่งมอบงาน.</span>
                     </div>
-                    <div class="mt-1 text-center text-[9px]">
-                        ตรวจรับวันที่ <span class="dotted-line w-28"></span>
-                    </div>
                 </td>
-                <td class="p-1 border-b border-black align-top">
+                <td class="p-1 border-l-0 border-black align-top border-b-0 pb-0">
                     <div class="flex mt-1 px-4">
                         <span class="mr-2">ลงชื่อ</span>
                         <div class="flex-1 dotted-line"></div><span class="ml-2">ผู้รับงาน</span>
                     </div>
-                    <div class="mt-1 text-center text-[9px]">
-                        เวลา <span class="dotted-line w-12"></span> น.
-                        <span class="ml-2">เวลาในการทดสอบ</span> <span class="dotted-line w-16"></span> นาที ( T6 )
-                    </div>
                 </td>
-                <td class="section-title  border-b border-black bg-white"
+                <td rowspan="2" class="section-title border-b border-black bg-white"
                     style="writing-mode: vertical-rl; transform: rotate(180deg);">ผู้ใช้งาน</td>
-                <td class="align-middle text-center text-[10px] border-b border-black">T 6</td>
+                <td rowspan="2" class="align-middle text-center text-[10px] border-b border-black">T 6</td>
+            </tr>
+            <tr>
+                <td colspan="2" class="p-1 border-b border-t-0 border-black text-center text-[9px] whitespace-nowrap">
+                    ตรวจรับวันที่ <span class="dotted-line w-28"></span>
+                    <span class="ml-2">เวลา</span> <span class="dotted-line w-16"></span> น.
+                    <span class="ml-2">เวลาในการทดสอบ</span> <span class="dotted-line w-16"></span> นาที ( T6 )
+                </td>
             </tr>
 
             <!-- SECTION 8 ปิดใบงาน -->
@@ -584,15 +584,17 @@
                 <td class="p-1 border-r border-b border-black align-top">
                     <div class="flex mt-1 px-1">
                         <span class="mr-1">ลงชื่อ</span>
-                        <div class="flex-1 dotted-line"></div><span class="ml-1">ผู้จัดการแผนก ซ่อมบำรุง (BM)</span>
+                        <div class="flex-1 dotted-line val text-blue-700 text-center pb-[2px]">
+                            {{ $ticket->pcarOpenedBy ? $ticket->pcarOpenedBy->name : '' }}</div><span class="ml-1">ผู้จัดการแผนก ซ่อม/สร้าง (BM)</span>
                     </div>
                     <div class="flex mt-1 px-1">
                         <span class="mr-1 ml-6">วันที่</span>
-                        <div class="w-28 dotted-line"></div>
+                        <div class="w-28 dotted-line val text-blue-700 text-center pb-[2px]">
+                            {{ $ticket->pcar_opened_at ? $ticket->pcar_opened_at->locale('th')->translatedFormat('d F Y') : '' }}</div>
                     </div>
                     <div class="mt-1 flex justify-center gap-4 text-[9px]">
-                        <div><span class="checkbox"></span> มีมาตรการป้องกัน</div>
-                        <div><span class="checkbox"></span> ไม่มีมาตรการป้องกัน</div>
+                        <div class="flex items-center"><span class="checkbox flex items-center justify-center font-bold text-[10px]">{{ $ticket->requires_preventive_measure === true ? '✓' : '' }}</span> มีมาตรการป้องกัน</div>
+                        <div class="flex items-center"><span class="checkbox flex items-center justify-center font-bold text-[10px]">{{ $ticket->requires_preventive_measure === false ? '✓' : '' }}</span> ไม่มีมาตรการป้องกัน</div>
                     </div>
                 </td>
                 <td class="p-1 border-b border-black align-middle text-center">
@@ -706,7 +708,7 @@
                 </td>
                 <td rowspan="2" class="section-title  border-b border-black bg-white"
                     style="writing-mode: vertical-rl; transform: rotate(180deg);">ฝ่ายวิศวกรรม สนับสนุน</td>
-                <td rowspan="2" class="align-middle text-center text-[10px] border-b border-black">T 6</td>
+                <td rowspan="2" class="align-middle text-center text-[10px] border-b border-black">&nbsp;</td>
             </tr>
             <tr>
                 <td colspan="2" class="p-0 border-b border-black align-top">
@@ -751,7 +753,7 @@
             <tr>
                 <td class="section-title  border-b-0 border-black">ปิดมาตรการ<br>ป้องกัน</td>
                 <td class="p-1 border-r border-b-0 border-black align-top">
-                    <div class="flex mt-1 px-4 text-[9px]">
+                    <div class="flex mt-4 px-4 text-[9px]">
                         <span class="mr-2">ลงชื่อ</span>
                         <div class="flex-1 dotted-line border-black"></div><span
                             class="ml-2">ผจก.ฝ่ายที่รับผิดชอบ</span>
@@ -762,7 +764,7 @@
                     </div>
                 </td>
                 <td class="p-1 border-b-0 border-black align-top">
-                    <div class="flex mt-1 px-4 text-[9px]">
+                    <div class="flex mt-4 px-4 text-[9px]">
                         <span class="mr-2">ลงชื่อ</span>
                         <div class="flex-1 dotted-line border-black"></div><span class="ml-2">Asst. QMR/QMR</span>
                     </div>
