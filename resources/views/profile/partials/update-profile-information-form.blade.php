@@ -14,12 +14,12 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6" x-data="profileForm()">
         @csrf
         @method('patch')
 
         <div>
-            <x-input-label for="name" :value="__('ชื่อ-นามสกุล (Name)')" />
+            <x-input-label for="name">ชื่อ-นามสกุล (Name) <span class="text-red-500">*</span></x-input-label>
             @if($user->role === 'administrator')
                 <x-text-input id="name" name="name" type="text" class="mt-1 block w-full bg-gray-100 text-gray-500 cursor-not-allowed" :value="old('name', $user->name)" required readonly autocomplete="name" />
                 <p class="mt-1 text-sm text-gray-500">บัญชีผู้ดูแลระบบ (Administrator) ไม่สามารถเปลี่ยนชื่อได้</p>
@@ -30,19 +30,37 @@
         </div>
 
         <div>
-            <x-input-label for="company" :value="__('บริษัท (Company)')" />
-            <select id="company" name="company" required class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                <option value="" disabled {{ old('company', $user->company) ? '' : 'selected' }}>เลือกบริษัทของคุณ</option>
+            <x-input-label for="company">บริษัท (Company) <span class="text-red-500">*</span></x-input-label>
+            <select id="company" name="company" required x-model="selectedCompany" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                <option value="" disabled>เลือกบริษัทของคุณ</option>
                 @foreach($companies as $company)
-                    <option value="{{ $company->name }}" @selected(old('company', $user->company) == $company->name)>{{ $company->name }}</option>
+                    <option value="{{ $company->name }}">{{ $company->name }}</option>
                 @endforeach
             </select>
             <x-input-error class="mt-2" :messages="$errors->get('company')" />
         </div>
 
         <div>
-            <x-input-label for="department" :value="__('แผนก (Department)')" />
-            <x-text-input id="department" name="department" type="text" class="mt-1 block w-full" :value="old('department', $user->department)" placeholder="ระบุแผนกของคุณ (ไม่บังคับ)" autocomplete="organization-title" />
+            <x-input-label for="department">แผนก (Department) <span class="text-red-500">*</span></x-input-label>
+            <!-- Dropdown สำหรับเมื่อมีแผนก -->
+            <div x-show="departments.length > 0 && selectedDepartment !== 'other'" style="display: none;">
+                <select id="department_select" x-bind:name="(departments.length > 0 && selectedDepartment !== 'other') ? 'department' : ''" x-model="selectedDepartment" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" :disabled="!selectedCompany" x-bind:required="departments.length > 0 && selectedDepartment !== 'other'">
+                    <option value="">กรุณาเลือกแผนกที่ท่านสังกัด</option>
+                    <template x-for="dept in departments" :key="dept.id">
+                        <option :value="dept.name" x-text="dept.name"></option>
+                    </template>
+                    <option value="other">อื่นๆ (พิมพ์ระบุเอง)</option>
+                </select>
+            </div>
+
+            <!-- Input พิมพ์เอง สำหรับเมื่อเลือกอื่นๆ หรือไม่มีแผนก -->
+            <div x-show="departments.length === 0 || selectedDepartment === 'other'" style="display: none;" class="relative" :class="{ 'mt-2': departments.length > 0 && selectedDepartment === 'other' }">
+                <x-text-input id="department" type="text" x-bind:name="(departments.length === 0 || selectedDepartment === 'other') ? 'department' : ''" x-model="customDepartment" class="mt-1 block w-full" placeholder="ระบุแผนกของคุณ" autocomplete="organization-title" x-bind:disabled="!selectedCompany" x-bind:required="departments.length === 0 || selectedDepartment === 'other'" />
+                <button type="button" x-show="departments.length > 0 && selectedDepartment === 'other'" @click="selectedDepartment = ''" class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-indigo-600 hover:text-indigo-800 font-medium">กลับไปเลือก</button>
+            </div>
+            
+            <p x-show="selectedCompany && departments.length === 0" class="mt-1 text-xs text-gray-500">บริษัทนี้ยังไม่มีการตั้งค่าแผนก กรุณาพิมพ์ระบุเอง</p>
+            <p x-show="!selectedCompany" class="mt-1 text-xs text-orange-500">กรุณาเลือกบริษัทก่อน</p>
             <x-input-error class="mt-2" :messages="$errors->get('department')" />
         </div>
 
@@ -90,4 +108,43 @@
             @endif
         </div>
     </form>
+    
+    <script>
+        function profileForm() {
+            return {
+                companies: @json($companies),
+                selectedCompany: '{{ old('company', $user->company ?? '') }}',
+                selectedDepartment: '',
+                customDepartment: '{{ old('department', $user->department ?? '') }}',
+                
+                get departments() {
+                    if (!this.selectedCompany) return [];
+                    const company = this.companies.find(c => c.name === this.selectedCompany);
+                    return company && company.departments ? company.departments : [];
+                },
+                
+                init() {
+                    // If there's old department data, we need to check if it matches a predefined one
+                    if (this.customDepartment) {
+                        const depts = this.departments;
+                        const match = depts.find(d => d.name === this.customDepartment);
+                        if (match) {
+                            this.selectedDepartment = match.name;
+                            this.customDepartment = '';
+                        } else if (depts.length > 0) {
+                            this.selectedDepartment = 'other';
+                        }
+                    }
+
+                    this.$watch('selectedCompany', (value, oldValue) => {
+                        // Reset department only if company changed manually (not on load)
+                        if (oldValue !== undefined && oldValue !== '') {
+                            this.selectedDepartment = '';
+                            this.customDepartment = '';
+                        }
+                    });
+                }
+            }
+        }
+    </script>
 </section>
