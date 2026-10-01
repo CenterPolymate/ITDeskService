@@ -124,9 +124,16 @@
             class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
             &larr; กลับ
         </button>
-        <button onclick="window.print()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            พิมพ์ (Print)
-        </button>
+        <div>
+            <a href="{{ route('tickets.export', $ticket->id) }}"
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2 inline-block">
+                ดาวน์โหลด Excel
+            </a>
+            <button onclick="window.print()"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                พิมพ์ (Print)
+            </button>
+        </div>
     </div>
 
     <div class="legal-page">
@@ -186,18 +193,24 @@
                     <table class="w-full h-full border-hidden">
                         <tr>
                             <td class="w-1/2 p-1 align-top border-r-0">
-                                <div class="mb-[2px] flex items-end"><span class="w-16 shrink-0 inline-block">หน่วยงาน :</span> <span
+                                <div class="mb-[2px] flex items-end"><span class="w-16 shrink-0 inline-block">หน่วยงาน
+                                        :</span> <span
                                         class="dotted-line flex-1 val text-left">{{ $ticket->department }}</span>
                                 </div>
-                                <div class="mb-[2px] flex items-end"><span class="w-16 shrink-0 inline-block">ชื่อผู้แจ้ง :</span> <span
+                                <div class="mb-[2px] flex items-end"><span
+                                        class="w-16 shrink-0 inline-block">ชื่อผู้แจ้ง :</span> <span
                                         class="dotted-line flex-1 val text-left">{{ $ticket->requester_name }}</span>
                                 </div>
-                                <div class="mb-[2px] flex items-end"><span class="w-16 shrink-0 inline-block">ชื่อผู้ใช้งาน :</span> <span
-                                        class="dotted-line flex-1 text-left val">คุณ{{ $ticket->user->name ?? $ticket->requester_name }} บริษัท {{ $ticket->user->company ?? '' }} - {{ $ticket->user->department ?? '' }}</span></div>
-                                <div class="mb-[2px] flex items-end"><span class="w-16 shrink-0 inline-block">ชื่อเครื่อง :</span> <span
+                                <div class="mb-[2px] flex items-end"><span
+                                        class="w-16 shrink-0 inline-block">ชื่อผู้ใช้งาน :</span> <span
+                                        class="dotted-line flex-1 text-left val">คุณ{{ $ticket->user->name ?? $ticket->requester_name }}
+                                        บริษัท {{ $ticket->user->company ?? '' }} -
+                                        {{ $ticket->user->department ?? '' }}</span></div>
+                                <div class="mb-[2px] flex items-end"><span
+                                        class="w-16 shrink-0 inline-block">ชื่อเครื่อง :</span> <span
                                         class="dotted-line flex-1 text-left">&nbsp;</span></div>
-                                <div class="flex items-end"><span class="w-16 shrink-0 inline-block">รหัสเครื่อง :</span> <span
-                                        class="dotted-line flex-1 text-left">&nbsp;</span></div>
+                                <div class="flex items-end"><span class="w-16 shrink-0 inline-block">รหัสเครื่อง
+                                        :</span> <span class="dotted-line flex-1 text-left">&nbsp;</span></div>
                             </td>
                             <td class="w-1/2 p-1 align-top border-l-0">
                                 <div class="mb-2 whitespace-nowrap text-right pr-4">
@@ -476,9 +489,10 @@
             </tr>
             <tr>
                 <td colspan="2" class="p-1 border-b border-black text-center text-[9px] whitespace-nowrap">
-                    เริ่มวันที่ <span class="dotted-line w-28"></span> <span class="ml-2">เวลา</span> <span class="dotted-line w-16"></span> น.
-                    <span class="ml-2">เสร็จวันที่</span> <span class="dotted-line w-28"></span> <span class="ml-2">เวลา</span> <span
+                    เริ่มวันที่ <span class="dotted-line w-28"></span> <span class="ml-2">เวลา</span> <span
                         class="dotted-line w-16"></span> น.
+                    <span class="ml-2">เสร็จวันที่</span> <span class="dotted-line w-28"></span> <span
+                        class="ml-2">เวลา</span> <span class="dotted-line w-16"></span> น.
                     <span class="ml-2">ระยะเวลาซ่อมแซม</span> <span class="dotted-line w-12"></span> นาที ( T4 )
                 </td>
             </tr>
@@ -534,7 +548,8 @@
                     $t5_start = $calculated_finish;
                     $t5_finish = $t5_start && $t5_val !== null ? $t5_start->copy()->addMinutes($t5_val) : null;
                 @endphp
-                <td colspan="2" class="p-1 border-b border-t-0 border-black text-center text-[9px] whitespace-nowrap">
+                <td colspan="2"
+                    class="p-1 border-b border-t-0 border-black text-center text-[9px] whitespace-nowrap">
                     เริ่มซ่อมวันที่ <span
                         class="dotted-line w-28 text-blue-700">{{ $t5_start ? $t5_start->locale('th')->translatedFormat('d F Y') : '' }}</span>
                     เวลา <span
@@ -571,7 +586,8 @@
                 <td rowspan="2" class="align-middle text-center text-[10px] border-b border-black">T 6</td>
             </tr>
             <tr>
-                <td colspan="2" class="p-1 border-b border-t-0 border-black text-center text-[9px] whitespace-nowrap">
+                <td colspan="2"
+                    class="p-1 border-b border-t-0 border-black text-center text-[9px] whitespace-nowrap">
                     ตรวจรับวันที่ <span class="dotted-line w-28"></span>
                     <span class="ml-2">เวลา</span> <span class="dotted-line w-16"></span> น.
                     <span class="ml-2">เวลาในการทดสอบ</span> <span class="dotted-line w-16"></span> นาที ( T6 )
@@ -585,16 +601,22 @@
                     <div class="flex mt-1 px-1">
                         <span class="mr-1">ลงชื่อ</span>
                         <div class="flex-1 dotted-line val text-blue-700 text-center pb-[2px]">
-                            {{ $ticket->pcarOpenedBy ? $ticket->pcarOpenedBy->name : '' }}</div><span class="ml-1">ผู้จัดการแผนก ซ่อม/สร้าง (BM)</span>
+                            {{ $ticket->pcarOpenedBy ? $ticket->pcarOpenedBy->name : '' }}</div><span
+                            class="ml-1">ผู้จัดการแผนก ซ่อม/สร้าง (BM)</span>
                     </div>
                     <div class="flex mt-1 px-1">
                         <span class="mr-1 ml-6">วันที่</span>
                         <div class="w-28 dotted-line val text-blue-700 text-center pb-[2px]">
-                            {{ $ticket->pcar_opened_at ? $ticket->pcar_opened_at->locale('th')->translatedFormat('d F Y') : '' }}</div>
+                            {{ $ticket->pcar_opened_at ? $ticket->pcar_opened_at->locale('th')->translatedFormat('d F Y') : '' }}
+                        </div>
                     </div>
                     <div class="mt-1 flex justify-center gap-4 text-[9px]">
-                        <div class="flex items-center"><span class="checkbox flex items-center justify-center font-bold text-[10px]">{{ $ticket->requires_preventive_measure === true ? '✓' : '' }}</span> มีมาตรการป้องกัน</div>
-                        <div class="flex items-center"><span class="checkbox flex items-center justify-center font-bold text-[10px]">{{ $ticket->requires_preventive_measure === false ? '✓' : '' }}</span> ไม่มีมาตรการป้องกัน</div>
+                        <div class="flex items-center"><span
+                                class="checkbox flex items-center justify-center font-bold text-[10px]">{{ $ticket->requires_preventive_measure === true ? '✓' : '' }}</span>
+                            มีมาตรการป้องกัน</div>
+                        <div class="flex items-center"><span
+                                class="checkbox flex items-center justify-center font-bold text-[10px]">{{ $ticket->requires_preventive_measure === false ? '✓' : '' }}</span>
+                            ไม่มีมาตรการป้องกัน</div>
                     </div>
                 </td>
                 <td class="p-1 border-b border-black align-middle text-center">
@@ -655,7 +677,7 @@
             <!-- SECTION 9 ป้องกัน -->
             <tr>
                 <td rowspan="2" class="section-title  border-b border-black">ดำเนินการ<br>ป้องกัน</td>
-                <td colspan="2" class="p-0 border-b border-black align-top">
+                <td colspan="2" class="p-0 border-b border-black">
                     <table class="w-full h-full text-center border-hidden text-[9px]" style="table-layout: fixed;">
                         <colgroup>
                             <col style="width: 24px;">
@@ -668,41 +690,67 @@
                             <td class="border-r border-black p-1">กำหนดเสร็จ</td>
                             <td class="p-1">ผู้รับผิดชอบ</td>
                         </tr>
-                        <!-- เฉพาะกรณี 3 rows -->
+                        <!-- เฉพาะกรณี 4 rows -->
                         <tr class="h-5">
-                            <td rowspan="3" class="w-6 border-r border-b border-black section-title"
+                            <td rowspan="4" class="w-6 border-r border-b border-black section-title"
                                 style="writing-mode: vertical-rl; transform: rotate(180deg);">เฉพาะกรณี</td>
-                            <td class="border-r border-black border-b" style="border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-r border-black border-b" style="border-bottom-style: dotted; border-right-style: solid;"></td>
+                            <td class="border-r border-black border-b"
+                                style="border-bottom-style: dotted; border-right-style: solid;"></td>
+                            <td class="border-r border-black border-b"
+                                style="border-bottom-style: dotted; border-right-style: solid;"></td>
                             <td class="border-b" style="border-bottom-style: dotted;"></td>
                         </tr>
                         <tr class="h-5">
-                            <td class="border-r border-black border-b" style="border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-r border-black border-b" style="border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-b" style="border-bottom-style: dotted;"></td>
+                            <td class="border-r border-black border-b"
+                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
+                            <td class="border-r border-black border-b"
+                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
+                            <td class="border-b" style="border-top: none; border-bottom-style: dotted;"></td>
+                        </tr>
+                        <tr class="h-5">
+                            <td class="border-r border-black border-b"
+                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
+                            <td class="border-r border-black border-b"
+                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
+                            <td class="border-b" style="border-top: none; border-bottom-style: dotted;"></td>
                         </tr>
                         <tr class="h-5 border-b border-black" style="border-bottom-style: solid;">
-                            <td class="border-r border-black" style="border-right-style: solid;"></td>
-                            <td class="border-r border-black" style="border-right-style: solid;"></td>
-                            <td></td>
+                            <td class="border-r border-black" style="border-top: none; border-right-style: solid;">
+                            </td>
+                            <td class="border-r border-black" style="border-top: none; border-right-style: solid;">
+                            </td>
+                            <td style="border-top: none;"></td>
                         </tr>
-                        <!-- ทั้งระบบ 3 rows -->
+                        <!-- ทั้งระบบ 4 rows -->
                         <tr class="h-5">
-                            <td rowspan="3" class="w-6 border-r border-b border-black section-title"
+                            <td rowspan="4" class="w-6 border-r border-b border-black section-title"
                                 style="writing-mode: vertical-rl; transform: rotate(180deg);">ทั้งระบบ</td>
-                            <td class="border-r border-black border-b" style="border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-r border-black border-b" style="border-bottom-style: dotted; border-right-style: solid;"></td>
+                            <td class="border-r border-black border-b"
+                                style="border-bottom-style: dotted; border-right-style: solid;"></td>
+                            <td class="border-r border-black border-b"
+                                style="border-bottom-style: dotted; border-right-style: solid;"></td>
                             <td class="border-b" style="border-bottom-style: dotted;"></td>
                         </tr>
                         <tr class="h-5">
-                            <td class="border-r border-black border-b" style="border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-r border-black border-b" style="border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-b" style="border-bottom-style: dotted;"></td>
+                            <td class="border-r border-black border-b"
+                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
+                            <td class="border-r border-black border-b"
+                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
+                            <td class="border-b" style="border-top: none; border-bottom-style: dotted;"></td>
                         </tr>
-                        <tr class="border-b border-black" style="border-bottom-style: solid;">
-                            <td class="border-r border-black" style="border-right-style: solid;"></td>
-                            <td class="border-r border-black" style="border-right-style: solid;"></td>
-                            <td></td>
+                        <tr class="h-5">
+                            <td class="border-r border-black border-b"
+                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
+                            <td class="border-r border-black border-b"
+                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
+                            <td class="border-b" style="border-top: none; border-bottom-style: dotted;"></td>
+                        </tr>
+                        <tr class="h-5">
+                            <td class="border-r border-b-0 border-black"
+                                style="border-top: none; border-right-style: solid; border-bottom: none;"></td>
+                            <td class="border-r border-b-0 border-black"
+                                style="border-top: none; border-right-style: solid; border-bottom: none;"></td>
+                            <td class="border-b-0" style="border-top: none; border-bottom: none;"></td>
                         </tr>
                     </table>
                 </td>
@@ -724,25 +772,36 @@
                         </tr>
                         <tr class="align-top">
                             <td class="border-r border-black p-[2px] text-left pl-1 pt-1">
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span> ไม่รู้มาตรฐาน</div>
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span> ไม่ทำตามมาตรฐาน</div>
-                                <div class="h-[14px] flex items-center"><span class="checkbox"></span> ทำตามแล้วยังเกิด</div>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                    ไม่รู้มาตรฐาน</div>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                    ไม่ทำตามมาตรฐาน</div>
+                                <div class="h-[14px] flex items-center"><span class="checkbox"></span>
+                                    ทำตามแล้วยังเกิด</div>
                             </td>
                             <td class="border-r border-black p-[2px] text-left pl-1 pt-1">
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span> ออกแบบไม่ดี</div>
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span> ไม่ได้กำหนดมาตรฐาน</div>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                    ออกแบบไม่ดี</div>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                    ไม่ได้กำหนดมาตรฐาน</div>
                             </td>
                             <td class="border-r border-black p-[2px] text-left pl-1 pt-1">
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span> ไม่ได้กำหนดมาตรฐาน</div>
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span> กำหนดไม่เหมาะสม</div>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                    ไม่ได้กำหนดมาตรฐาน</div>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                    กำหนดไม่เหมาะสม</div>
                             </td>
                             <td class="border-r border-black p-[2px] text-left pl-1 pt-1">
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span> ไม่มีมาตรฐาน</div>
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span> กำหนดไม่เหมาะสม</div>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                    ไม่มีมาตรฐาน</div>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                    กำหนดไม่เหมาะสม</div>
                             </td>
                             <td class="p-[2px] text-left pl-1 pt-1">
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span> ไม่มีมาตรฐาน</div>
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span> กำหนดไม่เหมาะสม</div>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                    ไม่มีมาตรฐาน</div>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                    กำหนดไม่เหมาะสม</div>
                             </td>
                         </tr>
                     </table>

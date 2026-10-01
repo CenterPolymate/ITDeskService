@@ -40,10 +40,10 @@ class TicketController extends Controller
         $user = Auth::user();
 
         // Generate Ticket Number: IT-YYYYMM-XXXX
-        $prefix = 'IT-'.now()->format('Ym').'-';
+        $prefix = 'IT-' . now()->format('Ym') . '-';
 
         // Find the last ticket created in this month
-        $lastTicket = HelpdeskCase::where('ticket_no', 'like', $prefix.'%')
+        $lastTicket = HelpdeskCase::where('ticket_no', 'like', $prefix . '%')
             ->orderBy('ticket_no', 'desc')
             ->first();
 
@@ -56,7 +56,7 @@ class TicketController extends Controller
             $newNumber = 1;
         }
 
-        $ticketNo = $prefix.str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+        $ticketNo = $prefix . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
 
         // Create Case
         $ticket = HelpdeskCase::create([
@@ -124,6 +124,30 @@ class TicketController extends Controller
         }
 
         return view('tickets.print', compact('ticket'));
+    }
+
+    /**
+     * Export the specified ticket report (P-CAR Form) to Excel.
+     */
+    public function exportExcel($id)
+    {
+        $ticket = HelpdeskCase::with(['analyzingBy', 'inProgressBy', 'resolvedBy', 'closedBy', 'cancelledBy'])->findOrFail($id);
+
+        // Check if user has permission to view
+        $user = Auth::user();
+        if ($user->role === 'user' && $ticket->requester_email !== $user->email) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $headers = [
+            "Content-type"        => "application/vnd.ms-excel",
+            "Content-Disposition" => "attachment; filename=\"PCAR_{$ticket->ticket_no}.xls\"",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        return response()->view('tickets.export-excel', compact('ticket'))->withHeaders($headers);
     }
 
     /**

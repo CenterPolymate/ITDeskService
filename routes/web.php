@@ -33,6 +33,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
     Route::get('/tickets/{id}', [TicketController::class, 'show'])->name('tickets.show');
     Route::get('/tickets/{id}/print', [TicketController::class, 'print'])->name('tickets.print');
+    Route::get('/tickets/{id}/export', [TicketController::class, 'exportExcel'])->name('tickets.export');
     Route::put('/tickets/{id}/assign', [TicketController::class, 'assign'])->name('tickets.assign');
     Route::put('/tickets/{id}/status', [TicketController::class, 'updateStatus'])->name('tickets.updateStatus');
 
