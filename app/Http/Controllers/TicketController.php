@@ -28,20 +28,16 @@ class TicketController extends Controller
             'description' => 'required|string|max:400',
             'location' => 'required|string|max:255',
             'requester_phone' => ['required', 'string', 'regex:/^0[0-9]{1,2}-?[0-9]{3}-?[0-9]{4}$/'],
-            'attachment' => 'nullable|file|mimes:jpg,jpeg,png|max:5120', // 5MB max, images only
+            'attachments' => 'nullable|array|max:2',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png|max:5120', // 5MB max per file
         ], [
             'location.required' => 'กรุณาระบุสถานที่/จุดที่เกิดปัญหา',
             'requester_phone.required' => 'กรุณากรอกเบอร์โทรศัพท์ติดต่อกลับ',
             'requester_phone.regex' => 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (เช่น 081-123-4567 หรือ 0811234567)',
+            'attachments.max' => 'แนบรูปภาพได้สูงสุด 2 รูปเท่านั้น',
         ]);
 
         $user = Auth::user();
-
-        // Handle File Upload
-        $attachmentPath = null;
-        if ($request->hasFile('attachment')) {
-            $attachmentPath = $request->file('attachment')->store('attachments', 'public');
-        }
 
         // Generate Ticket Number: IT-YYYYMM-XXXX
         $prefix = 'IT-'.now()->format('Ym').'-';
@@ -77,8 +73,20 @@ class TicketController extends Controller
             'company' => $user->company,
             'department' => $user->department,
             'location' => $request->location,
-            'attachment_path' => $attachmentPath,
         ]);
+
+        // Handle File Upload (Max 2 files)
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('attachments', 'public');
+                $ticket->attachments()->create([
+                    'file_path' => $path,
+                    'file_name' => $file->getClientOriginalName(),
+                    'mime_type' => $file->getMimeType(),
+                    'file_size' => $file->getSize(),
+                ]);
+            }
+        }
 
         // Send Notification
         // $user->notify(new \App\Notifications\TicketCreated($ticket)); // TBD: Wait for user approval for Email/Line
