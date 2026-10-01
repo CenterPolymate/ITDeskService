@@ -5,10 +5,12 @@
                 {{ __('รายละเอียดใบแจ้งซ่อม (Ticket Details) #') . $ticket->ticket_no }}
             </h2>
             <div class="flex items-center space-x-4 print:hidden">
-                <a href="{{ route('tickets.print', $ticket->id) }}" target="_blank" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
-                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    พิมพ์ใบงาน (Print)
-                </a>
+                @if(auth()->user()->role !== 'user')
+                    <a href="{{ route('tickets.print', $ticket->id) }}" target="_blank" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
+                        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        พิมพ์ใบงาน (Print)
+                    </a>
+                @endif
                 <a href="{{ route('dashboard') }}" class="text-sm text-gray-500 hover:text-gray-700">
                     &larr; กลับไปยัง Dashboard
                 </a>
@@ -92,7 +94,21 @@
                         </div>
 
                         <!-- รูปภาพหลักฐาน (ถ้ามี) -->
-                        @if($ticket->attachment_path)
+                        @if($ticket->attachments->count() > 0)
+                        <div class="mt-6">
+                            <h4 class="text-md font-semibold text-gray-700 mb-3">รูปภาพ/ไฟล์แนบ ({{ $ticket->attachments->count() }} รูป):</h4>
+                            <div class="flex flex-wrap gap-4">
+                                @foreach($ticket->attachments as $attachment)
+                                <div class="border rounded-md overflow-hidden bg-gray-50 p-2 inline-block">
+                                    <a href="{{ asset('storage/' . $attachment->file_path) }}" target="_blank">
+                                        <img src="{{ asset('storage/' . $attachment->file_path) }}" alt="Attachment" class="max-w-full h-auto max-h-96 object-contain rounded hover:opacity-90 transition-opacity">
+                                    </a>
+                                    <p class="text-xs text-center text-gray-500 mt-2">คลิกเพื่อดูรูปขนาดเต็ม</p>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @elseif($ticket->attachment_path)
                         <div class="mt-6">
                             <h4 class="text-md font-semibold text-gray-700 mb-3">รูปภาพ/ไฟล์แนบ:</h4>
                             <div class="border rounded-md overflow-hidden bg-gray-50 p-2 inline-block">
@@ -757,7 +773,7 @@
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
                                         <span id="file-name-{{ $ticket->id }}">แนบไฟล์รูปภาพ (ไม่เกิน 5MB)</span>
                                     </label>
-                                    <input type="file" name="attachment" id="attachment" class="hidden" accept="image/png, image/jpeg, image/jpg" onchange="if(this.files[0] && this.files[0].size > 5242880) { alert('ขนาดไฟล์เกิน 5MB'); this.value=''; document.getElementById('file-name-{{ $ticket->id }}').textContent = 'แนบไฟล์รูปภาพ (ไม่เกิน 5MB)'; } else { document.getElementById('file-name-{{ $ticket->id }}').textContent = this.files[0] ? this.files[0].name : 'แนบไฟล์รูปภาพ (ไม่เกิน 5MB)'; }">
+                                    <input type="file" name="attachment" id="attachment" class="hidden" accept="image/*" capture="environment" onchange="if(this.files[0] && this.files[0].size > 5242880) { alert('ขนาดไฟล์เกิน 5MB'); this.value=''; document.getElementById('file-name-{{ $ticket->id }}').textContent = 'แนบไฟล์รูปภาพ (ไม่เกิน 5MB)'; } else { document.getElementById('file-name-{{ $ticket->id }}').textContent = this.files[0] ? this.files[0].name : 'แนบไฟล์รูปภาพ (ไม่เกิน 5MB)'; }">
                                 </div>
                                 <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                     ส่งข้อความ
