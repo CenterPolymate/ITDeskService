@@ -66,7 +66,14 @@ class CompanyController extends Controller
     {
         $this->authorizeAdministrator();
 
-        return view('companies.edit', compact('company'));
+        $mappedDepartments = $company->departments()->pluck('name')->toArray();
+        $unmappedDepartments = \App\Models\User::where('company', $company->name)
+            ->whereNotNull('department')
+            ->whereNotIn('department', $mappedDepartments)
+            ->distinct()
+            ->pluck('department');
+
+        return view('companies.edit', compact('company', 'unmappedDepartments'));
     }
 
     public function update(Request $request, Company $company)
@@ -118,6 +125,54 @@ class CompanyController extends Controller
         return redirect()->route('companies.edit', $company)->with('success', 'เพิ่มหน่วยงานสำเร็จ');
     }
 
+    public function mapDepartment(Request $request, Company $company)
+    {
+        $this->authorizeAdministrator();
+        $request->validate([
+            'original_name' => 'required|string|max:255',
+            'action' => 'required|in:create,merge',
+            'new_name' => 'required_if:action,create|string|max:255',
+            'target_department_id' => 'required_if:action,merge|exists:departments,id',
+        ]);
+
+        $originalName = $request->original_name;
+
+        if ($request->action === 'create') {
+            $newName = $request->new_name;
+            // Create the new department
+            $company->departments()->firstOrCreate(['name' => $newName]);
+
+            // Update users if they changed the name during creation
+            if ($originalName !== $newName) {
+                User::where('company', $company->name)
+                    ->where('department', $originalName)
+                    ->update(['department' => $newName]);
+                    
+                // Update tickets (HelpdeskCase) as well
+                \App\Models\HelpdeskCase::where('company', $company->name)
+                    ->where('department', $originalName)
+                    ->update(['department' => $newName]);
+            }
+
+            return redirect()->route('companies.edit', $company)->with('success', 'เพิ่มหน่วยงานและอัปเดตข้อมูลพนักงานสำเร็จ');
+        } else {
+            $targetDepartment = Department::findOrFail($request->target_department_id);
+            $newName = $targetDepartment->name;
+
+            // Update users to the merged department name
+            User::where('company', $company->name)
+                ->where('department', $originalName)
+                ->update(['department' => $newName]);
+                
+            // Update tickets (HelpdeskCase) to the merged department name
+            \App\Models\HelpdeskCase::where('company', $company->name)
+                ->where('department', $originalName)
+                ->update(['department' => $newName]);
+
+            return redirect()->route('companies.edit', $company)->with('success', 'จับคู่หน่วยงานและอัปเดตข้อมูลพนักงานสำเร็จ');
+        }
+    }
+
     public function updateDepartment(Request $request, Department $department)
     {
         $this->authorizeAdministrator();
@@ -134,6 +189,11 @@ class CompanyController extends Controller
 
             // Cascade update to users
             User::where('company', $company->name)
+                ->where('department', $oldName)
+                ->update(['department' => $newName]);
+                
+            // Cascade update to tickets (HelpdeskCase)
+            \App\Models\HelpdeskCase::where('company', $company->name)
                 ->where('department', $oldName)
                 ->update(['department' => $newName]);
         }
