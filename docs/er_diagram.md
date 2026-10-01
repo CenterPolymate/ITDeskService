@@ -7,6 +7,15 @@ erDiagram
     COMPANIES {
         bigint id PK
         string name "ชื่อบริษัท (Unique)"
+        json email_domains "โดเมนอีเมลที่อนุญาต (Nullable)"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    DEPARTMENTS {
+        bigint id PK
+        bigint company_id FK
+        string name "ชื่อแผนก"
         timestamp created_at
         timestamp updated_at
     }
@@ -18,9 +27,10 @@ erDiagram
         string password
         string role "สิทธิ์: user, helpdesk, team_hardware, team_network, team_software, manager, administrator"
         bigint company_id FK
-        string department
+        bigint department_id FK "เปลี่ยนจาก string เป็น FK"
         string phone
         string line_user_id
+        boolean is_active "สถานะบัญชี (True = ใช้งานได้, False = ระงับ)"
         timestamp email_verified_at
         timestamp created_at
         timestamp updated_at
@@ -95,9 +105,55 @@ erDiagram
     
     HELPDESK_CASES ||--o{ TICKET_COMMENTS : "มีข้อความโต้ตอบ"
     USERS ||--o{ TICKET_COMMENTS : "ส่งข้อความโดย"
+    
+    AUDIT_LOGS {
+        bigint id PK
+        bigint user_id FK "ผู้กระทำ (Nullable)"
+        string action "ประเภทการกระทำ (เช่น create, update, login)"
+        string model_type "ตารางที่เกี่ยวข้อง (เช่น User, HelpdeskCase)"
+        bigint model_id "ID ของข้อมูล"
+        json old_values "ข้อมูลเดิมก่อนแก้"
+        json new_values "ข้อมูลใหม่ที่บันทึก"
+        string ip_address
+        string user_agent
+        timestamp created_at
+    }
+
+    NOTIFICATIONS {
+        uuid id PK
+        string type "ประเภทการแจ้งเตือน"
+        string notifiable_type "ตารางผู้รับ (เช่น User)"
+        bigint notifiable_id "ID ผู้รับ"
+        json data "ข้อมูลแจ้งเตือน"
+        timestamp read_at "เวลาที่อ่าน"
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    COMPANIES ||--o{ DEPARTMENTS : "มีแผนกย่อย"
+    DEPARTMENTS ||--o{ USERS : "สังกัดแผนก"
+    USERS ||--o{ AUDIT_LOGS : "ผู้กระทำรายการ"
+    USERS ||--o{ NOTIFICATIONS : "รับการแจ้งเตือน"
+    
+    %% External Systems (Integration)
+    LINE_OA_SYSTEM {
+        string service "External API"
+        string type "Webhook / Messaging API"
+    }
+    
+    EMAIL_SERVER {
+        string service "SMTP Server"
+        string type "Notification"
+    }
+
+    USERS ||--o| LINE_OA_SYSTEM : "ผูกบัญชี (line_user_id)"
+    HELPDESK_CASES }|--|| LINE_OA_SYSTEM : "แจ้งเตือนผ่าน Line"
+    HELPDESK_CASES }|--|| EMAIL_SERVER : "ส่งอีเมลแจ้งเตือน"
+    USERS }|--|| EMAIL_SERVER : "ส่งอีเมลยืนยันตัวตน (Verify)"
 ```
 
 > **หมายเหตุ:** 
 > - **การติดตามผู้ปฏิบัติงาน:** ทุกขั้นตอนการเปลี่ยนสถานะ ระบบจะบันทึก ID ของผู้ใช้งานที่กดทำรายการไว้ (analyzing, in_progress, resolved, approved, closed, cancelled)
 > - **การจัดการบริษัท (Dynamic Companies):** ดึงข้อมูลรายชื่อบริษัทจากฐานข้อมูล แทนการฝังค่า (Hardcode)
 > - **การอนุมัติ (Approval):** Manager (Tier 3) ต้องเข้ามาตรวจสอบงานที่ Resolved แล้ว และเลือกว่าต้องการ Preventive Measure หรือไม่ ก่อนสถานะจะขยับเป็น Approved เพื่อให้ Helpdesk หรือ User ปิดใบงานต่อไป
+> - **External Systems (LINE OA & Email Server):** เป็นระบบภายนอกที่ไม่ได้เก็บข้อมูลเป็นตารางหลักในฐานข้อมูล แต่ระบบ ITDeskService จะเชื่อมต่อ (Integrate) ผ่าน API และ SMTP เพื่อใช้ในการแจ้งเตือน (Notification) และยืนยันตัวตน (Email Verification)
