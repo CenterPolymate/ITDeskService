@@ -49,6 +49,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('categories', CategoryController::class)->except(['show']);
     Route::resource('companies', CompanyController::class)->except(['show']);
     Route::post('companies/{company}/departments', [CompanyController::class, 'storeDepartment'])->name('companies.departments.store');
+    Route::post('companies/{company}/departments/map', [CompanyController::class, 'mapDepartment'])->name('companies.departments.map');
     Route::put('companies/departments/{department}', [CompanyController::class, 'updateDepartment'])->name('companies.departments.update');
     Route::delete('companies/departments/{department}', [CompanyController::class, 'destroyDepartment'])->name('companies.departments.destroy');
 
