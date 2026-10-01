@@ -17,7 +17,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        $companies = Company::where('is_active', true)->orderBy('name')->get();
+        $companies = Company::with('departments')->where('is_active', true)->orderBy('name')->get();
 
         return view('profile.edit', [
             'user' => $request->user(),
