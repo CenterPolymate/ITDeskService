@@ -146,3 +146,16 @@
     - ซ่อนการแสดงผลของ "ไทม์ไลน์สถานะ Task 2" และ "สรุปเวลาการทำงาน Task 2" จากผู้ใช้งานระดับ User ทั่วไป
     - ปรับแก้การคำนวณระยะเวลารวมในหน้า Dashboard โดยปัดเศษวินาทีทิ้งทั้งหมด เพื่อให้นาทีรวมมีความแม่นยำและไม่เกิดความสับสน
   - [x] **(อัปเดตล่าสุด)** ซ่อน "การวิเคราะห์หาสาเหตุ (Root Cause Analysis)" จากผู้ใช้งานระดับ User ทั่วไป เพื่อเก็บเป็น Internal Note สำหรับทีม IT (ให้ User เห็นเฉพาะ "บันทึกการแก้ไขปัญหาเฉพาะหน้า" เพื่อกดยอมรับงานเท่านั้น)
+
+## Phase 8: Deployment & Audit Logging (✅ ดำเนินการแล้ว)
+- [x] **Server Deployment (CloudPanel):**
+  - ติดตั้งโปรเจกต์ลงบนเซิร์ฟเวอร์ CloudPanel สำเร็จ
+  - ปรับใช้กระบวนการ Build Frontend ด้วย `npm run build` จาก Local แล้ว Push ไฟล์ขึ้น Git
+  - ใช้งาน Deployment ผ่านคำสั่ง `git pull` ทาง SSH เพื่อหลีกเลี่ยงข้อจำกัดของ npm/nodejs บน CloudPanel
+  - ปรับปรุง Seeder ให้ใช้กับ MySQL ได้อย่างถูกต้องโดยถอด `truncate()`
+- [x] **Administrator Audit Logs:**
+  - สร้าง `AuditLog` Migration และ Model เพื่อเก็บประวัติการทำงานของผู้ดูแลระบบ
+  - สร้าง `LogAdminActions` Middleware เพื่อดักจับทุกคำสั่งที่เป็น POST, PUT, PATCH, DELETE จาก Role `administrator`
+  - บันทึกรายละเอียดการทำงานลงตาราง `audit_logs` อัตโนมัติ (เช่น Action, Target ID, ข้อมูล Changes)
+  - เพิ่มบัญชี `admin@example.com` (รหัสผ่าน `password`) เข้าไปใน Database Seeder
+

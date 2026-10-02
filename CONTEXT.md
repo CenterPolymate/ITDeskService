@@ -84,6 +84,7 @@
 - **`TicketComment`**: เก็บข้อมูลข้อความสนทนา (Comments) เชื่อมโยงกับ `HelpdeskCase` และ `User`
 - **`Company`**: เก็บรายชื่อบริษัทสำหรับให้พนักงานเลือกสังกัด (Dynamic Company Management)
 - **`User`**: ระบบจัดการผู้ใช้งานและสิทธิ์ (Roles) แยกสิทธิ์อย่างชัดเจน ได้แก่ `user`, `helpdesk`, `team_hardware`, `team_network`, `team_software`, `manager`, `administrator`
+- **`AuditLog`**: ระบบบันทึกประวัติการเปลี่ยนแปลงข้อมูล (Audit Logging) ที่ทำงานเบื้องหลังอัตโนมัติเมื่อ Administrator กระทำการสร้าง, อัปเดต, หรือลบข้อมูลใดๆ บนระบบ
 
 ## บัญชีสำหรับทดสอบระบบ (Test Accounts)
 

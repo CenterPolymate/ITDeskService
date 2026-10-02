@@ -108,15 +108,13 @@ erDiagram
     
     AUDIT_LOGS {
         bigint id PK
-        bigint user_id FK "ผู้กระทำ (Nullable)"
-        string action "ประเภทการกระทำ (เช่น create, update, login)"
-        string model_type "ตารางที่เกี่ยวข้อง (เช่น User, HelpdeskCase)"
-        bigint model_id "ID ของข้อมูล"
-        json old_values "ข้อมูลเดิมก่อนแก้"
-        json new_values "ข้อมูลใหม่ที่บันทึก"
-        string ip_address
-        string user_agent
+        bigint user_id FK "ผู้กระทำ (Administrator)"
+        string action "ประเภทการกระทำ (เช่น POST route.name)"
+        string target_type "เส้นทางหรือข้อมูลเป้าหมาย"
+        string target_id "ID ข้อมูลเป้าหมาย (Nullable)"
+        json changes "ข้อมูลที่ถูกอัปเดต"
         timestamp created_at
+        timestamp updated_at
     }
 
     NOTIFICATIONS {

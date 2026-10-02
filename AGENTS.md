@@ -29,13 +29,11 @@
    - หากมีการปรับปรุง Frontend (UI) แล้วไม่แสดงผล ให้แจ้ง/หรือรัน `npm run dev` / `npm run build`
 
 6. **Documentation Update Rules:**
-   - หากผู้ใช้พิมพ์คำว่า "อัพเดทเอกสาร" หรือ "update เอกสาร" ให้ตรวจสอบและอัปเดตเอกสารทั้ง 6 ไฟล์ดังต่อไปนี้ให้เป็นปัจจุบันและสัมพันธ์กับการแก้ไขล่าสุดเสมอ (โดยข้อมูลที่อัปเดตต้องเป็น **ภาษาไทย**):
-     1. `er_diagram` (หรือ `docs/er_diagram.md`)
-     2. `glossary` (หรือ `docs/glossary.md`)
-     3. `implementation_plan` (หรือ `docs/implementation_plan.md`)
-     4. `task` (หรือ `task.md` ใน Artifacts)
-     5. `CONTEXT` (หรือ `CONTEXT.md`)
-     6. `AGENTS` (หรือ `AGENTS.md`)
+   - หากผู้ใช้พิมพ์คำว่า "อัพเดทเอกสาร" หรือ "update เอกสาร" ให้ดำเนินการตามขั้นตอนต่อไปนี้เสมอ:
+     1. ตรวจสอบและอัปเดตเอกสารทั้ง 6 ไฟล์ต่อไปนี้ให้เป็นปัจจุบัน (ภาษาไทย): `docs/er_diagram.md`, `docs/glossary.md`, `docs/implementation_plan.md`, `task.md`, `CONTEXT.md`, และ `AGENTS.md`
+     2. รันคำสั่ง `npm run build` (หากมีการแก้ไขไฟล์ CSS, JS หรือ Blade)
+     3. ทำการ Commit และ Push โค้ดทั้งหมดขึ้น Github
+     4. แจ้งเตือนให้ผู้ใช้งานล็อกอินเข้า SSH ของ CloudPanel แล้วพิมพ์คำสั่ง `git pull` เพื่ออัปเดตเซิร์ฟเวอร์
 
 7. **Specific Workflow Constraints:**
    - **Ticket Creation (เปิดเคส):**
@@ -65,3 +63,4 @@
      - การสมัครสมาชิกต้องผ่านการยืนยันตัวตนด้วยอีเมล (Email Verification)
      - ห้ามใช้ฟังก์ชันลบข้อมูลผู้ใช้งาน (Delete) ให้ใช้วิธีระงับบัญชี (Deactivate - `is_active`) แทน เพื่อป้องกันข้อมูลใบงานสูญหาย
      - สิทธิ์ในการตั้งค่า Active/Inactive สามารถทำได้ทุก Role ยกเว้น Role `user`
+   - **Audit Logging:** การดำเนินการเกี่ยวกับการเปลี่ยนแปลงข้อมูลระดับโครงสร้าง (เช่น การเพิ่ม/แก้ไข/ลบบริษัท หรือผู้ใช้งาน) โดย Administrator จะต้องถูกบันทึกลงฐานข้อมูล Audit Log โดยอัตโนมัติผ่าน Middleware เพื่อใช้ตรวจสอบย้อนหลัง
