@@ -50,12 +50,19 @@ class CompanyController extends Controller
         ]);
 
         // Create default SLAs for the new company
-        $priorities = ['urgent', 'high', 'normal', 'low'];
-        foreach ($priorities as $priority) {
+        $defaultSlas = [
+            ['priority' => 'urgent', 'hours' => 2, 'name_th' => 'ด่วนที่สุด'],
+            ['priority' => 'high', 'hours' => 4, 'name_th' => 'สูง'],
+            ['priority' => 'medium', 'hours' => 24, 'name_th' => 'ปานกลาง'],
+            ['priority' => 'low', 'hours' => 48, 'name_th' => 'ทั่วไป/ต่ำ'],
+        ];
+
+        foreach ($defaultSlas as $slaData) {
             Sla::create([
                 'company' => $company->name,
-                'priority' => $priority,
-                'hours' => 24,
+                'priority' => $slaData['priority'],
+                'hours' => $slaData['hours'],
+                'name_th' => $slaData['name_th'],
             ]);
         }
 
