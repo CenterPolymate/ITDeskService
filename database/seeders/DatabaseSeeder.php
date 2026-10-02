@@ -49,6 +49,14 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('password'),
         ]);
 
+        User::factory()->create([
+            'name' => 'Administrator',
+            'email' => 'admin@example.com',
+            'role' => 'administrator',
+            'department' => 'IT',
+            'password' => bcrypt('password'),
+        ]);
+
         $this->call(HelpdeskCaseSeeder::class);
     }
 }
