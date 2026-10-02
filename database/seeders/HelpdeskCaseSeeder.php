@@ -13,8 +13,6 @@ class HelpdeskCaseSeeder extends Seeder
      */
     public function run(): void
     {
-        HelpdeskCase::truncate();
-
         $cases = [
             [
                 'ticket_no' => 'ITD-2026-001',
