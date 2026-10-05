@@ -136,9 +136,14 @@ class NormalUserController extends Controller
             abort(404);
         }
 
+        if (!$normal_user->hasHistory()) {
+            $normal_user->delete();
+            return redirect()->route('normal_users.index')->with('success', 'ลบบัญชีผู้ใช้งานถาวรเรียบร้อยแล้ว (เนื่องจากเป็นบัญชีที่ไม่มีประวัติการใช้งาน)');
+        }
+
         $normal_user->update(['is_active' => false]);
 
-        return redirect()->route('normal_users.index')->with('success', 'ระงับบัญชีผู้ใช้งานเรียบร้อยแล้ว');
+        return redirect()->route('normal_users.index')->with('success', 'ระงับบัญชีผู้ใช้งานเรียบร้อยแล้ว (ไม่สามารถลบถาวรได้เนื่องจากมีประวัติเชื่อมโยงกับใบงาน)');
     }
 
     public function import(Request $request)

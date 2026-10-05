@@ -135,9 +135,14 @@ class UserManagementController extends Controller
             return redirect()->route('users.index')->with('error', 'ไม่สามารถระงับบัญชีของตัวเองได้');
         }
 
+        if (!$user->hasHistory()) {
+            $user->delete();
+            return redirect()->route('users.index')->with('success', 'ลบบัญชีผู้ใช้งานถาวรเรียบร้อยแล้ว (เนื่องจากเป็นบัญชีที่ไม่มีประวัติการใช้งาน)');
+        }
+
         $user->update(['is_active' => false]);
 
-        return redirect()->route('users.index')->with('success', 'ระงับบัญชีผู้ใช้งานเรียบร้อยแล้ว');
+        return redirect()->route('users.index')->with('success', 'ระงับบัญชีผู้ใช้งานเรียบร้อยแล้ว (ไม่สามารถลบถาวรได้เนื่องจากมีประวัติเชื่อมโยงกับใบงาน)');
     }
 
     public function forceResetPassword(User $user)

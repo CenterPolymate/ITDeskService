@@ -119,7 +119,7 @@
                                                 </form>
                                             @endif
                                             <a href="{{ route('normal_users.edit', $user->id) }}" class="text-indigo-600 hover:text-indigo-900 transition-colors px-2 py-1 bg-indigo-50 hover:bg-indigo-100 rounded-md">แก้ไข</a>
-                                            <form action="{{ route('normal_users.destroy', $user->id) }}" method="POST" class="inline m-0 p-0 {{ Auth::id() === $user->id ? 'invisible' : '' }}" onsubmit="return confirm('ยืนยันการระงับบัญชีผู้ใช้นี้?');">
+                                            <form action="{{ route('normal_users.destroy', $user->id) }}" method="POST" class="inline m-0 p-0 {{ Auth::id() === $user->id ? 'invisible' : '' }}" onsubmit="return confirm('ยืนยันการทำรายการ?\n(ระบบจะลบถาวรหากไม่มีประวัติ หรือระงับบัญชีหากมีประวัติแล้ว)');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600 hover:text-red-900 transition-colors px-2 py-1 bg-red-50 hover:bg-red-100 rounded-md">ลบ</button>
