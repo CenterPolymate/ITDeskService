@@ -16,8 +16,9 @@ class AuditLogController extends Controller
     public function index()
     {
         $this->authorizeAdministrator();
-        $logs = AuditLog::with('user')->orderBy('created_at', 'desc')->paginate(30);
+        $perPage = request()->input('per_page', 30);
+        $logs = AuditLog::with('user')->orderBy('created_at', 'desc')->paginate($perPage)->appends(request()->query());
 
-        return view('audit_logs.index', compact('logs'));
+        return view('audit_logs.index', compact('logs', 'perPage'));
     }
 }
