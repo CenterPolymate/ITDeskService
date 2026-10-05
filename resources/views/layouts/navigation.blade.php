@@ -5,7 +5,7 @@
             <div class="flex items-center">
                 <!-- Logo & Title -->
                 <div class="shrink-0 flex items-center gap-3">
-                    <a href="{{ Auth::user()->role === 'administrator' ? route('users.index') : route('dashboard') }}" class="flex items-center gap-2">
+                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
                         <div>
                             <img src="{{ asset('images/polymate-logo.png') }}" alt="Polymate Logo" class="h-8 w-auto">
                         </div>
@@ -17,11 +17,9 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    @if(Auth::user()->role !== 'administrator')
-                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                            {{ __('Dashboard') }}
-                        </x-nav-link>
-                    @endif
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                        {{ __('Dashboard') }}
+                    </x-nav-link>
 
                     @if(in_array(Auth::user()->role, ['manager', 'administrator']))
                         <div class="hidden sm:flex sm:items-center sm:ms-6">
@@ -144,11 +142,9 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            @if(Auth::user()->role !== 'administrator')
-                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                    {{ __('Dashboard') }}
-                </x-responsive-nav-link>
-            @endif
+            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                {{ __('Dashboard') }}
+            </x-responsive-nav-link>
 
             @if(in_array(Auth::user()->role, ['manager', 'administrator']))
                 <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">จัดการผู้ใช้งาน</div>
