@@ -40,15 +40,15 @@ class RegisteredUserController extends Controller
                 'required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class,
                 function ($attribute, $value, $fail) use ($request) {
                     $company = Company::where('name', $request->company)->first();
-                    if ($company && !empty($company->email_domains)) {
+                    if ($company && ! empty($company->email_domains)) {
                         $allowedDomains = array_map('trim', explode(',', $company->email_domains));
-                        
+
                         $emailParts = explode('@', $value);
                         if (count($emailParts) !== 2) {
                             return $fail('รูปแบบอีเมลไม่ถูกต้อง');
                         }
-                        $emailDomain = '@' . strtolower($emailParts[1]);
-                        
+                        $emailDomain = '@'.strtolower($emailParts[1]);
+
                         $domainMatched = false;
                         foreach ($allowedDomains as $allowed) {
                             if (strtolower($allowed) === $emailDomain) {
@@ -56,12 +56,12 @@ class RegisteredUserController extends Controller
                                 break;
                             }
                         }
-                        
-                        if (!$domainMatched) {
+
+                        if (! $domainMatched) {
                             $fail("อีเมลโดเมน $emailDomain ไม่ได้รับอนุญาตให้ใช้สมัครสมาชิกสำหรับบริษัทนี้");
                         }
                     }
-                }
+                },
             ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'department' => ['required', 'string', 'max:100'],

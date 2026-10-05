@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
@@ -32,7 +33,11 @@ class UserManagementController extends Controller
             });
         }
 
-        $users = $query->orderBy('created_at', 'desc')->paginate(15);
+        if ($request->has('status_filter') && $request->status_filter !== '') {
+            $query->where('is_active', $request->status_filter);
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->paginate(15)->appends($request->query());
 
         return view('users.index', compact('users'));
     }
@@ -105,6 +110,7 @@ class UserManagementController extends Controller
             'company' => $request->company,
             'department' => $request->department,
             'phone' => $request->phone,
+            'is_active' => $request->has('is_active'),
         ];
 
         // Only allow name update if not administrator
@@ -126,11 +132,26 @@ class UserManagementController extends Controller
         $this->authorizeAdminOrManager();
 
         if ($user->id === request()->user()->id) {
-            return redirect()->route('users.index')->with('error', 'ไม่สามารถลบบัญชีของตัวเองได้');
+            return redirect()->route('users.index')->with('error', 'ไม่สามารถระงับบัญชีของตัวเองได้');
         }
 
-        $user->delete();
+        $user->update(['is_active' => false]);
 
-        return redirect()->route('users.index')->with('success', 'ลบบัญชีผู้ใช้งานเรียบร้อยแล้ว');
+        return redirect()->route('users.index')->with('success', 'ระงับบัญชีผู้ใช้งานเรียบร้อยแล้ว');
+    }
+
+    public function forceResetPassword(User $user)
+    {
+        $this->authorizeAdminOrManager();
+
+        $status = PasswordBroker::broker()->sendResetLink(
+            ['email' => $user->email]
+        );
+
+        if ($status === PasswordBroker::RESET_LINK_SENT) {
+            return back()->with('success', 'ส่งลิงก์ตั้งรหัสผ่านใหม่ไปยังอีเมล '.$user->email.' สำเร็จแล้ว');
+        }
+
+        return back()->with('error', 'ไม่สามารถส่งลิงก์ตั้งรหัสผ่านใหม่ได้ โปรดลองอีกครั้ง');
     }
 }

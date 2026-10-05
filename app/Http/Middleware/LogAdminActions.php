@@ -2,11 +2,12 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Auth;
 use App\Models\AuditLog;
+use Closure;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class LogAdminActions
 {
@@ -31,7 +32,7 @@ class LogAdminActions
                     $params = array_values($request->route()->parameters());
                     $ids = [];
                     foreach ($params as $param) {
-                        if ($param instanceof \Illuminate\Database\Eloquent\Model) {
+                        if ($param instanceof Model) {
                             $ids[] = $param->getKey();
                             if ($method !== 'POST') {
                                 // Keep the original attributes before the request alters them
@@ -47,7 +48,7 @@ class LogAdminActions
                 $response = $next($request);
 
                 $changes = $request->except(['password', 'password_confirmation', '_token', '_method']);
-                
+
                 $finalOldValues = null;
                 if ($oldValues && $changes) {
                     $finalOldValues = [];
@@ -60,7 +61,7 @@ class LogAdminActions
 
                 AuditLog::create([
                     'user_id' => Auth::id(),
-                    'action' => $method . ' ' . $routeName,
+                    'action' => $method.' '.$routeName,
                     'target_type' => $routeName,
                     'target_id' => $targetId,
                     'changes' => $changes,

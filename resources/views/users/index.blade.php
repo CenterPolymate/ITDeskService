@@ -28,6 +28,11 @@
                 <div class="p-6 text-gray-900">
                     <form method="GET" action="{{ route('users.index') }}" class="mb-4 flex gap-2">
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="ค้นหาชื่อ หรืออีเมล..." class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-1/3">
+                        <select name="status_filter" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                            <option value="">สถานะทั้งหมด</option>
+                            <option value="1" {{ request('status_filter') === '1' ? 'selected' : '' }}>ใช้งาน (Active)</option>
+                            <option value="0" {{ request('status_filter') === '0' ? 'selected' : '' }}>ระงับการใช้งาน (Inactive)</option>
+                        </select>
                         <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">ค้นหา</button>
                     </form>
 
@@ -40,21 +45,31 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ตำแหน่ง (Role)</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">บริษัท</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">แผนก</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">จัดการ</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($users as $user)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ $user->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->email }}</td>
+                                <tr class="{{ $user->is_active ? '' : 'bg-red-50/50' }}">
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                                        <div class="text-sm font-medium {{ $user->is_active ? 'text-gray-900' : 'text-gray-400 line-through' }}">{{ $user->name }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->email }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $user->is_active ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-500' }}">
                                             {{ $user->role }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->company }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->department ?: '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->company }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->department ?: '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if($user->is_active)
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                                        @else
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end gap-3">
                                             @if(Auth::user()->role === 'administrator')

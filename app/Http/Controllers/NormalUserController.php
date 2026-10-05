@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
@@ -32,7 +33,11 @@ class NormalUserController extends Controller
             });
         }
 
-        $users = $query->orderBy('created_at', 'desc')->paginate(15);
+        if ($request->has('status_filter') && $request->status_filter !== '') {
+            $query->where('is_active', $request->status_filter);
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->paginate(15)->appends($request->query());
 
         return view('normal_users.index', compact('users'));
     }
@@ -110,6 +115,7 @@ class NormalUserController extends Controller
             'company' => $request->company,
             'department' => $request->department,
             'phone' => $request->phone,
+            'is_active' => $request->has('is_active'),
         ];
 
         if ($request->filled('password')) {
@@ -128,8 +134,89 @@ class NormalUserController extends Controller
             abort(404);
         }
 
-        $normal_user->delete();
+        $normal_user->update(['is_active' => false]);
 
-        return redirect()->route('normal_users.index')->with('success', 'ลบบัญชีผู้ใช้งานเรียบร้อยแล้ว');
+        return redirect()->route('normal_users.index')->with('success', 'ระงับบัญชีผู้ใช้งานเรียบร้อยแล้ว');
+    }
+
+    public function import(Request $request)
+    {
+        $this->authorizeAdministrator();
+        $request->validate([
+            'csv_file' => 'required|mimes:csv,txt|max:2048',
+        ]);
+
+        $file = $request->file('csv_file');
+        $handle = fopen($file->getPathname(), 'r');
+
+        // Skip BOM if present
+        $bom = fread($handle, 3);
+        if ($bom !== "\xEF\xBB\xBF") {
+            rewind($handle);
+        }
+
+        $header = fgetcsv($handle, 1000, ',');
+        $successCount = 0;
+        $errorCount = 0;
+
+        while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+            if (count($data) >= 4) {
+                $name = trim($data[0]);
+                $email = trim($data[1]);
+                $company = trim($data[2]);
+                $department = trim($data[3]);
+                $phone = isset($data[4]) ? trim($data[4]) : null;
+
+                if (! empty($name) && ! empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    // Make sure company exists
+                    $companyExists = Company::where('name', $company)->exists();
+                    if ($companyExists) {
+                        User::updateOrCreate(
+                            ['email' => $email],
+                            [
+                                'name' => $name,
+                                'company' => $company,
+                                'department' => $department,
+                                'phone' => $phone,
+                                'role' => 'user',
+                                // Set a default password for new users if they don't exist
+                                'password' => User::where('email', $email)->exists() ? User::where('email', $email)->value('password') : Hash::make('password123'),
+                            ]
+                        );
+                        $successCount++;
+                    } else {
+                        $errorCount++;
+                    }
+                } else {
+                    $errorCount++;
+                }
+            }
+        }
+        fclose($handle);
+
+        $message = "นำเข้าข้อมูลสำเร็จ {$successCount} รายการ";
+        if ($errorCount > 0) {
+            $message .= " (ข้ามแถวที่ข้อมูลไม่ครบถ้วนหรือไม่พบบริษัท {$errorCount} รายการ)";
+        }
+
+        return redirect()->route('normal_users.index')->with('success', $message);
+    }
+
+    public function forceResetPassword(User $normal_user)
+    {
+        $this->authorizeAdministrator();
+        if ($normal_user->role !== 'user') {
+            abort(404);
+        }
+
+        $status = PasswordBroker::broker()->sendResetLink(
+            ['email' => $normal_user->email]
+        );
+
+        if ($status === PasswordBroker::RESET_LINK_SENT) {
+            return back()->with('success', 'ส่งลิงก์ตั้งรหัสผ่านใหม่ไปยังอีเมล '.$normal_user->email.' สำเร็จแล้ว');
+        }
+
+        return back()->with('error', 'ไม่สามารถส่งลิงก์ตั้งรหัสผ่านใหม่ได้ โปรดลองอีกครั้ง');
     }
 }

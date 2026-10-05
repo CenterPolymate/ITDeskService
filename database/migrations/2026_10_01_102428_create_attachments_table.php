@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('mime_type')->nullable();
             $table->integer('file_size')->nullable();
             $table->timestamps();
-            
+
             $table->index(['attachable_type', 'attachable_id']);
         });
     }

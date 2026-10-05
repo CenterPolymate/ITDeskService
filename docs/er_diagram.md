@@ -112,6 +112,7 @@ erDiagram
         string action "ประเภทการกระทำ (เช่น POST route.name)"
         string target_type "เส้นทางหรือข้อมูลเป้าหมาย"
         string target_id "ID ข้อมูลเป้าหมาย (Nullable)"
+        json old_values "ข้อมูลเดิม (ก่อนแก้ไข/ลบ)"
         json changes "ข้อมูลที่ถูกอัปเดต"
         timestamp created_at
         timestamp updated_at

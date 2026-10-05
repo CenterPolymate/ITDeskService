@@ -2,13 +2,31 @@
 @php /** @var \App\Models\User $normal_user */ @endphp
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('แก้ไขผู้ใช้งานทั่วไป') }}
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('แก้ไขผู้ใช้งานทั่วไป') }}
+            </h2>
+            <form action="{{ route('normal_users.force_reset_password', $normal_user->id) }}" method="POST" class="inline" onsubmit="return confirm('ระบบจะส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่อีเมลนี้ ยืนยันหรือไม่?');">
+                @csrf
+                <button type="submit" class="inline-flex items-center px-4 py-2 bg-yellow-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm">
+                    ส่งลิงก์รีเซ็ตรหัสผ่าน
+                </button>
+            </form>
+        </div>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
+            @if (session('success'))
+                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
+                    <span class="block sm:inline">{{ session('success') }}</span>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                    <span class="block sm:inline">{{ session('error') }}</span>
+                </div>
+            @endif
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <form method="POST" action="{{ route('normal_users.update', $normal_user->id) }}">
@@ -67,6 +85,14 @@
                             <x-input-label for="phone" :value="__('เบอร์โทรศัพท์ (ไม่บังคับ)')" />
                             <x-text-input id="phone" class="block mt-1 w-full" type="text" name="phone" :value="old('phone', $normal_user->phone)" />
                             <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+                        </div>
+
+                        <!-- Status (is_active) -->
+                        <div class="mt-6 flex items-center">
+                            <input id="is_active" name="is_active" type="checkbox" value="1" @checked(old('is_active', $normal_user->is_active)) class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                            <label for="is_active" class="ml-2 block text-sm text-gray-900 font-medium">
+                                บัญชีนี้เปิดใช้งานอยู่ (Active)
+                            </label>
                         </div>
 
                         <div class="flex items-center justify-end mt-8 gap-3">

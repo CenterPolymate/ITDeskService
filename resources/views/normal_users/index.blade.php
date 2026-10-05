@@ -4,9 +4,46 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('จัดการผู้ใช้งานทั่วไป') }}
             </h2>
-            <a href="{{ route('normal_users.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
-                + เพิ่มผู้ใช้งานใหม่
-            </a>
+            <div class="flex gap-2" x-data="{ showImportModal: false }">
+                <button @click="showImportModal = true" class="inline-flex items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-emerald-700">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    Import CSV
+                </button>
+                <a href="{{ route('normal_users.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                    + เพิ่มผู้ใช้งานใหม่
+                </a>
+
+                <!-- Import Modal -->
+                <div x-show="showImportModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div x-show="showImportModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showImportModal = false"></div>
+                        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                        <div x-show="showImportModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                            <form action="{{ route('normal_users.import') }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">นำเข้าผู้ใช้งานจากไฟล์ CSV</h3>
+                                    <div class="mt-2">
+                                        <p class="text-sm text-gray-500 mb-4">
+                                            ไฟล์ CSV ต้องมีคอลัมน์ตามลำดับดังนี้: <br>
+                                            <code class="text-xs bg-gray-100 px-1 py-0.5 rounded">ชื่อ, อีเมล, บริษัท, แผนก, เบอร์โทรศัพท์</code>
+                                        </p>
+                                        <input type="file" name="csv_file" accept=".csv" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                                    </div>
+                                </div>
+                                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                        นำเข้าข้อมูล
+                                    </button>
+                                    <button type="button" @click="showImportModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                                        ยกเลิก
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </x-slot>
 
@@ -28,6 +65,11 @@
                 <div class="p-6 text-gray-900">
                     <form method="GET" action="{{ route('normal_users.index') }}" class="mb-4 flex gap-2">
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="ค้นหาชื่อ หรืออีเมล..." class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-1/3">
+                        <select name="status_filter" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                            <option value="">สถานะทั้งหมด</option>
+                            <option value="1" {{ request('status_filter') === '1' ? 'selected' : '' }}>ใช้งาน (Active)</option>
+                            <option value="0" {{ request('status_filter') === '0' ? 'selected' : '' }}>ระงับการใช้งาน (Inactive)</option>
+                        </select>
                         <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">ค้นหา</button>
                     </form>
 
@@ -39,16 +81,26 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">อีเมล</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">แผนก</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">บริษัท</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">จัดการ</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($users as $user)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ $user->name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->email }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->department ?? '-' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->company }}</td>
+                                <tr class="{{ $user->is_active ? '' : 'bg-red-50/50' }}">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium {{ $user->is_active ? 'text-gray-900' : 'text-gray-400 line-through' }}">{{ $user->name }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->email }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->department ?? '-' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->company }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if($user->is_active)
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                                        @else
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end gap-3">
                                             @if(Auth::user()->role === 'administrator')

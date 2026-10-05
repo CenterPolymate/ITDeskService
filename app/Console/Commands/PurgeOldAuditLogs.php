@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\AuditLog;
+use App\Models\Setting;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -15,22 +17,23 @@ class PurgeOldAuditLogs extends Command
      */
     public function handle()
     {
-        $setting = \App\Models\Setting::where('key', 'audit_log_retention_years')->first();
-        $years = $setting ? (int)$setting->value : 1;
-        
+        $setting = Setting::where('key', 'audit_log_retention_years')->first();
+        $years = $setting ? (int) $setting->value : 1;
+
         if ($years >= 99) {
-            $this->info("Retention is set to 99 years (keep forever). Skipping purge.");
+            $this->info('Retention is set to 99 years (keep forever). Skipping purge.');
+
             return;
         }
 
         $cutoffDate = now()->subYears($years);
-        $count = \App\Models\AuditLog::where('created_at', '<', $cutoffDate)->count();
-        
+        $count = AuditLog::where('created_at', '<', $cutoffDate)->count();
+
         if ($count > 0) {
-            \App\Models\AuditLog::where('created_at', '<', $cutoffDate)->delete();
+            AuditLog::where('created_at', '<', $cutoffDate)->delete();
             $this->info("Successfully purged {$count} old audit logs (older than {$years} years).");
         } else {
-            $this->info("No old audit logs found to purge.");
+            $this->info('No old audit logs found to purge.');
         }
     }
 }

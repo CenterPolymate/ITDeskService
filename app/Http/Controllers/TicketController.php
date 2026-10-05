@@ -40,10 +40,10 @@ class TicketController extends Controller
         $user = Auth::user();
 
         // Generate Ticket Number: IT-YYYYMM-XXXX
-        $prefix = 'IT-' . now()->format('Ym') . '-';
+        $prefix = 'IT-'.now()->format('Ym').'-';
 
         // Find the last ticket created in this month
-        $lastTicket = HelpdeskCase::where('ticket_no', 'like', $prefix . '%')
+        $lastTicket = HelpdeskCase::where('ticket_no', 'like', $prefix.'%')
             ->orderBy('ticket_no', 'desc')
             ->first();
 
@@ -56,7 +56,7 @@ class TicketController extends Controller
             $newNumber = 1;
         }
 
-        $ticketNo = $prefix . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+        $ticketNo = $prefix.str_pad($newNumber, 4, '0', STR_PAD_LEFT);
 
         // Create Case
         $ticket = HelpdeskCase::create([
@@ -140,11 +140,11 @@ class TicketController extends Controller
         }
 
         $headers = [
-            "Content-type"        => "application/vnd.ms-excel",
-            "Content-Disposition" => "attachment; filename=\"PCAR_{$ticket->ticket_no}.xls\"",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            'Content-type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => "attachment; filename=\"PCAR_{$ticket->ticket_no}.xls\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
         ];
 
         return response()->view('tickets.export-excel', compact('ticket'))->withHeaders($headers);

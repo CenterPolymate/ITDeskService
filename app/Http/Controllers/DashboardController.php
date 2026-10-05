@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\HelpdeskCase;
+use App\Models\Sla;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -13,7 +17,48 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         if ($user->role === 'administrator') {
-            return redirect()->route('users.index');
+            $totalTickets = HelpdeskCase::count();
+            $resolvedTickets = HelpdeskCase::whereIn('status', ['resolved', 'approved', 'closed', 'cancelled'])->count();
+
+            $stats = [
+                'total_it_users' => User::where('role', '!=', 'user')->count(),
+                'active_it_users' => User::where('role', '!=', 'user')->where('is_active', true)->count(),
+                'total_normal_users' => User::where('role', 'user')->count(),
+                'active_normal_users' => User::where('role', 'user')->where('is_active', true)->count(),
+                'total_companies' => Company::count(),
+                'active_companies' => Company::where('is_active', true)->count(),
+                'total_slas' => Sla::count(),
+                'total_tickets' => $totalTickets,
+                'resolved_tickets' => $resolvedTickets,
+                'resolution_rate' => $totalTickets > 0 ? round(($resolvedTickets / $totalTickets) * 100) : 0,
+            ];
+
+            // Ticket Status Distribution for Chart
+            $ticketStatuses = HelpdeskCase::select('status', DB::raw('count(*) as total'))
+                ->groupBy('status')
+                ->pluck('total', 'status')
+                ->toArray();
+
+            // Format for Chart.js
+            $statusLabels = [
+                'pending' => 'รอดำเนินการ',
+                'analyzing' => 'วิเคราะห์ปัญหา',
+                'in_progress' => 'กำลังดำเนินการ',
+                'resolved' => 'รอผู้แจ้งยืนยัน',
+                'approved' => 'รอหัวหน้าอนุมัติ',
+                'closed' => 'ปิดใบงาน',
+                'cancelled' => 'ยกเลิก',
+            ];
+
+            $chartLabels = [];
+            $chartData = [];
+
+            foreach ($statusLabels as $key => $label) {
+                $chartLabels[] = $label;
+                $chartData[] = $ticketStatuses[$key] ?? 0;
+            }
+
+            return view('dashboard-superadmin', compact('stats', 'chartLabels', 'chartData'));
         }
 
         // 1. Data Isolation for General Users

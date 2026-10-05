@@ -119,10 +119,10 @@ class CompanyController extends Controller
     public function destroy(Company $company)
     {
         $this->authorizeAdministrator();
-        Sla::where('company', $company->name)->delete();
-        $company->delete();
 
-        return redirect()->route('companies.index')->with('success', 'ลบบริษัทและ SLA ที่เกี่ยวข้องสำเร็จ');
+        $company->update(['is_active' => false]);
+
+        return redirect()->route('companies.index')->with('success', 'ระงับการใช้งานบริษัทสำเร็จ');
     }
 
     public function storeDepartment(Request $request, Company $company)
@@ -220,5 +220,80 @@ class CompanyController extends Controller
         $department->delete();
 
         return redirect()->route('companies.edit', $companyId)->with('success', 'ลบหน่วยงานสำเร็จ');
+    }
+
+    public function import(Request $request)
+    {
+        $this->authorizeAdministrator();
+        $request->validate([
+            'csv_file' => 'required|mimes:csv,txt|max:2048',
+        ]);
+
+        $file = $request->file('csv_file');
+        $handle = fopen($file->getPathname(), 'r');
+
+        // Skip BOM if present
+        $bom = fread($handle, 3);
+        if ($bom !== "\xEF\xBB\xBF") {
+            rewind($handle);
+        }
+
+        $header = fgetcsv($handle, 1000, ',');
+        $successCount = 0;
+        $errorCount = 0;
+
+        while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+            if (count($data) >= 3) {
+                $name = trim($data[0]);
+                $shortName = trim($data[1]);
+                $emailDomains = trim($data[2]);
+
+                if (! empty($name) && ! empty($emailDomains)) {
+                    $company = Company::updateOrCreate(
+                        ['name' => $name],
+                        [
+                            'short_name' => $shortName,
+                            'email_domains' => $emailDomains,
+                            'is_active' => true,
+                        ]
+                    );
+
+                    // Create default SLAs for new companies
+                    if ($company->wasRecentlyCreated) {
+                        $defaultSlas = [
+                            ['priority' => 'urgent', 'hours' => 2, 'name_th' => 'ด่วนที่สุด'],
+                            ['priority' => 'high', 'hours' => 4, 'name_th' => 'สูง'],
+                            ['priority' => 'medium', 'hours' => 24, 'name_th' => 'ปานกลาง'],
+                            ['priority' => 'low', 'hours' => 48, 'name_th' => 'ทั่วไป/ต่ำ'],
+                        ];
+
+                        foreach ($defaultSlas as $slaData) {
+                            Sla::firstOrCreate(
+                                [
+                                    'company' => $company->name,
+                                    'priority' => $slaData['priority'],
+                                ],
+                                [
+                                    'hours' => $slaData['hours'],
+                                    'name_th' => $slaData['name_th'],
+                                ]
+                            );
+                        }
+                    }
+
+                    $successCount++;
+                } else {
+                    $errorCount++;
+                }
+            }
+        }
+        fclose($handle);
+
+        $message = "นำเข้าข้อมูลสำเร็จ {$successCount} รายการ";
+        if ($errorCount > 0) {
+            $message .= " (ข้ามแถวที่ข้อมูลไม่ครบถ้วน {$errorCount} รายการ)";
+        }
+
+        return redirect()->route('companies.index')->with('success', $message);
     }
 }

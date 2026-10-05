@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ImpersonateController extends Controller
@@ -21,12 +20,12 @@ class ImpersonateController extends Controller
         session()->put('impersonated_by', Auth::id());
         Auth::login($user);
 
-        return redirect()->route('dashboard')->with('success', 'เข้าสู่ระบบในฐานะ ' . $user->name . ' สำเร็จ');
+        return redirect()->route('dashboard')->with('success', 'เข้าสู่ระบบในฐานะ '.$user->name.' สำเร็จ');
     }
 
     public function leave()
     {
-        if (!session()->has('impersonated_by')) {
+        if (! session()->has('impersonated_by')) {
             abort(403);
         }
 
