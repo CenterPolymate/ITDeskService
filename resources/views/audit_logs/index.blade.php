@@ -56,7 +56,16 @@
                                         @endphp
                                         {{ $targetText }} 
                                         @if($log->target_id) 
-                                            <span class="text-gray-400">#{{ $log->target_id }}</span> 
+                                            @php
+                                                $displayId = $log->target_id;
+                                                $decoded = json_decode($displayId, true);
+                                                if (is_array($decoded) && isset($decoded['id'])) {
+                                                    $displayId = $decoded['id'];
+                                                } elseif (strlen($displayId) > 15) {
+                                                    $displayId = substr($displayId, 0, 15) . '...';
+                                                }
+                                            @endphp
+                                            <span class="text-gray-400">#{{ $displayId }}</span> 
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-500">

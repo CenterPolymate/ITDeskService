@@ -24,9 +24,19 @@ class LogAdminActions
             // Only log actions that modify data
             if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
                 $routeName = $request->route() ? $request->route()->getName() : $request->path();
-                $targetId = $request->route() && $request->route()->parameterNames() 
-                            ? implode(',', array_values($request->route()->parameters())) 
-                            : null;
+                $targetId = null;
+                if ($request->route() && $request->route()->parameterNames()) {
+                    $params = array_values($request->route()->parameters());
+                    $ids = [];
+                    foreach ($params as $param) {
+                        if ($param instanceof \Illuminate\Database\Eloquent\Model) {
+                            $ids[] = $param->getKey();
+                        } else {
+                            $ids[] = $param;
+                        }
+                    }
+                    $targetId = implode(',', $ids);
+                }
 
                 $changes = $request->except(['password', 'password_confirmation', '_token', '_method']);
 
