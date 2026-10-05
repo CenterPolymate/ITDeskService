@@ -40,30 +40,30 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อ</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">อีเมล</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ตำแหน่ง (Role)</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">บริษัท</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">แผนก</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">จัดการ</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อ</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">อีเมล</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ตำแหน่ง (Role)</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">บริษัท</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">แผนก</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">จัดการ</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($users as $user)
                                 <tr class="{{ $user->is_active ? '' : 'bg-red-50/50' }}">
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-4 py-4 whitespace-nowrap">
                                         <div class="text-sm font-medium {{ $user->is_active ? 'text-gray-900' : 'text-gray-400 line-through' }}">{{ $user->name }}</div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->email }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-4 py-4 text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }} break-all max-w-[200px]">{{ $user->email }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap">
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $user->is_active ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-500' }}">
                                             {{ $user->role }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->company }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->department ?: '-' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-4 py-4 text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->company }}</td>
+                                    <td class="px-4 py-4 text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->department ?: '-' }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap">
                                         @if($user->is_active)
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
                                         @else
