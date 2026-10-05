@@ -61,6 +61,23 @@
                             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                         </div>
 
+                        <!-- Role -->
+                        <div class="mt-4">
+                            <x-input-label for="role">ตำแหน่ง (Role) <span class="text-red-500">*</span></x-input-label>
+                            <select id="role" name="role" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                <option value="user" {{ old('role', $normal_user->role) == 'user' ? 'selected' : '' }}>User ทั่วไป</option>
+                                <option value="helpdesk" {{ old('role', $normal_user->role) == 'helpdesk' ? 'selected' : '' }}>Helpdesk (Tier 1)</option>
+                                <option value="team_hardware" {{ old('role', $normal_user->role) == 'team_hardware' ? 'selected' : '' }}>Team Hardware</option>
+                                <option value="team_network" {{ old('role', $normal_user->role) == 'team_network' ? 'selected' : '' }}>Team Network</option>
+                                <option value="team_software" {{ old('role', $normal_user->role) == 'team_software' ? 'selected' : '' }}>Team Software</option>
+                                <option value="manager" {{ old('role', $normal_user->role) == 'manager' ? 'selected' : '' }}>Manager (Tier 3)</option>
+                                @if(Auth::user()->role === 'administrator')
+                                <option value="administrator" {{ old('role', $normal_user->role) == 'administrator' ? 'selected' : '' }}>Administrator</option>
+                                @endif
+                            </select>
+                            <x-input-error :messages="$errors->get('role')" class="mt-2" />
+                        </div>
+
                         <!-- Company -->
                         <div class="mt-4">
                             <x-input-label for="company" :value="__('บริษัท')" />
