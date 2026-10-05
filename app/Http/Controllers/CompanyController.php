@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\Department;
-use App\Models\User;
+use App\Models\HelpdeskCase;
 use App\Models\Sla;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class CompanyController extends Controller
@@ -58,12 +59,16 @@ class CompanyController extends Controller
         ];
 
         foreach ($defaultSlas as $slaData) {
-            Sla::create([
-                'company' => $company->name,
-                'priority' => $slaData['priority'],
-                'hours' => $slaData['hours'],
-                'name_th' => $slaData['name_th'],
-            ]);
+            Sla::firstOrCreate(
+                [
+                    'company' => $company->name,
+                    'priority' => $slaData['priority'],
+                ],
+                [
+                    'hours' => $slaData['hours'],
+                    'name_th' => $slaData['name_th'],
+                ]
+            );
         }
 
         return redirect()->route('companies.index')->with('success', 'เพิ่มบริษัทสำเร็จและสร้าง SLA เริ่มต้นเรียบร้อยแล้ว');
@@ -74,7 +79,7 @@ class CompanyController extends Controller
         $this->authorizeAdministrator();
 
         $mappedDepartments = $company->departments()->pluck('name')->toArray();
-        $unmappedDepartments = \App\Models\User::where('company', $company->name)
+        $unmappedDepartments = User::where('company', $company->name)
             ->whereNotNull('department')
             ->whereNotIn('department', $mappedDepartments)
             ->distinct()
@@ -154,9 +159,9 @@ class CompanyController extends Controller
                 User::where('company', $company->name)
                     ->where('department', $originalName)
                     ->update(['department' => $newName]);
-                    
+
                 // Update tickets (HelpdeskCase) as well
-                \App\Models\HelpdeskCase::where('company', $company->name)
+                HelpdeskCase::where('company', $company->name)
                     ->where('department', $originalName)
                     ->update(['department' => $newName]);
             }
@@ -170,9 +175,9 @@ class CompanyController extends Controller
             User::where('company', $company->name)
                 ->where('department', $originalName)
                 ->update(['department' => $newName]);
-                
+
             // Update tickets (HelpdeskCase) to the merged department name
-            \App\Models\HelpdeskCase::where('company', $company->name)
+            HelpdeskCase::where('company', $company->name)
                 ->where('department', $originalName)
                 ->update(['department' => $newName]);
 
@@ -198,9 +203,9 @@ class CompanyController extends Controller
             User::where('company', $company->name)
                 ->where('department', $oldName)
                 ->update(['department' => $newName]);
-                
+
             // Cascade update to tickets (HelpdeskCase)
-            \App\Models\HelpdeskCase::where('company', $company->name)
+            HelpdeskCase::where('company', $company->name)
                 ->where('department', $oldName)
                 ->update(['department' => $newName]);
         }
