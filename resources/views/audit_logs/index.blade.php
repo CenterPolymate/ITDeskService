@@ -1,19 +1,41 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('ประวัติการใช้งานระบบ (Audit Logs)') }}
-            </h2>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl shadow-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-bold text-2xl text-gray-900 tracking-tight">
+                        {{ __('ประวัติการใช้งานระบบ (Audit Logs)') }}
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-0.5">ติดตามการเปลี่ยนแปลง เพิ่ม แก้ไข และลบข้อมูลทั้งหมดภายในระบบ</p>
+                </div>
+            </div>
+            
+            <nav class="flex text-sm font-medium" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-2">
+                    <li class="inline-flex items-center text-gray-400">ตั้งค่าระบบ</li>
+                    <li>
+                        <div class="flex items-center text-gray-400">
+                            <svg class="w-4 h-4 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            <span class="text-indigo-600">Audit Logs</span>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
         </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-10">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white shadow-sm sm:rounded-lg">
+            <div class="bg-white shadow-lg shadow-gray-200/50 sm:rounded-2xl border border-gray-100">
                 <div class="p-6 text-gray-900">
                     <div class="w-full">
                         <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50 sticky top-16 z-10 outline outline-1 outline-gray-200">
+                            <thead class="bg-gray-50/80 sticky top-16 z-10 outline outline-1 outline-gray-200 backdrop-blur-sm">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">เวลา</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ผู้ใช้งาน</th>
@@ -22,27 +44,38 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ข้อมูลที่เปลี่ยนแปลง</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="bg-white divide-y divide-gray-100">
                                 @foreach($logs as $log)
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $log->created_at->translatedFormat('d F Y H:i') }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">{{ $log->user->name ?? 'System' }}</td>
+                                <tr class="hover:bg-indigo-50/30 transition-colors duration-200">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-semibold text-gray-900">{{ $log->created_at->translatedFormat('d M Y') }}</div>
+                                        <div class="text-xs text-gray-500 mt-0.5">{{ $log->created_at->format('H:i') }} น.</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center gap-3">
+                                            @php $userName = $log->user->name ?? 'System'; @endphp
+                                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                                                {{ mb_substr($userName, 0, 1) }}
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-900">{{ $userName }}</span>
+                                        </div>
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @php
                                             $actionText = $log->action;
                                             $badgeClass = 'bg-gray-100 text-gray-800';
                                             if (str_contains($log->action, 'POST') || $log->action === 'created') {
                                                 $actionText = 'เพิ่มข้อมูล';
-                                                $badgeClass = 'bg-green-100 text-green-800';
+                                                $badgeClass = 'bg-emerald-50 text-emerald-700 ring-emerald-600/20';
                                             } elseif (str_contains($log->action, 'PUT') || str_contains($log->action, 'PATCH') || $log->action === 'updated') {
                                                 $actionText = 'แก้ไขข้อมูล';
-                                                $badgeClass = 'bg-blue-100 text-blue-800';
+                                                $badgeClass = 'bg-blue-50 text-blue-700 ring-blue-600/20';
                                             } elseif (str_contains($log->action, 'DELETE') || $log->action === 'deleted') {
                                                 $actionText = 'ลบข้อมูล';
-                                                $badgeClass = 'bg-red-100 text-red-800';
+                                                $badgeClass = 'bg-rose-50 text-rose-700 ring-rose-600/20';
                                             }
                                         @endphp
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $badgeClass }}">{{ $actionText }}</span>
+                                        <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ring-1 ring-inset {{ $badgeClass }}">{{ $actionText }}</span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @php
