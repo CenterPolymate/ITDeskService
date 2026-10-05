@@ -70,9 +70,9 @@
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end gap-3">
-                                            @if(Auth::user()->role === 'administrator')
+                                            @if(Auth::user()->role === 'administrator' && $user->role !== 'administrator')
                                                 <form action="{{ route('impersonate', $user->id) }}" method="POST" class="inline m-0 p-0">
                                                     @csrf
                                                     <button type="submit" class="text-emerald-600 hover:text-emerald-900 transition-colors px-2 py-1 bg-emerald-50 hover:bg-emerald-100 rounded-md">
