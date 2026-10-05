@@ -106,9 +106,9 @@
                     <div class="ml-3">
                         <h3 class="text-sm font-medium text-blue-800">คำแนะนำการตั้งค่าสำรองข้อมูลอัตโนมัติ (Automated Backup)</h3>
                         <div class="mt-2 text-sm text-blue-700">
-                            <p>เพื่อให้ระบบสำรองข้อมูลทำงานอัตโนมัติทุกวัน คุณสามารถไปตั้งค่าที่ <strong>CloudPanel > Cron Jobs</strong> โดยเพิ่มคำสั่งดังนี้:</p>
-                            <pre class="mt-2 bg-blue-100 p-2 rounded"><code>0 0 * * * cd /home/htdocs/itdeskservice && php artisan backup:run --only-db</code></pre>
-                            <p class="mt-2"><i>(คำสั่งด้านบนคือการรัน Backup ฐานข้อมูลทุกๆ เที่ยงคืนของทุกวัน)</i></p>
+                            <p>ผมได้เขียนโปรแกรมฝังไว้ในระบบให้แล้ว เพียงแค่คุณไปตั้งค่าที่ <strong>CloudPanel > Cron Jobs</strong> โดยเพิ่มคำสั่งพื้นฐานของ Laravel ให้ทำงานทุกๆ 1 นาที ดังนี้:</p>
+                            <pre class="mt-2 bg-blue-100 p-2 rounded"><code>* * * * * cd /home/htdocs/itdeskservice && php artisan schedule:run >> /dev/null 2>&1</code></pre>
+                            <p class="mt-2"><i>(เมื่อตั้งค่านี้แล้ว ระบบจะทำการ <strong>Backup ข้อมูลแบบเต็มรูปแบบ (ทั้ง Database และไฟล์แนบรูปภาพ) โดยอัตโนมัติทุกๆ เที่ยงคืน</strong> รวมถึงจะเคลียร์ไฟล์ขยะ/ไฟล์ Backup เก่าๆ ตามกฎที่ตั้งไว้อัตโนมัติในเวลา 00:30 น. ด้วยครับ)</i></p>
                         </div>
                     </div>
                 </div>
