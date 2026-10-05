@@ -60,6 +60,22 @@ class AuditLogController extends Controller
             fputcsv($file, ['เวลา', 'ผู้ใช้งาน', 'การกระทำ', 'เป้าหมาย', 'รายละเอียดการเปลี่ยนแปลง']);
 
             $query->chunk(100, function ($logs) use ($file) {
+                $keyMap = [
+                    'name' => 'ชื่อ',
+                    'name_th' => 'ชื่อ (ไทย)',
+                    'short_name' => 'ชื่อย่อ',
+                    'is_active' => 'สถานะการใช้งาน',
+                    'status' => 'สถานะ',
+                    'description' => 'รายละเอียด',
+                    'email_domains' => 'โดเมนอีเมล',
+                    'role' => 'ระดับสิทธิ์',
+                    'company' => 'บริษัท',
+                    'department' => 'แผนก/หน่วยงาน',
+                    'phone' => 'เบอร์โทรศัพท์',
+                    'priority' => 'ความเร่งด่วน',
+                    'hours' => 'จำนวนชั่วโมง',
+                ];
+
                 foreach ($logs as $log) {
                     $actionText = $log->action;
                     if (str_contains($log->action, 'POST') || $log->action === 'created') $actionText = 'เพิ่มข้อมูล';
@@ -74,16 +90,50 @@ class AuditLogController extends Controller
                     elseif (str_contains($log->target_type, 'slas')) $targetText = 'SLA';
                     elseif (str_contains($log->target_type, 'settings')) $targetText = 'ตั้งค่าระบบ';
 
-                    $target = $targetText . ($log->target_id ? ' #' . $log->target_id : '');
+                    $displayId = $log->target_id;
+                    if ($displayId) {
+                        $decoded = json_decode($displayId, true);
+                        if (is_array($decoded) && isset($decoded['id'])) {
+                            $displayId = $decoded['id'];
+                        } elseif (strlen($displayId) > 15) {
+                            $displayId = substr($displayId, 0, 15) . '...';
+                        }
+                    }
+
+                    $target = $targetText . ($displayId ? ' #' . $displayId : '');
                     
-                    $changes = is_array($log->changes) ? json_encode($log->changes, JSON_UNESCAPED_UNICODE) : $log->changes;
+                    $changesText = [];
+                    if (is_array($log->changes) && count($log->changes) > 0) {
+                        foreach ($log->changes as $key => $value) {
+                            $keyName = $keyMap[$key] ?? $key;
+                            
+                            $valStr = is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : (string)$value;
+                            if ($valStr === '') $valStr = 'ว่างเปล่า';
+                            elseif (in_array($key, ['is_active', 'status'])) $valStr = $valStr == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+
+                            if ($log->old_values && array_key_exists($key, $log->old_values)) {
+                                $oldVal = $log->old_values[$key];
+                                $oldValStr = is_array($oldVal) ? json_encode($oldVal, JSON_UNESCAPED_UNICODE) : (string)$oldVal;
+                                if ($oldValStr === '') $oldValStr = 'ว่างเปล่า';
+                                elseif (in_array($key, ['is_active', 'status'])) $oldValStr = $oldValStr == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+                                
+                                $changesText[] = "เปลี่ยน [$keyName] จาก '$oldValStr' เป็น '$valStr'";
+                            } else {
+                                $changesText[] = "[$keyName]: $valStr";
+                            }
+                        }
+                    } elseif (is_string($log->changes) && !empty($log->changes) && $log->changes !== '[]') {
+                        $changesText[] = $log->changes;
+                    }
+
+                    $changesOutput = empty($changesText) ? 'ไม่มีรายละเอียด' : implode("\n", $changesText);
 
                     fputcsv($file, [
                         $log->created_at->format('Y-m-d H:i:s'),
                         $log->user->name ?? 'System',
                         $actionText,
                         $target,
-                        $changes
+                        $changesOutput
                     ]);
                 }
             });
