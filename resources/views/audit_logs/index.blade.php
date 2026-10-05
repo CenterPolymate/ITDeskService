@@ -112,7 +112,10 @@
                         </table>
                     </div>
                     <div class="mt-4 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-                        <div class="flex items-center space-x-2">
+                        <div class="w-full sm:w-auto flex-1">
+                            {{ $logs->links() }}
+                        </div>
+                        <div class="flex items-center space-x-2 sm:ml-4">
                             <label for="per_page" class="text-sm text-gray-700">แสดง</label>
                             <select id="per_page" class="border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500 py-1.5 pl-3 pr-8" onchange="window.location.href='?per_page='+this.value">
                                 <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
@@ -121,9 +124,6 @@
                                 <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
                             </select>
                             <span class="text-sm text-gray-700">รายการต่อหน้า</span>
-                        </div>
-                        <div class="w-full sm:w-auto">
-                            {{ $logs->links() }}
                         </div>
                     </div>
                 </div>
