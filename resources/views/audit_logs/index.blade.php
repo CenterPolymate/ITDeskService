@@ -13,7 +13,7 @@
                 <div class="p-6 text-gray-900">
                     <div class="w-full">
                         <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50 sticky top-0 z-10 outline outline-1 outline-gray-200">
+                            <thead class="bg-gray-50 sticky top-16 z-10 outline outline-1 outline-gray-200">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">เวลา</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ผู้ใช้งาน</th>
