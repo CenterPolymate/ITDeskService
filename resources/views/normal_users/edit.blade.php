@@ -29,7 +29,7 @@
             @endif
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <form method="POST" action="{{ route('normal_users.update', $normal_user->id) }}">
+                    <form method="POST" action="{{ route('normal_users.update', $normal_user->id) }}" x-data="userForm()">
                         @csrf
                         @method('PUT')
                         
@@ -81,11 +81,11 @@
                         <!-- Company -->
                         <div class="mt-4">
                             <x-input-label for="company" :value="__('บริษัท')" />
-                            <select id="company" name="company" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                            <select id="company" name="company" x-model="selectedCompany" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                                 <option value="">เลือกบริษัท</option>
-                                @foreach($companies as $c)
-                                    <option value="{{ $c->name }}" @selected(old('company', $normal_user->company) == $c->name)>{{ $c->name }}</option>
-                                @endforeach
+                                <template x-for="comp in companies" :key="comp.id">
+                                    <option :value="comp.name" x-text="comp.name"></option>
+                                </template>
                             </select>
                             <x-input-error :messages="$errors->get('company')" class="mt-2" />
                         </div>
@@ -93,7 +93,13 @@
                         <!-- Department -->
                         <div class="mt-4">
                             <x-input-label for="department" :value="__('แผนก (ไม่บังคับ)')" />
-                            <x-text-input id="department" class="block mt-1 w-full" type="text" name="department" :value="old('department', $normal_user->department)" />
+                            <select id="department" name="department" x-model="selectedDepartment" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" :disabled="!selectedCompany || departments.length === 0">
+                                <option value="">เลือกแผนก</option>
+                                <template x-for="dept in departments" :key="dept.id">
+                                    <option :value="dept.name" x-text="dept.name"></option>
+                                </template>
+                            </select>
+                            <p x-show="selectedCompany && departments.length === 0" class="mt-1 text-sm text-gray-500">บริษัทนี้ยังไม่มีการตั้งค่าแผนก</p>
                             <x-input-error :messages="$errors->get('department')" class="mt-2" />
                         </div>
 
@@ -125,4 +131,29 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function userForm() {
+            return {
+                companies: @json($companies),
+                selectedCompany: '{{ old('company', $normal_user->company ?? '') }}',
+                selectedDepartment: '{{ old('department', $normal_user->department ?? '') }}',
+                
+                get departments() {
+                    if (!this.selectedCompany) return [];
+                    const company = this.companies.find(c => c.name === this.selectedCompany);
+                    return company && company.departments ? company.departments : [];
+                },
+                
+                init() {
+                    this.$watch('selectedCompany', (value, oldValue) => {
+                        // Reset department only if company changed manually (not on load)
+                        if (oldValue !== undefined) {
+                            this.selectedDepartment = '';
+                        }
+                    });
+                }
+            }
+        }
+    </script>
 </x-app-layout>

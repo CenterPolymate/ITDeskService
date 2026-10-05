@@ -45,7 +45,7 @@ class NormalUserController extends Controller
     public function create()
     {
         $this->authorizeAdministrator();
-        $companies = Company::where('is_active', true)->orderBy('name')->get();
+        $companies = Company::with('departments')->where('is_active', true)->orderBy('name')->get();
 
         return view('normal_users.create', compact('companies'));
     }
@@ -83,7 +83,7 @@ class NormalUserController extends Controller
             abort(404);
         }
 
-        $companies = Company::where('is_active', true)->orderBy('name')->get();
+        $companies = Company::with('departments')->where('is_active', true)->orderBy('name')->get();
 
         return view('normal_users.edit', compact('normal_user', 'companies'));
     }
