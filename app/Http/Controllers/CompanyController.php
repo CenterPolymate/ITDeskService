@@ -143,8 +143,8 @@ class CompanyController extends Controller
         $request->validate([
             'original_name' => 'required|string|max:255',
             'action' => 'required|in:create,merge',
-            'new_name' => 'required_if:action,create|string|max:255',
-            'target_department_id' => 'required_if:action,merge|exists:departments,id',
+            'new_name' => 'required_if:action,create|nullable|string|max:255',
+            'target_department_id' => 'required_if:action,merge|nullable|exists:departments,id',
         ]);
 
         $originalName = $request->original_name;

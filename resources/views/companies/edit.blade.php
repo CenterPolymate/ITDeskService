@@ -167,7 +167,7 @@
                                                 
                                                 <div class="mt-3" x-show="mapAction === 'create'">
                                                     <label class="block text-xs text-gray-700 mb-1">ชื่อแผนกใหม่:</label>
-                                                    <input type="text" name="new_name" x-model="mapNewName" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" :required="mapAction === 'create'">
+                                                    <input type="text" name="new_name" x-model="mapNewName" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" :required="mapAction === 'create'" :disabled="mapAction !== 'create'">
                                                 </div>
                                             </div>
                                         </label>
@@ -181,7 +181,7 @@
                                                 
                                                 <div class="mt-3" x-show="mapAction === 'merge'">
                                                     <label class="block text-xs text-gray-700 mb-1">เลือกแผนกเป้าหมาย:</label>
-                                                    <select name="target_department_id" x-model="mapTargetId" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" :required="mapAction === 'merge'">
+                                                    <select name="target_department_id" x-model="mapTargetId" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" :required="mapAction === 'merge'" :disabled="mapAction !== 'merge'">
                                                         <option value="">-- เลือกแผนก --</option>
                                                         @foreach($company->departments as $dept)
                                                             <option value="{{ $dept->id }}">{{ $dept->name }}</option>
