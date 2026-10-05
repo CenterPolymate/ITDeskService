@@ -69,6 +69,13 @@
                                         @else
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
                                         @endif
+                                        <div class="text-[11px] text-gray-400 mt-1 whitespace-nowrap">
+                                            @if($user->last_login_at)
+                                                ใช้งานล่าสุด: <br>{{ $user->last_login_at->translatedFormat('d F Y') }}
+                                            @else
+                                                ไม่เคยเข้าใช้งาน
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end gap-3">
