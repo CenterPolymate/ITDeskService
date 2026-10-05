@@ -296,4 +296,40 @@ class CompanyController extends Controller
 
         return redirect()->route('companies.index')->with('success', $message);
     }
+
+    public function export()
+    {
+        $this->authorizeAdministrator();
+
+        $companies = Company::with('departments')->orderBy('name')->get();
+
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=companies_" . date('Ymd_His') . ".csv",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function() use($companies) {
+            $file = fopen('php://output', 'w');
+            fputs($file, "\xEF\xBB\xBF"); // BOM for Excel UTF-8
+            fputcsv($file, ['ชื่อบริษัท', 'ตัวย่อ', 'โดเมนอีเมล', 'แผนกที่มีในระบบ', 'สถานะ']);
+
+            foreach ($companies as $company) {
+                $departments = $company->departments->pluck('name')->join(', ');
+                fputcsv($file, [
+                    $company->name,
+                    $company->short_name ?? '-',
+                    $company->email_domains,
+                    $departments ?: '-',
+                    $company->is_active ? 'Active' : 'Inactive'
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

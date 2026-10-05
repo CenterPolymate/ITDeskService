@@ -47,12 +47,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // User Management
     Route::post('users/{user}/force-reset-password', [UserManagementController::class, 'forceResetPassword'])->name('users.force_reset_password');
+    Route::get('users/export', [UserManagementController::class, 'export'])->name('users.export');
     Route::resource('users', UserManagementController::class)->except(['show']);
     Route::post('normal_users/import', [NormalUserController::class, 'import'])->name('normal_users.import');
+    Route::get('normal_users/export', [NormalUserController::class, 'export'])->name('normal_users.export');
     Route::post('normal_users/{normal_user}/force-reset-password', [NormalUserController::class, 'forceResetPassword'])->name('normal_users.force_reset_password');
     Route::resource('normal_users', NormalUserController::class)->except(['show']);
     Route::resource('categories', CategoryController::class)->except(['show']);
     Route::post('companies/import', [CompanyController::class, 'import'])->name('companies.import');
+    Route::get('companies/export', [CompanyController::class, 'export'])->name('companies.export');
     Route::resource('companies', CompanyController::class)->except(['show']);
     Route::post('companies/{company}/departments', [CompanyController::class, 'storeDepartment'])->name('companies.departments.store');
     Route::post('companies/{company}/departments/map', [CompanyController::class, 'mapDepartment'])->name('companies.departments.map');

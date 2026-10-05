@@ -159,4 +159,55 @@ class UserManagementController extends Controller
 
         return back()->with('error', 'ไม่สามารถส่งลิงก์ตั้งรหัสผ่านใหม่ได้ โปรดลองอีกครั้ง');
     }
+
+    public function export(Request $request)
+    {
+        $this->authorizeAdminOrManager();
+
+        $query = User::where('role', '!=', 'user');
+
+        if ($request->has('search') && ! empty($request->search)) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->has('status_filter') && $request->status_filter !== '') {
+            $query->where('is_active', $request->status_filter);
+        }
+
+        $users = $query->orderBy('role')->orderBy('name')->get();
+
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=it_users_" . date('Ymd_His') . ".csv",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function() use($users) {
+            $file = fopen('php://output', 'w');
+            fputs($file, "\xEF\xBB\xBF"); // BOM for Excel UTF-8
+            fputcsv($file, ['ชื่อ', 'อีเมล', 'ตำแหน่ง (Role)', 'บริษัท', 'แผนก', 'สถานะ', 'ใช้งานล่าสุด']);
+
+            foreach ($users as $user) {
+                fputcsv($file, [
+                    $user->name,
+                    $user->email,
+                    $user->role,
+                    $user->company,
+                    $user->department ?? '-',
+                    $user->is_active ? 'Active' : 'Inactive',
+                    $user->last_login_at ? $user->last_login_at->format('Y-m-d H:i:s') : 'ไม่เคยเข้าใช้งาน'
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }
