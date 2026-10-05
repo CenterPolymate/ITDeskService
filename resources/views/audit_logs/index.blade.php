@@ -40,8 +40,31 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">{{ class_basename($log->target_type) }} #{{ $log->target_id }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-500">
-                                        @if($log->changes)
-                                            <pre class="text-xs max-w-xs overflow-x-auto whitespace-pre-wrap">{{ json_encode($log->changes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                        @if($log->changes && is_array($log->changes))
+                                            <div class="grid grid-cols-1 gap-1">
+                                                @foreach($log->changes as $key => $value)
+                                                    <div class="flex space-x-2">
+                                                        <span class="font-medium text-gray-700">{{ $key }}:</span>
+                                                        <span class="text-blue-600 break-all">
+                                                            @if(is_array($value))
+                                                                {{ json_encode($value, JSON_UNESCAPED_UNICODE) }}
+                                                            @elseif(is_null($value) || $value === '')
+                                                                <em class="text-gray-400">ว่างเปล่า</em>
+                                                            @elseif(in_array($key, ['is_active', 'status']))
+                                                                @if($value == 1)
+                                                                    <span class="text-green-600">เปิด (1)</span>
+                                                                @else
+                                                                    <span class="text-red-600">ปิด (0)</span>
+                                                                @endif
+                                                            @else
+                                                                {{ $value }}
+                                                            @endif
+                                                        </span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @elseif($log->changes)
+                                            <pre class="text-xs max-w-xs overflow-x-auto whitespace-pre-wrap">{{ is_string($log->changes) ? $log->changes : json_encode($log->changes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
                                         @else
                                             -
                                         @endif
