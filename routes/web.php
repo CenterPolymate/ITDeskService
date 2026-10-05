@@ -67,6 +67,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('audit_logs', [AuditLogController::class, 'index'])->name('audit_logs.index');
 
+    // Backup Routes
+    Route::get('backups', [App\Http\Controllers\BackupController::class, 'index'])->name('backups.index');
+    Route::post('backups', [App\Http\Controllers\BackupController::class, 'store'])->name('backups.store');
+    Route::get('backups/download', [App\Http\Controllers\BackupController::class, 'download'])->name('backups.download');
+    Route::delete('backups', [App\Http\Controllers\BackupController::class, 'destroy'])->name('backups.destroy');
+
     // Impersonate Routes
     Route::post('/impersonate/{user}', [ImpersonateController::class, 'impersonate'])->name('impersonate');
     Route::post('/impersonate-leave', [ImpersonateController::class, 'leave'])->name('impersonate.leave');

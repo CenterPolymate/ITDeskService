@@ -79,6 +79,9 @@
                                     <x-dropdown-link :href="route('audit_logs.index')">
                                         {{ __('ประวัติการใช้งาน') }}
                                     </x-dropdown-link>
+                                    <x-dropdown-link :href="route('backups.index')">
+                                        {{ __('ระบบสำรองข้อมูล (Backup)') }}
+                                    </x-dropdown-link>
                                 </x-slot>
                             </x-dropdown>
                         </div>
@@ -174,6 +177,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('audit_logs.index')" :active="request()->routeIs('audit_logs.*')" class="pl-8">
                     {{ __('ประวัติการใช้งาน') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('backups.index')" :active="request()->routeIs('backups.*')" class="pl-8">
+                    {{ __('ระบบสำรองข้อมูล (Backup)') }}
                 </x-responsive-nav-link>
             @endif
         </div>
