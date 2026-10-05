@@ -18,60 +18,60 @@ class LogAdminActions
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $response = $next($request);
+        $isAdmin = Auth::check() && Auth::user()->role === 'administrator';
+        $method = $request->method();
+        $isModifyingAction = in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE']);
+        $shouldLog = $isAdmin && $isModifyingAction;
 
-        if (Auth::check() && Auth::user()->role === 'administrator') {
-            $method = $request->method();
-            // Only log actions that modify data
-            if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
-                $routeName = $request->route() ? $request->route()->getName() : $request->path();
-                $targetId = null;
-                $oldValues = null;
+        $adminId = Auth::id();
+        $routeName = null;
+        $targetId = null;
+        $oldValues = null;
 
-                if ($request->route() && $request->route()->parameterNames()) {
-                    $params = array_values($request->route()->parameters());
-                    $ids = [];
-                    foreach ($params as $param) {
-                        if ($param instanceof Model) {
-                            $ids[] = $param->getKey();
-                            if ($method !== 'POST') {
-                                // Keep the original attributes before the request alters them
-                                $oldValues = $param->getAttributes();
-                            }
-                        } else {
-                            $ids[] = $param;
+        if ($shouldLog) {
+            $routeName = $request->route() ? $request->route()->getName() : $request->path();
+            if ($request->route() && $request->route()->parameterNames()) {
+                $params = array_values($request->route()->parameters());
+                $ids = [];
+                foreach ($params as $param) {
+                    if ($param instanceof Model) {
+                        $ids[] = $param->getKey();
+                        if ($method !== 'POST') {
+                            $oldValues = $param->getAttributes();
                         }
-                    }
-                    $targetId = implode(',', $ids);
-                }
-
-                $response = $next($request);
-
-                $changes = $request->except(['password', 'password_confirmation', '_token', '_method']);
-
-                $finalOldValues = null;
-                if ($oldValues && $changes) {
-                    $finalOldValues = [];
-                    foreach ($changes as $key => $val) {
-                        if (array_key_exists($key, $oldValues)) {
-                            $finalOldValues[$key] = $oldValues[$key];
-                        }
+                    } else {
+                        $ids[] = $param;
                     }
                 }
-
-                AuditLog::create([
-                    'user_id' => Auth::id(),
-                    'action' => $method.' '.$routeName,
-                    'target_type' => $routeName,
-                    'target_id' => $targetId,
-                    'changes' => $changes,
-                    'old_values' => $finalOldValues,
-                ]);
-
-                return $response;
+                $targetId = implode(',', $ids);
             }
         }
 
-        return $next($request);
+        $response = $next($request);
+
+        if ($shouldLog && ($response->isSuccessful() || $response->isRedirection())) {
+            $changes = $request->except(['password', 'password_confirmation', '_token', '_method']);
+
+            $finalOldValues = null;
+            if ($oldValues && $changes) {
+                $finalOldValues = [];
+                foreach ($changes as $key => $val) {
+                    if (array_key_exists($key, $oldValues)) {
+                        $finalOldValues[$key] = $oldValues[$key];
+                    }
+                }
+            }
+
+            AuditLog::create([
+                'user_id' => $adminId,
+                'action' => $method.' '.$routeName,
+                'target_type' => $routeName,
+                'target_id' => $targetId,
+                'changes' => $changes,
+                'old_values' => $finalOldValues,
+            ]);
+        }
+
+        return $response;
     }
 }
