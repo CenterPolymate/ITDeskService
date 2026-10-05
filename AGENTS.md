@@ -33,7 +33,7 @@
      1. ตรวจสอบและอัปเดตเอกสารทั้ง 6 ไฟล์ต่อไปนี้ให้เป็นปัจจุบัน (ภาษาไทย): `docs/er_diagram.md`, `docs/glossary.md`, `docs/implementation_plan.md`, `task.md`, `CONTEXT.md`, และ `AGENTS.md`
      2. รันคำสั่ง `npm run build` (หากมีการแก้ไขไฟล์ CSS, JS หรือ Blade)
      3. ทำการ Commit และ Push โค้ดทั้งหมดขึ้น Github
-     4. แจ้งเตือนให้ผู้ใช้งานล็อกอินเข้า SSH ของ CloudPanel แล้วพิมพ์คำสั่ง `git pull` เพื่ออัปเดตเซิร์ฟเวอร์
+     4. แจ้งเตือนให้ผู้ใช้งานล็อกอินเข้า SSH ของ CloudPanel แล้วพิมพ์คำสั่ง Config git แล้วต่อด้วย `git pull` เพื่ออัปเดตเซิร์ฟเวอร์
 
 7. **Specific Workflow Constraints:**
    - **Ticket Creation (เปิดเคส):**
