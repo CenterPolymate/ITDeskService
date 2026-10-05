@@ -31,6 +31,7 @@ erDiagram
         string phone
         string line_user_id
         boolean is_active "สถานะบัญชี (True = ใช้งานได้, False = ระงับ)"
+        timestamp last_login_at "เวลาเข้าสู่ระบบล่าสุด (Nullable)"
         timestamp email_verified_at
         timestamp created_at
         timestamp updated_at
