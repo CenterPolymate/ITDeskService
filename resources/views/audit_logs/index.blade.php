@@ -31,9 +31,55 @@
 
     <div class="py-10">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            
+            <!-- Filters & Export -->
+            <div class="bg-white shadow-sm sm:rounded-xl border border-gray-100 p-4 mb-6">
+                <form method="GET" action="{{ route('audit_logs.index') }}" class="flex flex-col md:flex-row md:items-end gap-4">
+                    <div class="w-full md:w-1/4">
+                        <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">ตั้งแต่วันที่</label>
+                        <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    </div>
+                    <div class="w-full md:w-1/4">
+                        <label for="date_to" class="block text-sm font-medium text-gray-700 mb-1">ถึงวันที่</label>
+                        <input type="date" name="date_to" id="date_to" value="{{ request('date_to') }}" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                    </div>
+                    <div class="w-full md:w-1/4">
+                        <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">ผู้ใช้งาน</label>
+                        <select name="user_id" id="user_id" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                            <option value="">ทั้งหมด</option>
+                            @foreach($users as $u)
+                                <option value="{{ $u->id }}" {{ request('user_id') == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="w-full md:w-1/4">
+                        <label for="action_filter" class="block text-sm font-medium text-gray-700 mb-1">การกระทำ</label>
+                        <select name="action_filter" id="action_filter" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                            <option value="">ทั้งหมด</option>
+                            <option value="POST" {{ request('action_filter') == 'POST' ? 'selected' : '' }}>เพิ่มข้อมูล</option>
+                            <option value="PUT" {{ request('action_filter') == 'PUT' ? 'selected' : '' }}>แก้ไขข้อมูล</option>
+                            <option value="DELETE" {{ request('action_filter') == 'DELETE' ? 'selected' : '' }}>ลบข้อมูล</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button type="submit" class="w-full md:w-auto inline-flex justify-center items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            ค้นหา
+                        </button>
+                        <a href="{{ route('audit_logs.index') }}" class="w-full md:w-auto inline-flex justify-center items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
+                            ล้าง
+                        </a>
+                        <button type="submit" name="export" value="csv" class="w-full md:w-auto inline-flex justify-center items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150 gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            CSV
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <div class="bg-white shadow-lg shadow-gray-200/50 sm:rounded-2xl border border-gray-100">
                 <div class="p-6 text-gray-900">
                     <div class="w-full">
+                        @if($logs->count() > 0)
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50/80 sticky top-16 z-10 outline outline-1 outline-gray-200 backdrop-blur-sm">
                                 <tr>
@@ -122,24 +168,34 @@
                                             @endphp
                                             <div class="grid grid-cols-1 gap-1">
                                                 @foreach($log->changes as $key => $value)
-                                                    <div class="flex space-x-2">
-                                                        <span class="font-medium text-gray-700">{{ $keyMap[$key] ?? $key }}:</span>
-                                                        <span class="text-blue-600 break-all">
-                                                            @if(is_array($value))
-                                                                {{ json_encode($value, JSON_UNESCAPED_UNICODE) }}
-                                                            @elseif(is_null($value) || $value === '')
-                                                                <em class="text-gray-400">ว่างเปล่า</em>
-                                                            @elseif(in_array($key, ['is_active', 'status']))
-                                                                @if($value == 1)
-                                                                    <span class="text-green-600">เปิดใช้งาน</span>
-                                                                @else
-                                                                    <span class="text-red-600">ปิดใช้งาน</span>
+                                                        <div class="flex space-x-2 items-start">
+                                                            <span class="font-medium text-gray-700 whitespace-nowrap">{{ $keyMap[$key] ?? $key }}:</span>
+                                                            <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 break-all">
+                                                                @if($log->old_values && array_key_exists($key, $log->old_values))
+                                                                    @php $oldVal = $log->old_values[$key]; @endphp
+                                                                    <span class="text-rose-500 line-through text-xs sm:text-sm">
+                                                                        @if(is_array($oldVal)) {{ json_encode($oldVal, JSON_UNESCAPED_UNICODE) }}
+                                                                        @elseif(is_null($oldVal) || $oldVal === '') <em class="opacity-75">ว่างเปล่า</em>
+                                                                        @elseif(in_array($key, ['is_active', 'status']))
+                                                                            {{ $oldVal == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}
+                                                                        @else {{ $oldVal }} @endif
+                                                                    </span>
+                                                                    <svg class="w-3 h-3 text-gray-400 hidden sm:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                                                                 @endif
-                                                            @else
-                                                                {{ $value }}
-                                                            @endif
-                                                        </span>
-                                                    </div>
+
+                                                                <span class="text-emerald-600 font-medium text-sm">
+                                                                    @if(is_array($value))
+                                                                        {{ json_encode($value, JSON_UNESCAPED_UNICODE) }}
+                                                                    @elseif(is_null($value) || $value === '')
+                                                                        <em class="opacity-75">ว่างเปล่า</em>
+                                                                    @elseif(in_array($key, ['is_active', 'status']))
+                                                                        {{ $value == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}
+                                                                    @else
+                                                                        {{ $value }}
+                                                                    @endif
+                                                                </span>
+                                                            </div>
+                                                        </div>
                                                 @endforeach
                                             </div>
                                         @elseif($log->changes)
@@ -152,6 +208,19 @@
                                 @endforeach
                             </tbody>
                         </table>
+                        @else
+                        <div class="flex flex-col items-center justify-center py-12 px-4 text-center">
+                            <div class="w-24 h-24 mb-4 text-gray-200">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900">ไม่มีประวัติการใช้งาน</h3>
+                            <p class="mt-1 text-sm text-gray-500 max-w-sm">
+                                ยังไม่มีการบันทึกประวัติการเปลี่ยนแปลงใดๆ หรือไม่พบข้อมูลตรงตามเงื่อนไขที่ค้นหา
+                            </p>
+                        </div>
+                        @endif
                     </div>
                     <div class="mt-4 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                         <div class="w-full sm:w-auto flex-1">
