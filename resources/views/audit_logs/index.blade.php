@@ -11,15 +11,15 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto max-h-[70vh] overflow-y-auto relative border-b border-gray-200">
                         <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                            <thead class="bg-gray-50 sticky top-0 z-10 outline outline-1 outline-gray-200">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">เวลา</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ผู้ใช้งาน</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">การกระทำ</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">เป้าหมาย</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ข้อมูลที่เปลี่ยนแปลง</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">เวลา</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ผู้ใช้งาน</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">การกระทำ</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">เป้าหมาย</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ข้อมูลที่เปลี่ยนแปลง</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
