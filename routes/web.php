@@ -58,6 +58,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
 
     Route::get('audit_logs', [AuditLogController::class, 'index'])->name('audit_logs.index');
+
+    // Impersonate Routes
+    Route::post('/impersonate/{user}', [\App\Http\Controllers\ImpersonateController::class, 'impersonate'])->name('impersonate');
+    Route::post('/impersonate-leave', [\App\Http\Controllers\ImpersonateController::class, 'leave'])->name('impersonate.leave');
 });
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

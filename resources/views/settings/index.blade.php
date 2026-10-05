@@ -66,6 +66,21 @@
                             </div>
                         </div>
 
+                        <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mt-8 mb-4">ระบบดูแลรักษากลาง (Maintenance)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <x-input-label for="audit_log_retention_years" :value="__('เก็บประวัติการใช้งาน (Audit Logs) ย้อนหลัง (ปี)')" />
+                                <select id="audit_log_retention_years" name="audit_log_retention_years" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="1" {{ (old('audit_log_retention_years', $settings['audit_log_retention_years']->value ?? '1') == '1') ? 'selected' : '' }}>1 ปี</option>
+                                    <option value="2" {{ (old('audit_log_retention_years', $settings['audit_log_retention_years']->value ?? '1') == '2') ? 'selected' : '' }}>2 ปี</option>
+                                    <option value="3" {{ (old('audit_log_retention_years', $settings['audit_log_retention_years']->value ?? '1') == '3') ? 'selected' : '' }}>3 ปี</option>
+                                    <option value="5" {{ (old('audit_log_retention_years', $settings['audit_log_retention_years']->value ?? '1') == '5') ? 'selected' : '' }}>5 ปี</option>
+                                    <option value="99" {{ (old('audit_log_retention_years', $settings['audit_log_retention_years']->value ?? '1') == '99') ? 'selected' : '' }}>เก็บถาวร (99 ปี)</option>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">ระบบจะทำการลบประวัติที่เก่ากว่าจำนวนปีที่ตั้งค่าไว้อัตโนมัติทุกๆ วัน เพื่อลดภาระของฐานข้อมูล</p>
+                            </div>
+                        </div>
+
                         <div class="flex items-center justify-end mt-8 gap-3">
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm">
                                 บันทึกการตั้งค่า

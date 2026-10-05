@@ -57,9 +57,17 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->department ?: '-' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end gap-3">
+                                            @if(Auth::user()->role === 'administrator')
+                                                <form action="{{ route('impersonate', $user->id) }}" method="POST" class="inline m-0 p-0">
+                                                    @csrf
+                                                    <button type="submit" class="text-emerald-600 hover:text-emerald-900 transition-colors px-2 py-1 bg-emerald-50 hover:bg-emerald-100 rounded-md">
+                                                        Login As
+                                                    </button>
+                                                </form>
+                                            @endif
                                             <a href="{{ route('users.edit', $user->id) }}" class="text-indigo-600 hover:text-indigo-900 transition-colors px-2 py-1 bg-indigo-50 hover:bg-indigo-100 rounded-md">แก้ไข</a>
                                             @if(Auth::id() !== $user->id)
-                                            <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="inline m-0 p-0" onsubmit="return confirm('ยืนยันการลบผู้ใช้นี้?');">
+                                            <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="inline m-0 p-0" onsubmit="return confirm('ยืนยันการระงับบัญชีนี้?');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600 hover:text-red-900 transition-colors px-2 py-1 bg-red-50 hover:bg-red-100 rounded-md">ลบ</button>

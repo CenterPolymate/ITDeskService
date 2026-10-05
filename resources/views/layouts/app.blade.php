@@ -15,7 +15,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
+        <div class="min-h-screen bg-gray-100 pb-12">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
@@ -32,5 +32,17 @@
                 {{ $slot }}
             </main>
         </div>
+        
+        @if(session()->has('impersonated_by'))
+            <div class="fixed bottom-0 left-0 w-full bg-indigo-600 px-4 py-3 text-white text-center flex items-center justify-center gap-4 z-[100] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+                <span class="text-sm font-medium">คุณกำลังใช้งานระบบในฐานะ "{{ Auth::user()->name }}" (โหมดจำลองผู้ใช้)</span>
+                <form action="{{ route('impersonate.leave') }}" method="POST" class="m-0 p-0">
+                    @csrf
+                    <button type="submit" class="bg-white text-indigo-600 hover:bg-indigo-50 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition-colors border border-transparent hover:border-indigo-200">
+                        กลับสู่บัญชีแอดมิน
+                    </button>
+                </form>
+            </div>
+        @endif
     </body>
 </html>
