@@ -108,7 +108,12 @@ class DashboardController extends Controller
 
         // ถ้าเป็นทีมเฉพาะทาง (Tier 2) ให้เห็นเฉพาะงานที่ Assign/Escalate มาที่ทีมตัวเอง
         if (in_array($user->role, ['team_hardware', 'team_network', 'team_software'])) {
-            $baseQuery->where('escalated_to_team', $user->role);
+            $teamMapping = [
+                'team_hardware' => 'Hardware',
+                'team_network' => 'Network',
+                'team_software' => 'Software',
+            ];
+            $baseQuery->where('escalated_to_team', $teamMapping[$user->role]);
         }
 
         // คำนวณ KPI Cards ให้ครบทุกขั้นตอนตาม Data Scope ของ User นั้นๆ (ก่อนนำไปกรองตาม Filter URL)
