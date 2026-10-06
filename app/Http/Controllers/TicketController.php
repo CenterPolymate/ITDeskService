@@ -248,7 +248,10 @@ class TicketController extends Controller
             'action' => 'required|in:start_analyzing,start_progress,resolve,update_notes,update_analysis,accept_resolution,close,cancel,start_preventive_measure,preventive_action,close_preventive_measure',
             'resolution_notes' => 'required_if:action,resolve|nullable|string',
             'analysis_notes' => 'nullable|array',
-            'analysis_notes.root_cause' => 'required_with:analysis_notes|nullable|string',
+            'why_1' => 'nullable|string',
+            'why_2' => 'nullable|string',
+            'why_3' => 'nullable|string',
+            'root_cause_detail' => 'nullable|string',
             'requires_preventive_measure' => 'required_if:action,close|nullable|boolean',
             'cancellation_reason' => 'required_if:action,cancel|nullable|string',
         ]);
@@ -262,15 +265,16 @@ class TicketController extends Controller
 
             return redirect()->route('tickets.show', $id)->with('success', 'เริ่มดำเนินการสืบสภาพแล้ว');
         } elseif ($request->action === 'update_analysis') {
-            $notes = $request->analysis_notes;
-
             $updateData = [
-                'analysis_notes' => $notes,
+                'why_1' => $request->why_1,
+                'why_2' => $request->why_2,
+                'why_3' => $request->why_3,
+                'root_cause_detail' => $request->root_cause_detail,
                 'analyzing_by' => Auth::id(),
             ];
 
             // If root cause is filled, automatically transition to in_progress
-            if (! empty($notes['root_cause'])) {
+            if (! empty($request->root_cause_detail)) {
                 $updateData['status'] = 'in_progress';
                 $updateData['in_progress_at'] = now();
                 $updateData['in_progress_by'] = Auth::id();
@@ -305,7 +309,10 @@ class TicketController extends Controller
         } elseif ($request->action === 'update_notes') {
             $ticket->update([
                 'resolution_notes' => $request->resolution_notes,
-                'analysis_notes' => $request->analysis_notes ?? $ticket->analysis_notes,
+                'why_1' => $request->why_1,
+                'why_2' => $request->why_2,
+                'why_3' => $request->why_3,
+                'root_cause_detail' => $request->root_cause_detail,
             ]);
 
             return redirect()->route('tickets.show', $id)->with('success', 'อัปเดตข้อมูลสำเร็จแล้ว');

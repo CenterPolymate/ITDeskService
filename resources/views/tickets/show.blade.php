@@ -165,9 +165,21 @@
                                     <h4 class="font-bold text-gray-800 text-sm mb-4 pb-2 border-b border-amber-200">แก้ไขข้อมูลการวิเคราะห์และแก้ไขปัญหา</h4>
                                     
                                     <div class="space-y-3 mb-6">
-                                        <div class="flex items-start gap-3">
-                                            <label class="w-40 text-sm font-bold text-gray-800 shrink-0 mt-2">สาเหตุของปัญหาเบื้องต้น :</label>
-                                            <textarea name="analysis_notes[root_cause]" required rows="3" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm">{{ is_array($ticket->analysis_notes) ? ($ticket->analysis_notes['root_cause'] ?? '') : '' }}</textarea>
+                                        <div class="flex items-center gap-3">
+                                            <label class="w-24 text-sm font-bold text-gray-800 shrink-0 mt-2">ทำไม 1 :</label>
+                                            <input type="text" name="why_1" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" value="{{ $ticket->why_1 }}" />
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <label class="w-24 text-sm font-bold text-gray-800 shrink-0 mt-2">ทำไม 2 :</label>
+                                            <input type="text" name="why_2" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" value="{{ $ticket->why_2 }}" />
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <label class="w-24 text-sm font-bold text-gray-800 shrink-0 mt-2">ทำไม 3 :</label>
+                                            <input type="text" name="why_3" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" value="{{ $ticket->why_3 }}" />
+                                        </div>
+                                        <div class="flex items-start gap-3 mt-2 pt-2 border-t border-amber-100">
+                                            <label class="w-32 text-sm font-bold text-gray-800 shrink-0 mt-2">สาเหตุรากเหง้า :</label>
+                                            <textarea name="root_cause_detail" required rows="3" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm">{{ $ticket->root_cause_detail }}</textarea>
                                         </div>
                                     </div>
                                     
@@ -211,9 +223,23 @@
                                     <div class="mb-4 space-y-3">
                                         <h4 class="font-bold text-gray-700 text-sm mb-3 border-b pb-2">การวิเคราะห์หาสาเหตุ</h4>
                                         
-                                        <div class="flex flex-col gap-2">
-                                            <label class="text-sm font-semibold text-gray-700 whitespace-nowrap">สาเหตุของปัญหาเบื้องต้น :</label>
-                                            <textarea name="analysis_notes[root_cause]" required rows="3" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">{{ is_array($ticket->analysis_notes) ? ($ticket->analysis_notes['root_cause'] ?? '') : '' }}</textarea>
+                                        <div class="space-y-3">
+                                            <div class="flex items-center gap-3">
+                                                <label class="w-16 font-bold text-gray-700 text-sm shrink-0">ทำไม 1 :</label>
+                                                <input type="text" name="why_1" class="flex-1 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm sm:text-sm" value="{{ $ticket->why_1 }}" />
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <label class="w-16 font-bold text-gray-700 text-sm shrink-0">ทำไม 2 :</label>
+                                                <input type="text" name="why_2" class="flex-1 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm sm:text-sm" value="{{ $ticket->why_2 }}" />
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <label class="w-16 font-bold text-gray-700 text-sm shrink-0">ทำไม 3 :</label>
+                                                <input type="text" name="why_3" class="flex-1 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm sm:text-sm" value="{{ $ticket->why_3 }}" />
+                                            </div>
+                                            <div class="flex flex-col gap-2 mt-2 pt-2 border-t border-gray-100">
+                                                <label class="text-sm font-semibold text-gray-700 whitespace-nowrap">สาเหตุรากเหง้า :</label>
+                                                <textarea name="root_cause_detail" required rows="3" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">{{ $ticket->root_cause_detail }}</textarea>
+                                            </div>
                                         </div>
                                     </div>
                                     <button type="submit" name="action" value="update_analysis" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
@@ -221,10 +247,17 @@
                                     </button>
                                     <p class="text-xs text-gray-500 mt-2 text-center">* หากระบุสาเหตุของปัญหาเบื้องต้น ระบบจะจบบันทึกเวลาสืบสภาพและเริ่มขั้นตอนแก้ไขทันที</p>
                                 @elseif($ticket->status === 'in_progress')
-                                    @if(!empty($ticket->analysis_notes['root_cause']))
+                                    @if(!empty($ticket->root_cause_detail))
                                     <div class="mb-4 bg-gray-50 p-3 rounded-md border border-gray-200">
-                                        <h4 class="text-xs font-bold text-gray-500 mb-1">สาเหตุของปัญหาเบื้องต้น:</h4>
-                                        <p class="text-sm text-gray-800">{{ $ticket->analysis_notes['root_cause'] }}</p>
+                                        <h4 class="text-xs font-bold text-gray-500 mb-1">การวิเคราะห์หาสาเหตุ:</h4>
+                                        <ul class="text-sm text-gray-800 list-disc ml-4">
+                                            @if($ticket->why_1)<li><strong>ทำไม 1:</strong> {{ $ticket->why_1 }}</li>@endif
+                                            @if($ticket->why_2)<li><strong>ทำไม 2:</strong> {{ $ticket->why_2 }}</li>@endif
+                                            @if($ticket->why_3)<li><strong>ทำไม 3:</strong> {{ $ticket->why_3 }}</li>@endif
+                                        </ul>
+                                        <div class="mt-2 text-sm text-gray-800">
+                                            <strong>สาเหตุรากเหง้า:</strong> {{ $ticket->root_cause_detail }}
+                                        </div>
                                     </div>
                                     @endif
                                     <input type="hidden" name="action" value="resolve">
