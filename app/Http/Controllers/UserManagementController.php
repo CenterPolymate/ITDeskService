@@ -37,7 +37,7 @@ class UserManagementController extends Controller
             $query->where('is_active', $request->status_filter);
         }
 
-        $users = $query->orderBy('created_at', 'desc')->paginate(15)->appends($request->query());
+        $users = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->query());
 
         return view('users.index', compact('users'));
     }

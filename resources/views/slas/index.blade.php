@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-4 sm:py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             @if (session('success'))
@@ -32,36 +32,27 @@
                                     บริษัท {{ $companyName }}
                                 </h4>
                                 
-                                <div class="overflow-hidden rounded-md border border-gray-200">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead class="bg-white">
-                                            <tr>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2">ระดับความเร่งด่วน</th>
-                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2">ระยะเวลา SLA (ชั่วโมง)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="bg-white divide-y divide-gray-200">
-                                            @foreach($companySlas as $sla)
-                                            <tr>
-                                                <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 bg-gray-50/50">
-                                                    {{ $sla->name_th }} ({{ ucfirst($sla->priority) }})
-                                                    <input type="hidden" name="slas[{{ $globalIndex }}][id]" value="{{ $sla->id }}">
-                                                </td>
-                                                <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                                    <input type="number" name="slas[{{ $globalIndex }}][hours]" value="{{ $sla->hours }}" min="1" required class="block w-full max-w-xs rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                                </td>
-                                            </tr>
-                                            @php $globalIndex++; @endphp
-                                            @endforeach
-                                        </tbody>
-                                    </table>
+                                <div class="space-y-3">
+                                    @foreach($companySlas as $sla)
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-white border border-gray-200 rounded-md shadow-sm hover:border-indigo-300 transition-colors">
+                                        <div class="mb-2 sm:mb-0">
+                                            <span class="text-sm font-medium text-gray-900">{{ $sla->name_th }} ({{ ucfirst($sla->priority) }})</span>
+                                            <input type="hidden" name="slas[{{ $globalIndex }}][id]" value="{{ $sla->id }}">
+                                        </div>
+                                        <div class="w-full sm:w-1/3 flex items-center gap-2">
+                                            <input type="number" name="slas[{{ $globalIndex }}][hours]" value="{{ $sla->hours }}" min="1" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                            <span class="text-sm text-gray-500 whitespace-nowrap">ชั่วโมง</span>
+                                        </div>
+                                    </div>
+                                    @php $globalIndex++; @endphp
+                                    @endforeach
                                 </div>
                             </div>
                             @endforeach
                         </div>
 
                         <div class="mt-6 flex justify-end">
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
+                            <button type="submit" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:border-indigo-900 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
                                 บันทึกการตั้งค่า
                             </button>
                         </div>

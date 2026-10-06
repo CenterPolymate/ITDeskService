@@ -16,7 +16,7 @@
         </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-4 sm:py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if (session('success'))
                 <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
@@ -118,18 +118,18 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($users as $user)
                                 <tr class="{{ $user->is_active ? '' : 'bg-red-50/50' }}">
-                                    <td class="px-4 py-4 whitespace-nowrap">
+                                    <td class="px-4 py-2 whitespace-nowrap">
                                         <div class="text-sm font-medium {{ $user->is_active ? 'text-gray-900' : 'text-gray-400 line-through' }}">{{ $user->name }}</div>
                                     </td>
-                                    <td class="px-4 py-4 text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }} break-all max-w-[200px]">{{ $user->email }}</td>
-                                    <td class="px-4 py-4 whitespace-nowrap">
+                                    <td class="px-4 py-2 text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->email }}</td>
+                                    <td class="px-4 py-2 whitespace-nowrap">
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $user->is_active ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-500' }}">
                                             {{ $user->role }}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-4 text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->company }}</td>
-                                    <td class="px-4 py-4 text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->department ?: '-' }}</td>
-                                    <td class="px-4 py-4 whitespace-nowrap">
+                                    <td class="px-4 py-2 text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->company }}</td>
+                                    <td class="px-4 py-2 text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->department ?: '-' }}</td>
+                                    <td class="px-4 py-2 whitespace-nowrap">
                                         @if($user->is_active)
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
                                         @else
@@ -143,7 +143,7 @@
                                             @endif
                                         </div>
                                     </td>
-                                    <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td class="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end gap-3">
                                             @if(Auth::user()->role === 'administrator')
                                                 <form action="{{ route('impersonate', $user->id) }}" method="POST" class="inline m-0 p-0 {{ $user->role === 'administrator' ? 'invisible' : '' }}">

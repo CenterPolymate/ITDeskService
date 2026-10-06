@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="py-12">
+    <div class="py-4 sm:py-6">
         <div id="dashboard-content" class="w-full px-4 sm:px-6 lg:px-8 mx-auto xl:max-w-[95%]">
             
             @if (session('success'))

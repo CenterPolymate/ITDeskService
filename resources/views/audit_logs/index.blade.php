@@ -80,110 +80,105 @@
                 <div class="p-6 text-gray-900">
                     <div class="w-full">
                         @if($logs->count() > 0)
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50/80 sticky top-16 z-10 outline outline-1 outline-gray-200 backdrop-blur-sm">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">เวลา</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ผู้ใช้งาน</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">การกระทำ</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">เป้าหมาย</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ข้อมูลที่เปลี่ยนแปลง</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-100">
-                                @foreach($logs as $log)
-                                <tr class="hover:bg-indigo-50/30 transition-colors duration-200">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-semibold text-gray-900">{{ $log->created_at->translatedFormat('d M Y') }}</div>
-                                        <div class="text-xs text-gray-500 mt-0.5">{{ $log->created_at->format('H:i') }} น.</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center gap-3">
-                                            @php $userName = $log->user->name ?? 'System'; @endphp
-                                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                        
+                        <!-- Mobile Card View -->
+                        <div class="md:hidden space-y-4 mb-4">
+                            @foreach($logs as $log)
+                                @php
+                                    $userName = $log->user->name ?? 'System';
+                                    $actionText = $log->action;
+                                    $badgeClass = 'bg-gray-100 text-gray-800';
+                                    if (str_contains($log->action, 'POST') || $log->action === 'created') {
+                                        $actionText = 'เพิ่มข้อมูล';
+                                        $badgeClass = 'bg-emerald-50 text-emerald-700 ring-emerald-600/20';
+                                    } elseif (str_contains($log->action, 'PUT') || str_contains($log->action, 'PATCH') || $log->action === 'updated') {
+                                        $actionText = 'แก้ไขข้อมูล';
+                                        $badgeClass = 'bg-blue-50 text-blue-700 ring-blue-600/20';
+                                    } elseif (str_contains($log->action, 'DELETE') || $log->action === 'deleted') {
+                                        $actionText = 'ลบข้อมูล';
+                                        $badgeClass = 'bg-rose-50 text-rose-700 ring-rose-600/20';
+                                    }
+
+                                    $targetText = class_basename($log->target_type);
+                                    if (str_contains($log->target_type, 'categories')) $targetText = 'หมวดหมู่ปัญหา';
+                                    elseif (str_contains($log->target_type, 'companies')) $targetText = 'ข้อมูลบริษัท';
+                                    elseif (str_contains($log->target_type, 'users')) $targetText = 'ผู้ใช้งาน';
+                                    elseif (str_contains($log->target_type, 'departments')) $targetText = 'แผนก/หน่วยงาน';
+                                    elseif (str_contains($log->target_type, 'slas')) $targetText = 'SLA';
+                                    elseif (str_contains($log->target_type, 'settings')) $targetText = 'ตั้งค่าระบบ';
+                                    
+                                    $displayId = $log->target_id;
+                                    if ($displayId) {
+                                        $decoded = json_decode($displayId, true);
+                                        if (is_array($decoded) && isset($decoded['id'])) {
+                                            $displayId = $decoded['id'];
+                                        } elseif (strlen($displayId) > 15) {
+                                            $displayId = substr($displayId, 0, 15) . '...';
+                                        }
+                                    }
+                                @endphp
+                                <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 relative">
+                                    <div class="flex justify-between items-start mb-3 border-b border-gray-100 pb-2">
+                                        <div>
+                                            <div class="text-sm font-semibold text-gray-900">{{ $log->created_at->translatedFormat('d M Y') }}</div>
+                                            <div class="text-xs text-gray-500 mt-0.5">{{ $log->created_at->format('H:i') }} น.</div>
+                                        </div>
+                                        <span class="px-2.5 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full ring-1 ring-inset {{ $badgeClass }} whitespace-nowrap">{{ $actionText }}</span>
+                                    </div>
+                                    
+                                    <div class="space-y-2 mb-3">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-bold text-[10px] shrink-0">
                                                 {{ mb_substr($userName, 0, 1) }}
                                             </div>
-                                            <span class="text-sm font-medium text-gray-900">{{ $userName }}</span>
+                                            <span class="text-xs text-gray-700"><span class="text-gray-500">โดย:</span> {{ $userName }}</span>
                                         </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        @php
-                                            $actionText = $log->action;
-                                            $badgeClass = 'bg-gray-100 text-gray-800';
-                                            if (str_contains($log->action, 'POST') || $log->action === 'created') {
-                                                $actionText = 'เพิ่มข้อมูล';
-                                                $badgeClass = 'bg-emerald-50 text-emerald-700 ring-emerald-600/20';
-                                            } elseif (str_contains($log->action, 'PUT') || str_contains($log->action, 'PATCH') || $log->action === 'updated') {
-                                                $actionText = 'แก้ไขข้อมูล';
-                                                $badgeClass = 'bg-blue-50 text-blue-700 ring-blue-600/20';
-                                            } elseif (str_contains($log->action, 'DELETE') || $log->action === 'deleted') {
-                                                $actionText = 'ลบข้อมูล';
-                                                $badgeClass = 'bg-rose-50 text-rose-700 ring-rose-600/20';
-                                            }
-                                        @endphp
-                                        <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ring-1 ring-inset {{ $badgeClass }}">{{ $actionText }}</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        @php
-                                            $targetText = class_basename($log->target_type);
-                                            if (str_contains($log->target_type, 'categories')) $targetText = 'หมวดหมู่ปัญหา';
-                                            elseif (str_contains($log->target_type, 'companies')) $targetText = 'ข้อมูลบริษัท';
-                                            elseif (str_contains($log->target_type, 'users')) $targetText = 'ผู้ใช้งาน';
-                                            elseif (str_contains($log->target_type, 'departments')) $targetText = 'แผนก/หน่วยงาน';
-                                            elseif (str_contains($log->target_type, 'slas')) $targetText = 'SLA';
-                                            elseif (str_contains($log->target_type, 'settings')) $targetText = 'ตั้งค่าระบบ';
-                                        @endphp
-                                        {{ $targetText }} 
-                                        @if($log->target_id) 
-                                            @php
-                                                $displayId = $log->target_id;
-                                                $decoded = json_decode($displayId, true);
-                                                if (is_array($decoded) && isset($decoded['id'])) {
-                                                    $displayId = $decoded['id'];
-                                                } elseif (strlen($displayId) > 15) {
-                                                    $displayId = substr($displayId, 0, 15) . '...';
-                                                }
-                                            @endphp
-                                            <span class="text-gray-400">#{{ $displayId }}</span> 
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">
-                                        @if($log->changes && is_array($log->changes))
-                                            @php
-                                                $keyMap = [
-                                                    'name' => 'ชื่อ',
-                                                    'name_th' => 'ชื่อ (ไทย)',
-                                                    'short_name' => 'ชื่อย่อ',
-                                                    'is_active' => 'สถานะการใช้งาน',
-                                                    'status' => 'สถานะ',
-                                                    'description' => 'รายละเอียด',
-                                                    'email_domains' => 'โดเมนอีเมล',
-                                                    'role' => 'ระดับสิทธิ์',
-                                                    'company' => 'บริษัท',
-                                                    'department' => 'แผนก/หน่วยงาน',
-                                                    'phone' => 'เบอร์โทรศัพท์',
-                                                    'priority' => 'ความเร่งด่วน',
-                                                    'hours' => 'จำนวนชั่วโมง',
-                                                ];
-                                            @endphp
-                                            <div class="grid grid-cols-1 gap-1">
-                                                @foreach($log->changes as $key => $value)
-                                                        <div class="flex space-x-2 items-start">
-                                                            <span class="font-medium text-gray-700 whitespace-nowrap">{{ $keyMap[$key] ?? $key }}:</span>
-                                                            <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 break-all">
+                                        <div class="flex items-start gap-2">
+                                            <svg class="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                                            <span class="text-xs text-gray-700">
+                                                <span class="text-gray-500">เป้าหมาย:</span> {{ $targetText }}
+                                                @if($displayId) <span class="text-gray-400">#{{ $displayId }}</span> @endif
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-gray-50 rounded-lg p-3">
+                                        <div class="text-[11px] font-semibold text-gray-500 uppercase mb-2">ข้อมูลที่เปลี่ยนแปลง</div>
+                                        <div class="text-xs text-gray-600">
+                                            @if($log->changes && is_array($log->changes))
+                                                @php
+                                                    $keyMap = [
+                                                        'name' => 'ชื่อ',
+                                                        'name_th' => 'ชื่อ (ไทย)',
+                                                        'short_name' => 'ชื่อย่อ',
+                                                        'is_active' => 'สถานะการใช้งาน',
+                                                        'status' => 'สถานะ',
+                                                        'description' => 'รายละเอียด',
+                                                        'email_domains' => 'โดเมนอีเมล',
+                                                        'role' => 'ระดับสิทธิ์',
+                                                        'company' => 'บริษัท',
+                                                        'department' => 'แผนก/หน่วยงาน',
+                                                        'phone' => 'เบอร์โทรศัพท์',
+                                                        'priority' => 'ความเร่งด่วน',
+                                                        'hours' => 'จำนวนชั่วโมง',
+                                                    ];
+                                                @endphp
+                                                <div class="grid grid-cols-1 gap-2">
+                                                    @foreach($log->changes as $key => $value)
+                                                        <div class="flex flex-col gap-1 border-b border-gray-100 last:border-0 pb-1 last:pb-0">
+                                                            <span class="font-medium text-gray-700">{{ $keyMap[$key] ?? $key }}:</span>
+                                                            <div class="flex flex-col pl-2 border-l-2 border-gray-200 break-all">
                                                                 @if($log->old_values && array_key_exists($key, $log->old_values))
                                                                     @php $oldVal = $log->old_values[$key]; @endphp
-                                                                    <span class="text-rose-500 line-through text-xs sm:text-sm">
+                                                                    <span class="text-rose-500 line-through">
                                                                         @if(is_array($oldVal)) {{ json_encode($oldVal, JSON_UNESCAPED_UNICODE) }}
                                                                         @elseif(is_null($oldVal) || $oldVal === '') <em class="opacity-75">ว่างเปล่า</em>
                                                                         @elseif(in_array($key, ['is_active', 'status']))
                                                                             {{ $oldVal == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}
                                                                         @else {{ $oldVal }} @endif
                                                                     </span>
-                                                                    <svg class="w-3 h-3 text-gray-400 hidden sm:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                                                                 @endif
-
-                                                                <span class="text-emerald-600 font-medium text-sm">
+                                                                <span class="text-emerald-600 font-medium mt-0.5">
                                                                     @if(is_array($value))
                                                                         {{ json_encode($value, JSON_UNESCAPED_UNICODE) }}
                                                                     @elseif(is_null($value) || $value === '')
@@ -196,18 +191,150 @@
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                @endforeach
+                                                    @endforeach
+                                                </div>
+                                            @elseif($log->changes)
+                                                <pre class="text-[10px] max-w-full overflow-x-auto whitespace-pre-wrap">{{ is_string($log->changes) ? $log->changes : json_encode($log->changes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                            @else
+                                                <em class="text-gray-400">ไม่มีรายละเอียด</em>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <!-- Desktop Table View -->
+                        <div class="hidden md:block overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50/80 sticky top-16 z-10 outline outline-1 outline-gray-200 backdrop-blur-sm">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">เวลา</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ผู้ใช้งาน</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">การกระทำ</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">เป้าหมาย</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ข้อมูลที่เปลี่ยนแปลง</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-100">
+                                    @foreach($logs as $log)
+                                    <tr class="hover:bg-indigo-50/30 transition-colors duration-200">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-semibold text-gray-900">{{ $log->created_at->translatedFormat('d M Y') }}</div>
+                                            <div class="text-xs text-gray-500 mt-0.5">{{ $log->created_at->format('H:i') }} น.</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center gap-3">
+                                                @php $userName = $log->user->name ?? 'System'; @endphp
+                                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                                                    {{ mb_substr($userName, 0, 1) }}
+                                                </div>
+                                                <span class="text-sm font-medium text-gray-900">{{ $userName }}</span>
                                             </div>
-                                        @elseif($log->changes)
-                                            <pre class="text-xs max-w-xs overflow-x-auto whitespace-pre-wrap">{{ is_string($log->changes) ? $log->changes : json_encode($log->changes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                                        @else
-                                            <em class="text-gray-400">ไม่มีรายละเอียด</em>
-                                        @endif
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            @php
+                                                $actionText = $log->action;
+                                                $badgeClass = 'bg-gray-100 text-gray-800';
+                                                if (str_contains($log->action, 'POST') || $log->action === 'created') {
+                                                    $actionText = 'เพิ่มข้อมูล';
+                                                    $badgeClass = 'bg-emerald-50 text-emerald-700 ring-emerald-600/20';
+                                                } elseif (str_contains($log->action, 'PUT') || str_contains($log->action, 'PATCH') || $log->action === 'updated') {
+                                                    $actionText = 'แก้ไขข้อมูล';
+                                                    $badgeClass = 'bg-blue-50 text-blue-700 ring-blue-600/20';
+                                                } elseif (str_contains($log->action, 'DELETE') || $log->action === 'deleted') {
+                                                    $actionText = 'ลบข้อมูล';
+                                                    $badgeClass = 'bg-rose-50 text-rose-700 ring-rose-600/20';
+                                                }
+                                            @endphp
+                                            <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ring-1 ring-inset {{ $badgeClass }}">{{ $actionText }}</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            @php
+                                                $targetText = class_basename($log->target_type);
+                                                if (str_contains($log->target_type, 'categories')) $targetText = 'หมวดหมู่ปัญหา';
+                                                elseif (str_contains($log->target_type, 'companies')) $targetText = 'ข้อมูลบริษัท';
+                                                elseif (str_contains($log->target_type, 'users')) $targetText = 'ผู้ใช้งาน';
+                                                elseif (str_contains($log->target_type, 'departments')) $targetText = 'แผนก/หน่วยงาน';
+                                                elseif (str_contains($log->target_type, 'slas')) $targetText = 'SLA';
+                                                elseif (str_contains($log->target_type, 'settings')) $targetText = 'ตั้งค่าระบบ';
+                                            @endphp
+                                            {{ $targetText }} 
+                                            @if($log->target_id) 
+                                                @php
+                                                    $displayId = $log->target_id;
+                                                    $decoded = json_decode($displayId, true);
+                                                    if (is_array($decoded) && isset($decoded['id'])) {
+                                                        $displayId = $decoded['id'];
+                                                    } elseif (strlen($displayId) > 15) {
+                                                        $displayId = substr($displayId, 0, 15) . '...';
+                                                    }
+                                                @endphp
+                                                <span class="text-gray-400">#{{ $displayId }}</span> 
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">
+                                            @if($log->changes && is_array($log->changes))
+                                                @php
+                                                    $keyMap = [
+                                                        'name' => 'ชื่อ',
+                                                        'name_th' => 'ชื่อ (ไทย)',
+                                                        'short_name' => 'ชื่อย่อ',
+                                                        'is_active' => 'สถานะการใช้งาน',
+                                                        'status' => 'สถานะ',
+                                                        'description' => 'รายละเอียด',
+                                                        'email_domains' => 'โดเมนอีเมล',
+                                                        'role' => 'ระดับสิทธิ์',
+                                                        'company' => 'บริษัท',
+                                                        'department' => 'แผนก/หน่วยงาน',
+                                                        'phone' => 'เบอร์โทรศัพท์',
+                                                        'priority' => 'ความเร่งด่วน',
+                                                        'hours' => 'จำนวนชั่วโมง',
+                                                    ];
+                                                @endphp
+                                                <div class="grid grid-cols-1 gap-1">
+                                                    @foreach($log->changes as $key => $value)
+                                                            <div class="flex space-x-2 items-start">
+                                                                <span class="font-medium text-gray-700 whitespace-nowrap">{{ $keyMap[$key] ?? $key }}:</span>
+                                                                <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 break-all">
+                                                                    @if($log->old_values && array_key_exists($key, $log->old_values))
+                                                                        @php $oldVal = $log->old_values[$key]; @endphp
+                                                                        <span class="text-rose-500 line-through text-xs sm:text-sm">
+                                                                            @if(is_array($oldVal)) {{ json_encode($oldVal, JSON_UNESCAPED_UNICODE) }}
+                                                                            @elseif(is_null($oldVal) || $oldVal === '') <em class="opacity-75">ว่างเปล่า</em>
+                                                                            @elseif(in_array($key, ['is_active', 'status']))
+                                                                                {{ $oldVal == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}
+                                                                            @else {{ $oldVal }} @endif
+                                                                        </span>
+                                                                        <svg class="w-3 h-3 text-gray-400 hidden sm:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                                                    @endif
+    
+                                                                    <span class="text-emerald-600 font-medium text-sm">
+                                                                        @if(is_array($value))
+                                                                            {{ json_encode($value, JSON_UNESCAPED_UNICODE) }}
+                                                                        @elseif(is_null($value) || $value === '')
+                                                                            <em class="opacity-75">ว่างเปล่า</em>
+                                                                        @elseif(in_array($key, ['is_active', 'status']))
+                                                                            {{ $value == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}
+                                                                        @else
+                                                                            {{ $value }}
+                                                                        @endif
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                    @endforeach
+                                                </div>
+                                            @elseif($log->changes)
+                                                <pre class="text-xs max-w-xs overflow-x-auto whitespace-pre-wrap">{{ is_string($log->changes) ? $log->changes : json_encode($log->changes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                            @else
+                                                <em class="text-gray-400">ไม่มีรายละเอียด</em>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                         @else
                         <div class="flex flex-col items-center justify-center py-12 px-4 text-center">
                             <div class="w-24 h-24 mb-4 text-gray-200">
