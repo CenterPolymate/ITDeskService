@@ -305,6 +305,22 @@ class TicketController extends Controller
 
             $ticket->update($updateData);
 
+            if ($request->has('parts') && is_array($request->parts)) {
+                foreach ($request->parts as $part) {
+                    if (!empty($part['part_name']) && !empty($part['quantity']) && !empty($part['unit'])) {
+                        $ticket->parts()->create([
+                            'part_name' => $part['part_name'],
+                            'quantity' => $part['quantity'],
+                            'unit' => $part['unit'],
+                            'document_no' => $part['document_no'] ?? null,
+                            'vendor' => $part['vendor'] ?? null,
+                            'unit_price' => $part['unit_price'] ?? null,
+                            'remarks' => $part['remarks'] ?? null,
+                        ]);
+                    }
+                }
+            }
+
             return redirect()->route('tickets.show', $id)->with('success', 'บันทึกการแก้ไขและส่งเพื่อรอผู้แจ้งรับงานเรียบร้อยแล้ว');
         } elseif ($request->action === 'update_notes') {
             $ticket->update([
@@ -325,6 +341,10 @@ class TicketController extends Controller
                                 'part_name' => $part['part_name'],
                                 'quantity' => $part['quantity'],
                                 'unit' => $part['unit'],
+                                'document_no' => $part['document_no'] ?? null,
+                                'vendor' => $part['vendor'] ?? null,
+                                'unit_price' => $part['unit_price'] ?? null,
+                                'remarks' => $part['remarks'] ?? null,
                             ]);
                         }
                     }

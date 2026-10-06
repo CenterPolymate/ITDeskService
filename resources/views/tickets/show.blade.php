@@ -149,26 +149,50 @@
                             @if($ticket->parts->count() > 0)
                             <div class="mt-4">
                                 <h4 class="text-sm font-semibold text-green-700 mb-2">รายการอะไหล่ / วัสดุอุปกรณ์ที่ใช้:</h4>
-                                <div class="bg-white border border-gray-200 rounded-md overflow-hidden">
-                                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <div class="bg-white border border-gray-200 rounded-md overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
                                         <thead class="bg-gray-50">
                                             <tr>
-                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500 w-16">ลำดับ</th>
+                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500 w-12">ลำดับ</th>
                                                 <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">ชื่ออะไหล่/วัสดุ</th>
-                                                <th scope="col" class="px-4 py-2 text-right font-medium text-gray-500 w-24">จำนวน</th>
-                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500 w-24">หน่วยนับ</th>
+                                                <th scope="col" class="px-4 py-2 text-right font-medium text-gray-500">จำนวน</th>
+                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">หน่วยนับ</th>
+                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">เอกสารเบิก/ใบขอซื้อ</th>
+                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">ซื้อจากบริษัท</th>
+                                                <th scope="col" class="px-4 py-2 text-right font-medium text-gray-500">ราคา/หน่วย</th>
+                                                <th scope="col" class="px-4 py-2 text-right font-medium text-gray-500">รวม</th>
+                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">หมายเหตุ</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-200 bg-white">
+                                            @php $grandTotal = 0; @endphp
                                             @foreach($ticket->parts as $index => $part)
-                                            <tr>
+                                            @php 
+                                                $itemTotal = $part->unit_price ? $part->quantity * $part->unit_price : 0;
+                                                $grandTotal += $itemTotal;
+                                            @endphp
+                                            <tr class="hover:bg-gray-50">
                                                 <td class="px-4 py-2 text-gray-500">{{ $index + 1 }}</td>
                                                 <td class="px-4 py-2 font-medium text-gray-900">{{ $part->part_name }}</td>
                                                 <td class="px-4 py-2 text-right text-gray-700">{{ $part->quantity }}</td>
                                                 <td class="px-4 py-2 text-gray-700">{{ $part->unit }}</td>
+                                                <td class="px-4 py-2 text-gray-500">{{ $part->document_no ?: '-' }}</td>
+                                                <td class="px-4 py-2 text-gray-500">{{ $part->vendor ?: '-' }}</td>
+                                                <td class="px-4 py-2 text-right text-gray-700">{{ $part->unit_price ? number_format($part->unit_price, 2) : '-' }}</td>
+                                                <td class="px-4 py-2 text-right text-gray-700">{{ $itemTotal ? number_format($itemTotal, 2) : '-' }}</td>
+                                                <td class="px-4 py-2 text-gray-500">{{ $part->remarks ?: '-' }}</td>
                                             </tr>
                                             @endforeach
                                         </tbody>
+                                        @if($grandTotal > 0)
+                                        <tfoot class="bg-gray-50">
+                                            <tr>
+                                                <td colspan="7" class="px-4 py-2 text-right font-bold text-gray-700">ยอดรวมทั้งหมด:</td>
+                                                <td class="px-4 py-2 text-right font-bold text-green-700">{{ number_format($grandTotal, 2) }}</td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
+                                        @endif
                                     </table>
                                 </div>
                             </div>
@@ -218,21 +242,50 @@
                                         <textarea name="resolution_notes" id="resolution_notes" rows="3" {{ $ticket->status === 'resolved' ? 'required' : '' }} class="w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm">{{ $ticket->resolution_notes }}</textarea>
                                     </div>
                                     
-                                    <div class="mb-5 bg-amber-50 p-4 rounded-md border border-amber-200" x-data="{ parts: {{ json_encode($ticket->parts->map(function($p) { return ['part_name' => $p->part_name, 'quantity' => $p->quantity, 'unit' => $p->unit]; })->values()->all()) }} }">
+                                    <div class="mb-5 bg-amber-50 p-4 rounded-md border border-amber-200" x-data="{ parts: {{ json_encode($ticket->parts->map(function($p) { return ['part_name' => $p->part_name, 'quantity' => $p->quantity, 'unit' => $p->unit, 'document_no' => $p->document_no, 'vendor' => $p->vendor, 'unit_price' => $p->unit_price, 'remarks' => $p->remarks]; })->values()->all()) }} }">
                                         <label class="block font-bold text-gray-800 text-sm mb-2">แก้ไขรายการอะไหล่ / วัสดุอุปกรณ์ที่ใช้ (ถ้ามี)</label>
-                                        <div class="space-y-2 mb-3">
+                                        <div class="space-y-3 mb-3">
                                             <template x-for="(part, index) in parts" :key="index">
-                                                <div class="flex items-center gap-2">
-                                                    <input type="text" :name="`parts[${index}][part_name]`" x-model="part.part_name" required placeholder="ชื่ออะไหล่/วัสดุ" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" />
-                                                    <input type="number" :name="`parts[${index}][quantity]`" x-model="part.quantity" required min="1" placeholder="จำนวน" class="w-20 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" />
-                                                    <input type="text" :name="`parts[${index}][unit]`" x-model="part.unit" required placeholder="หน่วย (เช่น ชิ้น, เส้น)" class="w-32 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" />
-                                                    <button type="button" @click="parts.splice(index, 1)" class="text-red-500 hover:text-red-700 p-2">
+                                                <div class="border border-amber-200 bg-white p-3 rounded-md shadow-sm relative pr-10">
+                                                    <button type="button" @click="parts.splice(index, 1)" class="absolute top-2 right-2 text-red-500 hover:text-red-700">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                     </button>
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                                                        <div>
+                                                            <label class="block text-xs font-semibold text-gray-600 mb-1">ชื่อรายการวัสดุที่ใช้</label>
+                                                            <input type="text" :name="`parts[${index}][part_name]`" x-model="part.part_name" required placeholder="ชื่ออะไหล่/วัสดุ" class="w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" />
+                                                        </div>
+                                                        <div class="flex gap-2">
+                                                            <div class="flex-1">
+                                                                <label class="block text-xs font-semibold text-gray-600 mb-1">จำนวน</label>
+                                                                <input type="number" :name="`parts[${index}][quantity]`" x-model="part.quantity" required min="1" placeholder="จำนวน" class="w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" />
+                                                            </div>
+                                                            <div class="flex-1">
+                                                                <label class="block text-xs font-semibold text-gray-600 mb-1">หน่วยนับ</label>
+                                                                <input type="text" :name="`parts[${index}][unit]`" x-model="part.unit" required placeholder="ชิ้น, เส้น" class="w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" />
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-semibold text-gray-600 mb-1">เอกสารเบิก/ใบขอซื้อ</label>
+                                                            <input type="text" :name="`parts[${index}][document_no]`" x-model="part.document_no" placeholder="ถ้ามี" class="w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" />
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-semibold text-gray-600 mb-1">ซื้อจากบริษัท</label>
+                                                            <input type="text" :name="`parts[${index}][vendor]`" x-model="part.vendor" placeholder="ถ้ามี" class="w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" />
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-semibold text-gray-600 mb-1">ราคาต่อหน่วย</label>
+                                                            <input type="number" step="0.01" :name="`parts[${index}][unit_price]`" x-model="part.unit_price" placeholder="0.00" class="w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" />
+                                                        </div>
+                                                        <div class="lg:col-span-3">
+                                                            <label class="block text-xs font-semibold text-gray-600 mb-1">หมายเหตุ</label>
+                                                            <input type="text" :name="`parts[${index}][remarks]`" x-model="part.remarks" placeholder="หมายเหตุเพิ่มเติม" class="w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </template>
                                         </div>
-                                        <button type="button" @click="parts.push({part_name: '', quantity: 1, unit: 'ชิ้น'})" class="text-sm text-amber-700 hover:text-amber-900 font-bold flex items-center gap-1 border border-amber-600 px-3 py-1.5 rounded-md hover:bg-amber-100 transition-colors bg-white">
+                                        <button type="button" @click="parts.push({part_name: '', quantity: 1, unit: 'ชิ้น', document_no: '', vendor: '', unit_price: '', remarks: ''})" class="text-sm text-amber-700 hover:text-amber-900 font-bold flex items-center gap-1 border border-amber-600 px-3 py-1.5 rounded-md hover:bg-amber-100 transition-colors bg-white">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                             เพิ่มรายการอะไหล่/วัสดุ
                                         </button>
@@ -317,19 +370,48 @@
                                     </div>
                                     <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200" x-data="{ parts: [] }">
                                         <label class="block font-bold text-gray-700 text-sm mb-2">รายการอะไหล่ / วัสดุอุปกรณ์ที่ใช้ (ถ้ามี)</label>
-                                        <div class="space-y-2 mb-3">
+                                        <div class="space-y-3 mb-3">
                                             <template x-for="(part, index) in parts" :key="index">
-                                                <div class="flex items-center gap-2">
-                                                    <input type="text" :name="`parts[${index}][part_name]`" x-model="part.part_name" required placeholder="ชื่ออะไหล่/วัสดุ" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" />
-                                                    <input type="number" :name="`parts[${index}][quantity]`" x-model="part.quantity" required min="1" placeholder="จำนวน" class="w-20 rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" />
-                                                    <input type="text" :name="`parts[${index}][unit]`" x-model="part.unit" required placeholder="หน่วย (เช่น ชิ้น, เส้น)" class="w-32 rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" />
-                                                    <button type="button" @click="parts.splice(index, 1)" class="text-red-500 hover:text-red-700 p-2">
+                                                <div class="border border-emerald-200 bg-white p-3 rounded-md shadow-sm relative pr-10">
+                                                    <button type="button" @click="parts.splice(index, 1)" class="absolute top-2 right-2 text-red-500 hover:text-red-700">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                     </button>
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                                                        <div>
+                                                            <label class="block text-xs font-semibold text-gray-600 mb-1">ชื่อรายการวัสดุที่ใช้</label>
+                                                            <input type="text" :name="`parts[${index}][part_name]`" x-model="part.part_name" required placeholder="ชื่ออะไหล่/วัสดุ" class="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" />
+                                                        </div>
+                                                        <div class="flex gap-2">
+                                                            <div class="flex-1">
+                                                                <label class="block text-xs font-semibold text-gray-600 mb-1">จำนวน</label>
+                                                                <input type="number" :name="`parts[${index}][quantity]`" x-model="part.quantity" required min="1" placeholder="จำนวน" class="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" />
+                                                            </div>
+                                                            <div class="flex-1">
+                                                                <label class="block text-xs font-semibold text-gray-600 mb-1">หน่วยนับ</label>
+                                                                <input type="text" :name="`parts[${index}][unit]`" x-model="part.unit" required placeholder="ชิ้น, เส้น" class="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" />
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-semibold text-gray-600 mb-1">เอกสารเบิก/ใบขอซื้อ</label>
+                                                            <input type="text" :name="`parts[${index}][document_no]`" x-model="part.document_no" placeholder="ถ้ามี" class="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" />
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-semibold text-gray-600 mb-1">ซื้อจากบริษัท</label>
+                                                            <input type="text" :name="`parts[${index}][vendor]`" x-model="part.vendor" placeholder="ถ้ามี" class="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" />
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-semibold text-gray-600 mb-1">ราคาต่อหน่วย</label>
+                                                            <input type="number" step="0.01" :name="`parts[${index}][unit_price]`" x-model="part.unit_price" placeholder="0.00" class="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" />
+                                                        </div>
+                                                        <div class="lg:col-span-3">
+                                                            <label class="block text-xs font-semibold text-gray-600 mb-1">หมายเหตุ</label>
+                                                            <input type="text" :name="`parts[${index}][remarks]`" x-model="part.remarks" placeholder="หมายเหตุเพิ่มเติม" class="w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </template>
                                         </div>
-                                        <button type="button" @click="parts.push({part_name: '', quantity: 1, unit: 'ชิ้น'})" class="text-sm text-emerald-600 hover:text-emerald-800 font-bold flex items-center gap-1 border border-emerald-600 px-3 py-1.5 rounded-md hover:bg-emerald-50 transition-colors bg-white">
+                                        <button type="button" @click="parts.push({part_name: '', quantity: 1, unit: 'ชิ้น', document_no: '', vendor: '', unit_price: '', remarks: ''})" class="text-sm text-emerald-600 hover:text-emerald-800 font-bold flex items-center gap-1 border border-emerald-600 px-3 py-1.5 rounded-md hover:bg-emerald-50 transition-colors bg-white">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                             เพิ่มรายการอะไหล่/วัสดุ
                                         </button>

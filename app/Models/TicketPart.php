@@ -11,6 +11,10 @@ class TicketPart extends Model
         'part_name',
         'quantity',
         'unit',
+        'document_no',
+        'vendor',
+        'unit_price',
+        'remarks',
     ];
 
     public function ticket()

@@ -471,24 +471,30 @@
                         @php
                             $parts = $ticket->parts ?? collect();
                             $maxRows = max(4, $parts->count());
+                            $totalPrice = 0;
                         @endphp
                         @for ($i = 0; $i < $maxRows; $i++)
-                            <tr class="border-b border-black h-4">
-                                <td class="border-r border-black p-[1px]">{{ $i < $parts->count() ? $i + 1 : '' }}</td>
-                                <td class="border-r border-black p-[1px] text-left px-1 truncate text-blue-700">
-                                    {{ $i < $parts->count() ? $parts[$i]->part_name . ' (' . $parts[$i]->quantity . ' ' . $parts[$i]->unit . ')' : '' }}
+                            @php
+                                $part = $i < $parts->count() ? $parts[$i] : null;
+                                $itemTotal = $part && $part->unit_price ? $part->quantity * $part->unit_price : null;
+                                if ($itemTotal) $totalPrice += $itemTotal;
+                            @endphp
+                            <tr class="border-b border-black h-4 text-blue-700">
+                                <td class="border-r border-black p-[1px] text-black">{{ $part ? $i + 1 : '' }}</td>
+                                <td class="border-r border-black p-[1px] text-left px-1 truncate">
+                                    {{ $part ? $part->part_name . ' (' . $part->quantity . ' ' . $part->unit . ')' : '' }}
                                 </td>
-                                <td class="border-r border-black p-[1px]"></td>
-                                <td class="border-r border-black p-[1px]"></td>
-                                <td class="border-r border-black p-[1px]"></td>
-                                <td class="border-r border-black p-[1px]"></td>
-                                <td class="p-[1px]"></td>
+                                <td class="border-r border-black p-[1px] px-1 truncate">{{ $part->document_no ?? '' }}</td>
+                                <td class="border-r border-black p-[1px] px-1 truncate">{{ $part->vendor ?? '' }}</td>
+                                <td class="border-r border-black p-[1px] text-right px-1">{{ $part && $part->unit_price ? number_format($part->unit_price, 2) : '' }}</td>
+                                <td class="border-r border-black p-[1px] text-right px-1">{{ $itemTotal ? number_format($itemTotal, 2) : '' }}</td>
+                                <td class="p-[1px] text-left px-1 truncate">{{ $part->remarks ?? '' }}</td>
                             </tr>
                         @endfor
                         <tr>
                             <td colspan="3" class="border-r border-black p-[1px]"></td>
                             <td colspan="2" class="border-r border-black bg-gray-100 p-[1px]">ยอดเงินรวม</td>
-                            <td class="border-r border-black p-[1px]"></td>
+                            <td class="border-r border-black p-[1px] text-right px-1 text-blue-700 font-bold">{{ $totalPrice > 0 ? number_format($totalPrice, 2) : '' }}</td>
                             <td class="p-[1px]"></td>
                         </tr>
                     </table>
