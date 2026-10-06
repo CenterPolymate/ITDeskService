@@ -7,14 +7,14 @@
 
     <x-slot name="header">
         <div class="flex items-center gap-4">
-            <div class="p-3.5 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl text-white shadow-lg shadow-purple-200 hover:scale-105 transition-transform duration-300 cursor-default">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-2xl text-indigo-600 shadow-sm cursor-default">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z"></path></svg>
             </div>
             <div>
                 <h2 class="font-black text-2xl sm:text-3xl bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-indigo-800 tracking-tight">
                     {{ __('แจ้งปัญหาใหม่') }}
                 </h2>
-                <p class="text-sm sm:text-base text-slate-500 mt-1 font-medium">บอกเล่าปัญหาที่คุณเจอ ให้เราช่วยจัดการให้สิ 🚀</p>
+                <p class="text-sm sm:text-base text-slate-500 mt-1 font-medium">บอกเล่าปัญหาที่คุณเจอ ให้เราช่วยจัดการให้</p>
             </div>
         </div>
     </x-slot>
@@ -42,9 +42,7 @@
                                 เบอร์โทรติดต่อกลับ <span class="text-rose-500">*</span>
                             </label>
                             <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <span class="text-lg">📱</span>
-                                </div>
+                                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"></path></svg>
                                 <input id="requester_phone" type="text" name="requester_phone" value="{{ old('requester_phone') }}" required pattern="^0[0-9]{1,2}-?[0-9]{3}-?[0-9]{4}$" placeholder="081-123-4567" 
                                     class="block w-full pl-12 py-3 bg-white/50 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
                             </div>
@@ -56,7 +54,7 @@
                 <!-- Section 2: Machine Details (Playful Grid) -->
                 <div class="bg-white/70 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80">
                     <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                        <span class="p-2 bg-purple-100 text-purple-600 rounded-xl">💻</span> ข้อมูลอุปกรณ์
+                        <span class="p-2 bg-slate-50 text-slate-500 border border-slate-100 rounded-xl"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25"></path></svg></span> ข้อมูลอุปกรณ์
                     </h3>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -88,7 +86,7 @@
                                 <input type="radio" name="is_machine_stopped" value="0" required class="peer sr-only scroll-mt-24" {{ old('is_machine_stopped') === '0' ? 'checked' : '' }}>
                                 <div class="h-full flex flex-col items-center justify-center p-4 sm:p-6 bg-white border-2 border-slate-100 rounded-2xl group-hover:border-emerald-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300 transform peer-checked:-translate-y-1">
                                     <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-500 text-2xl mb-3 group-hover:scale-110 transition-transform peer-checked:bg-emerald-500 peer-checked:text-white">
-                                        ✨
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     </div>
                                     <span class="font-bold text-slate-700 peer-checked:text-emerald-700 text-center">ใช้งานได้ปกติ</span>
                                 </div>
@@ -98,7 +96,7 @@
                                 <input type="radio" name="is_machine_stopped" value="1" required class="peer sr-only scroll-mt-24" {{ old('is_machine_stopped') === '1' ? 'checked' : '' }}>
                                 <div class="h-full flex flex-col items-center justify-center p-4 sm:p-6 bg-white border-2 border-slate-100 rounded-2xl group-hover:border-rose-200 peer-checked:border-rose-500 peer-checked:bg-rose-50 peer-checked:shadow-[0_0_20px_rgba(244,63,94,0.15)] transition-all duration-300 transform peer-checked:-translate-y-1">
                                     <div class="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center text-rose-500 text-2xl mb-3 group-hover:scale-110 transition-transform peer-checked:bg-rose-500 peer-checked:text-white">
-                                        🚨
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                                     </div>
                                     <span class="font-bold text-slate-700 peer-checked:text-rose-700 text-center">เครื่องจักรหยุดทำงาน</span>
                                 </div>
@@ -111,7 +109,7 @@
                 <!-- Section 3: Problem Details -->
                 <div class="bg-white/70 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80">
                     <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                        <span class="p-2 bg-pink-100 text-pink-600 rounded-xl">📝</span> รายละเอียดปัญหา
+                        <span class="p-2 bg-slate-50 text-slate-500 border border-slate-100 rounded-xl"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path></svg></span> รายละเอียดปัญหา
                     </h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -119,10 +117,10 @@
                             <label for="category" class="block font-bold text-sm text-slate-700 mb-2">หมวดหมู่</label>
                             <select id="category" name="category" class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
                                 <option value="" disabled selected>-- เลือกประเภทปัญหา --</option>
-                                <option value="Hardware" {{ old('category') == 'Hardware' ? 'selected' : '' }}>🖥️ อุปกรณ์ Hardware</option>
-                                <option value="Software" {{ old('category') == 'Software' ? 'selected' : '' }}>💿 โปรแกรม Software</option>
-                                <option value="Network" {{ old('category') == 'Network' ? 'selected' : '' }}>🌐 ระบบ Network</option>
-                                <option value="Other" {{ old('category') == 'Other' ? 'selected' : '' }}>📦 อื่นๆ</option>
+                                <option value="Hardware" {{ old('category') == 'Hardware' ? 'selected' : '' }}>อุปกรณ์ Hardware</option>
+                                <option value="Software" {{ old('category') == 'Software' ? 'selected' : '' }}>โปรแกรม Software</option>
+                                <option value="Network" {{ old('category') == 'Network' ? 'selected' : '' }}>ระบบ Network</option>
+                                <option value="Other" {{ old('category') == 'Other' ? 'selected' : '' }}>อื่นๆ</option>
                             </select>
                             <x-input-error :messages="$errors->get('category')" class="mt-2" />
                         </div>
@@ -159,7 +157,7 @@
                 <!-- Section 4: File Upload -->
                 <div class="bg-white/70 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80">
                     <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                        <span class="p-2 bg-blue-100 text-blue-600 rounded-xl">📸</span> รูปภาพประกอบ
+                        <span class="p-2 bg-slate-50 text-slate-500 border border-slate-100 rounded-xl"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"></path></svg></span> รูปภาพประกอบ
                     </h3>
                     
                     <div id="drop-zone" class="relative group cursor-pointer">
