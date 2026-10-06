@@ -28,7 +28,7 @@
                     </div>
                     <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Profile Card for Name/Dept/Email -->
-                        <div class="col-span-1 md:col-span-2 flex flex-col sm:flex-row items-center gap-4 p-4 bg-slate-50/80 rounded-xl border border-slate-200/80">
+                        <div class="col-span-1 flex flex-col sm:flex-row items-center gap-4 p-4 bg-slate-50/80 rounded-xl border border-slate-200/80 h-full">
                             <div class="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 border-2 border-white shadow-sm flex items-center justify-center text-indigo-700 font-bold text-2xl shrink-0">
                                 {{ mb_substr(Auth::user()->name, 0, 1) }}
                             </div>
@@ -38,7 +38,7 @@
                             </div>
                         </div>
 
-                        <div class="col-span-1 md:col-span-2">
+                        <div class="col-span-1 flex flex-col justify-center">
                             <label for="requester_phone" class="block font-semibold text-sm text-slate-700 mb-1.5">
                                 เบอร์โทรศัพท์ติดต่อกลับ <span class="text-rose-500">*</span>
                             </label>
