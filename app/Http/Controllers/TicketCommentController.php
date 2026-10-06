@@ -26,7 +26,7 @@ class TicketCommentController extends Controller
         TicketComment::create([
             'helpdesk_case_id' => $ticket->id,
             'user_id' => Auth::id(),
-            'message' => $request->message,
+            'message' => $request->message ?? '',
             'attachment_path' => $path,
         ]);
 
