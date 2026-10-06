@@ -84,9 +84,9 @@
                     <div>
                         <label class="block font-bold text-sm text-slate-700 mb-3">สถานะเครื่องจักร ณ ปัจจุบัน <span class="text-rose-500">*</span></label>
                         <div class="grid grid-cols-2 gap-4">
-                            <label class="cursor-pointer relative group">
+                            <label class="cursor-pointer relative group h-full block">
                                 <input type="radio" name="is_machine_stopped" value="0" required class="peer sr-only" {{ old('is_machine_stopped') === '0' ? 'checked' : '' }}>
-                                <div class="flex flex-col items-center justify-center p-4 sm:p-6 bg-white border-2 border-slate-100 rounded-2xl group-hover:border-emerald-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300 transform peer-checked:-translate-y-1">
+                                <div class="h-full flex flex-col items-center justify-center p-4 sm:p-6 bg-white border-2 border-slate-100 rounded-2xl group-hover:border-emerald-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300 transform peer-checked:-translate-y-1">
                                     <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-500 text-2xl mb-3 group-hover:scale-110 transition-transform peer-checked:bg-emerald-500 peer-checked:text-white">
                                         ✨
                                     </div>
@@ -94,9 +94,9 @@
                                 </div>
                             </label>
                             
-                            <label class="cursor-pointer relative group">
+                            <label class="cursor-pointer relative group h-full block">
                                 <input type="radio" name="is_machine_stopped" value="1" required class="peer sr-only" {{ old('is_machine_stopped') === '1' ? 'checked' : '' }}>
-                                <div class="flex flex-col items-center justify-center p-4 sm:p-6 bg-white border-2 border-slate-100 rounded-2xl group-hover:border-rose-200 peer-checked:border-rose-500 peer-checked:bg-rose-50 peer-checked:shadow-[0_0_20px_rgba(244,63,94,0.15)] transition-all duration-300 transform peer-checked:-translate-y-1">
+                                <div class="h-full flex flex-col items-center justify-center p-4 sm:p-6 bg-white border-2 border-slate-100 rounded-2xl group-hover:border-rose-200 peer-checked:border-rose-500 peer-checked:bg-rose-50 peer-checked:shadow-[0_0_20px_rgba(244,63,94,0.15)] transition-all duration-300 transform peer-checked:-translate-y-1">
                                     <div class="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center text-rose-500 text-2xl mb-3 group-hover:scale-110 transition-transform peer-checked:bg-rose-500 peer-checked:text-white">
                                         🚨
                                     </div>
