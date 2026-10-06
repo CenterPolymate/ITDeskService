@@ -748,7 +748,10 @@
                                                     {{ $comment->user->name }} ({{ $comment->user->role }})
                                                 @endif
                                             </span>
-                                            <span class="text-[10px] text-gray-500">{{ $comment->created_at->translatedFormat('d F Y H:i') }}</span>
+                                            <span class="text-[10px] text-gray-500">
+                                                <span class="hidden sm:inline">{{ $comment->created_at->translatedFormat('d F Y H:i') }}</span>
+                                                <span class="sm:hidden">{{ $comment->created_at->translatedFormat('d M y H:i') }}</span>
+                                            </span>
                                         </div>
                                         <p class="text-sm whitespace-pre-wrap">{{ $comment->message }}</p>
                                         @if($comment->attachment_path)
