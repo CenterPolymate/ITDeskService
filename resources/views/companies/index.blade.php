@@ -1,19 +1,19 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('จัดการรายชื่อบริษัท (Companies)') }}
             </h2>
-            <div class="flex gap-2" x-data="{ showImportModal: false }">
-                <button @click="showImportModal = true" class="inline-flex items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-emerald-700">
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto" x-data="{ showImportModal: false }">
+                <button @click="showImportModal = true" class="inline-flex justify-center items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-emerald-700 w-full sm:w-auto">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                     Import CSV
                 </button>
-                <a href="{{ route('companies.export') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+                <a href="{{ route('companies.export') }}" class="inline-flex justify-center items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 w-full sm:w-auto">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 013 3h10a3 3 0 013-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                     Export CSV
                 </a>
-                <a href="{{ route('companies.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                <a href="{{ route('companies.create') }}" class="inline-flex justify-center items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 w-full sm:w-auto">
                     + เพิ่มบริษัทใหม่
                 </a>
 
@@ -61,7 +61,56 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <div class="overflow-x-auto">
+                    <!-- Mobile Card View -->
+                    <div class="md:hidden space-y-4 mb-4">
+                        @foreach($companies as $company)
+                        <div class="bg-white border rounded-xl shadow-sm p-4 {{ $company->is_active ? 'border-gray-200' : 'border-red-200 bg-red-50/30' }}">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold {{ $company->is_active ? 'text-gray-900' : 'text-gray-500 line-through' }}">{{ $company->name }}</h4>
+                                @if($company->is_active)
+                                    <span class="px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full bg-green-100 text-green-800 shadow-sm whitespace-nowrap">เปิดใช้งาน</span>
+                                @else
+                                    <span class="px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full bg-red-100 text-red-800 shadow-sm whitespace-nowrap">ปิดใช้งาน</span>
+                                @endif
+                            </div>
+                            
+                            <div class="text-sm text-gray-600 mb-3 space-y-2">
+                                @if($company->short_name)
+                                <div class="flex items-start gap-2">
+                                    <span class="text-gray-400 font-medium w-20 shrink-0">ชื่อย่อ:</span>
+                                    <span>{{ $company->short_name }}</span>
+                                </div>
+                                @endif
+                                <div class="flex items-start gap-2">
+                                    <span class="text-gray-400 font-medium w-20 shrink-0 mt-0.5">อีเมลโดเมน:</span>
+                                    <div class="flex flex-wrap gap-1">
+                                        @if($company->email_domains)
+                                            @foreach(explode(',', $company->email_domains) as $domain)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium {{ $company->is_active ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-500' }}">
+                                                    {{ trim($domain) }}
+                                                </span>
+                                            @endforeach
+                                        @else
+                                            <span class="text-gray-400 italic text-xs mt-0.5">ไม่ได้จำกัด</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+                                <a href="{{ route('companies.edit', $company->id) }}" class="flex-1 text-center text-xs text-indigo-700 font-medium hover:text-indigo-900 transition-colors px-2 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-100">แก้ไข</a>
+                                <form action="{{ route('companies.destroy', $company->id) }}" method="POST" class="flex-1 m-0 p-0" onsubmit="return confirm('ยืนยันการระงับการใช้งานบริษัทนี้?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="w-full text-center text-xs text-red-700 font-medium hover:text-red-900 transition-colors px-2 py-2 bg-red-50 hover:bg-red-100 rounded-lg border border-red-100">ระงับ</button>
+                                </form>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto rounded-lg border border-gray-200">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
@@ -116,3 +165,4 @@
         </div>
     </div>
 </x-app-layout>
+

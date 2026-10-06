@@ -28,6 +28,10 @@ class TicketController extends Controller
             'description' => 'required|string|max:400',
             'location' => 'required|string|max:255',
             'requester_phone' => ['required', 'string', 'regex:/^0[0-9]{1,2}-?[0-9]{3}-?[0-9]{4}$/'],
+            'actual_user_name' => 'nullable|string|max:100',
+            'machine_name' => 'nullable|string|max:100',
+            'machine_code' => 'nullable|string|max:50',
+            'is_machine_stopped' => 'nullable|boolean',
             'attachments' => 'nullable|array|max:2',
             'attachments.*' => 'file|mimes:jpg,jpeg,png|max:5120', // 5MB max per file
         ], [
@@ -69,6 +73,10 @@ class TicketController extends Controller
             'requester_name' => $user->name,
             'requester_email' => $user->email,
             'requester_phone' => $request->requester_phone,
+            'actual_user_name' => $request->actual_user_name,
+            'machine_name' => $request->machine_name,
+            'machine_code' => $request->machine_code,
+            'is_machine_stopped' => $request->is_machine_stopped !== null ? filter_var($request->is_machine_stopped, FILTER_VALIDATE_BOOLEAN) : null,
             'user_id' => $user->id,
             'company' => $user->company,
             'department' => $user->department,
@@ -355,9 +363,23 @@ class TicketController extends Controller
                 'requires_preventive_measure' => $request->requires_preventive_measure,
             ];
 
-            if ($request->requires_preventive_measure == 1 && $request->filled('escalated_to_team')) {
-                $updateData['escalated_to_team'] = $request->escalated_to_team;
-                $updateData['preventive_measure'] = 'assigned';
+            if ($request->requires_preventive_measure == 1) {
+                if ($request->filled('escalated_to_team')) {
+                    $updateData['escalated_to_team'] = $request->escalated_to_team;
+                    $updateData['preventive_measure'] = 'assigned';
+                }
+
+                $pcarNo = $ticket->pcar_no;
+                if (!$pcarNo) {
+                    $prefix = 'PCAR-' . date('Ym') . '-';
+                    $lastPcar = HelpdeskCase::where('pcar_no', 'like', $prefix.'%')->orderBy('pcar_no', 'desc')->first();
+                    $lastNumber = $lastPcar ? (int) substr($lastPcar->pcar_no, -4) : 0;
+                    $pcarNo = $prefix . str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+                }
+
+                $updateData['pcar_no'] = $pcarNo;
+                $updateData['pcar_opened_at'] = now();
+                $updateData['pcar_opened_by'] = Auth::id();
             } elseif ($request->requires_preventive_measure == 0) {
                 $updateData['preventive_measure'] = null;
             }
@@ -366,19 +388,8 @@ class TicketController extends Controller
 
             return redirect()->route('tickets.show', $id)->with('success', 'บันทึกการตรวจสอบและส่งต่องานเรียบร้อยแล้ว');
         } elseif ($request->action === 'start_preventive_measure') {
-            $pcarNo = $ticket->pcar_no;
-            if (!$pcarNo) {
-                $prefix = 'PCAR-' . date('Ym') . '-';
-                $lastPcar = HelpdeskCase::where('pcar_no', 'like', $prefix.'%')->orderBy('pcar_no', 'desc')->first();
-                $lastNumber = $lastPcar ? (int) substr($lastPcar->pcar_no, -4) : 0;
-                $pcarNo = $prefix . str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
-            }
-
             $ticket->update([
-                'pcar_no' => $pcarNo,
                 'preventive_measure' => 'in_progress',
-                'pcar_opened_at' => now(),
-                'pcar_opened_by' => Auth::id(),
             ]);
 
             return redirect()->route('tickets.show', $id)->with('success', 'เริ่มดำเนินการสืบสภาพ (Task 2) เรียบร้อยแล้ว');

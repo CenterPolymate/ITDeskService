@@ -5,10 +5,10 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-4 sm:py-12">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-8 text-gray-900">
+                <div class="p-4 sm:p-8 text-gray-900">
                     
                     <form method="POST" action="{{ route('tickets.store') }}" enctype="multipart/form-data">
                         @csrf
@@ -35,6 +35,42 @@
                                     <label for="requester_phone" class="block font-medium text-sm text-red-600 mb-1">เบอร์โทรศัพท์ติดต่อกลับ <span class="text-red-500">*</span></label>
                                     <x-text-input id="requester_phone" class="block mt-1 w-full border-red-300 border-l-4 border-l-red-500 bg-red-50/30 focus:border-red-500 focus:ring-red-500" type="text" name="requester_phone" :value="old('requester_phone')" placeholder="เช่น 081-123-4567" required pattern="^0[0-9]{1,2}-?[0-9]{3}-?[0-9]{4}$" title="กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (เช่น 081-123-4567 หรือ 0811234567)" />
                                     <x-input-error :messages="$errors->get('requester_phone')" class="mt-2" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ข้อมูลเครื่องจักร / ผู้ใช้งานจริง -->
+                        <div class="mb-8 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                            <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-4">ข้อมูลเครื่องจักร / ผู้ใช้งานจริง (Machine & User Details)</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <x-input-label for="actual_user_name" value="ชื่อผู้ใช้งานจริง (หากแจ้งแทนผู้อื่น)" />
+                                    <x-text-input id="actual_user_name" class="block mt-1 w-full" type="text" name="actual_user_name" :value="old('actual_user_name')" placeholder="ปล่อยว่างหากแจ้งให้ตนเอง" />
+                                    <x-input-error :messages="$errors->get('actual_user_name')" class="mt-2" />
+                                </div>
+                                <div>
+                                    <x-input-label for="machine_name" value="ชื่อเครื่องจักร / อุปกรณ์" />
+                                    <x-text-input id="machine_name" class="block mt-1 w-full" type="text" name="machine_name" :value="old('machine_name')" placeholder="เช่น PC-01, เครื่องกลึง A" />
+                                    <x-input-error :messages="$errors->get('machine_name')" class="mt-2" />
+                                </div>
+                                <div>
+                                    <x-input-label for="machine_code" value="รหัสเครื่องจักร" />
+                                    <x-text-input id="machine_code" class="block mt-1 w-full" type="text" name="machine_code" :value="old('machine_code')" placeholder="เช่น MCH-2026-001" />
+                                    <x-input-error :messages="$errors->get('machine_code')" class="mt-2" />
+                                </div>
+                                <div>
+                                    <x-input-label value="สถานะเครื่องจักร ณ ปัจจุบัน" />
+                                    <div class="mt-3 flex flex-wrap gap-4 sm:gap-6">
+                                        <label class="inline-flex items-center cursor-pointer bg-gray-50 px-3 py-2 border rounded-md shadow-sm">
+                                            <input type="radio" name="is_machine_stopped" value="1" class="border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 w-5 h-5" {{ old('is_machine_stopped') === '1' ? 'checked' : '' }}>
+                                            <span class="ml-2 text-sm text-gray-700 font-medium">เครื่องจักรหยุด</span>
+                                        </label>
+                                        <label class="inline-flex items-center cursor-pointer bg-gray-50 px-3 py-2 border rounded-md shadow-sm">
+                                            <input type="radio" name="is_machine_stopped" value="0" class="border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 w-5 h-5" {{ old('is_machine_stopped') === '0' ? 'checked' : '' }}>
+                                            <span class="ml-2 text-sm text-gray-700 font-medium">เครื่องจักรไม่หยุด</span>
+                                        </label>
+                                    </div>
+                                    <x-input-error :messages="$errors->get('is_machine_stopped')" class="mt-2" />
                                 </div>
                             </div>
                         </div>
@@ -122,11 +158,11 @@
                                         <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                                             <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                         </svg>
-                                        <div class="flex text-sm text-gray-600 justify-center">
+                                        <div class="flex flex-col sm:flex-row items-center text-sm text-gray-600 justify-center">
                                             <span class="relative bg-transparent rounded-md font-medium text-indigo-600">
-                                                <span id="file-upload-text">อัปโหลดไฟล์รูปภาพ (ได้สูงสุด 2 รูป)</span>
+                                                <span id="file-upload-text">แตะเพื่อถ่ายรูป / เลือกไฟล์ (สูงสุด 2 รูป)</span>
                                             </span>
-                                            <p class="pl-1" id="drag-text">หรือลากไฟล์มาวางที่นี่</p>
+                                            <p class="pl-1 hidden sm:block" id="drag-text">หรือลากไฟล์มาวางที่นี่</p>
                                         </div>
                                         <p class="text-xs text-gray-500">PNG, JPG ขนาดไม่เกิน 5MB</p>
                                     </div>

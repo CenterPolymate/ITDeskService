@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P-CAR Report - {{ $ticket->pcar_no ?: $ticket->ticket_no }}</title>
+    <title>P-CAR Report - {{ $ticket->pcar_no }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -155,7 +155,7 @@
                 <td class="p-1 border-b border-black align-middle" style="width: 22%;">
                     <div class="text-left whitespace-nowrap overflow-hidden flex items-center">
                         <span class="text-[10px]">P-CAR No.</span>
-                        <span class="font-bold val ml-1 text-[11px]">{{ $ticket->pcar_no ?: $ticket->ticket_no }}</span>
+                        <span class="font-bold val ml-1 text-[11px]">{{ $ticket->pcar_no }}</span>
                     </div>
                 </td>
                 <td class="py-1 px-0 border-b border-black text-center text-[9px] align-middle tracking-tighter whitespace-nowrap overflow-hidden"
@@ -195,22 +195,20 @@
                             <td class="w-1/2 p-1 align-top border-r-0">
                                 <div class="mb-[2px] flex items-end"><span class="w-16 shrink-0 inline-block">หน่วยงาน
                                         :</span> <span
-                                        class="dotted-line flex-1 val text-left">{{ $ticket->department }}</span>
+                                        class="dotted-line flex-1 val text-left">บริษัท {{ $ticket->user->company ?? '' }} - {{ $ticket->user->department ?? $ticket->department }}</span>
                                 </div>
                                 <div class="mb-[2px] flex items-end"><span
                                         class="w-16 shrink-0 inline-block">ชื่อผู้แจ้ง :</span> <span
-                                        class="dotted-line flex-1 val text-left">{{ $ticket->requester_name }}</span>
+                                        class="dotted-line flex-1 val text-left">{{ $ticket->user->name ?? $ticket->requester_name }}</span>
                                 </div>
                                 <div class="mb-[2px] flex items-end"><span
                                         class="w-16 shrink-0 inline-block">ชื่อผู้ใช้งาน :</span> <span
-                                        class="dotted-line flex-1 text-left val">คุณ{{ $ticket->user->name ?? $ticket->requester_name }}
-                                        บริษัท {{ $ticket->user->company ?? '' }} -
-                                        {{ $ticket->user->department ?? '' }}</span></div>
+                                        class="dotted-line flex-1 text-left val">{{ $ticket->actual_user_name ?? '' }}</span></div>
                                 <div class="mb-[2px] flex items-end"><span
                                         class="w-16 shrink-0 inline-block">ชื่อเครื่อง :</span> <span
-                                        class="dotted-line flex-1 text-left">&nbsp;</span></div>
+                                        class="dotted-line flex-1 text-left val">{{ $ticket->machine_name ?? '' }}</span></div>
                                 <div class="flex items-end"><span class="w-16 shrink-0 inline-block">รหัสเครื่อง
-                                        :</span> <span class="dotted-line flex-1 text-left">&nbsp;</span></div>
+                                        :</span> <span class="dotted-line flex-1 text-left val">{{ $ticket->machine_code ?? '' }}</span></div>
                             </td>
                             <td class="w-1/2 p-1 align-top border-l-0">
                                 <div class="mb-2 whitespace-nowrap text-right pr-4">
@@ -220,8 +218,8 @@
                                         class="dotted-line w-16 text-center val">{{ $ticket->created_at->format('H:i') }}</span>
                                     น.
                                 </div>
-                                <div class="mb-1 ml-10"><span class="checkbox"></span> เครื่องจักรหยุด</div>
-                                <div class="ml-10"><span class="checkbox"></span> เครื่องจักรไม่หยุด</div>
+                                <div class="mb-1 ml-10 flex items-center"><span class="checkbox flex items-center justify-center font-bold">{{ $ticket->is_machine_stopped === 1 ? '✓' : '' }}</span> <span class="ml-2">เครื่องจักรหยุด</span></div>
+                                <div class="ml-10 flex items-center"><span class="checkbox flex items-center justify-center font-bold">{{ $ticket->is_machine_stopped === 0 ? '✓' : '' }}</span> <span class="ml-2">เครื่องจักรไม่หยุด</span></div>
                             </td>
                         </tr>
                     </table>
@@ -691,67 +689,50 @@
                             <td class="p-1">ผู้รับผิดชอบ</td>
                         </tr>
                         <!-- เฉพาะกรณี 4 rows -->
-                        <tr class="h-5">
-                            <td rowspan="4" class="w-6 border-r border-b border-black section-title"
-                                style="writing-mode: vertical-rl; transform: rotate(180deg);">เฉพาะกรณี</td>
-                            <td class="border-r border-black border-b"
-                                style="border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-r border-black border-b"
-                                style="border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-b" style="border-bottom-style: dotted;"></td>
-                        </tr>
-                        <tr class="h-5">
-                            <td class="border-r border-black border-b"
-                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-r border-black border-b"
-                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-b" style="border-top: none; border-bottom-style: dotted;"></td>
-                        </tr>
-                        <tr class="h-5">
-                            <td class="border-r border-black border-b"
-                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-r border-black border-b"
-                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-b" style="border-top: none; border-bottom-style: dotted;"></td>
-                        </tr>
-                        <tr class="h-5 border-b border-black" style="border-bottom-style: solid;">
-                            <td class="border-r border-black" style="border-top: none; border-right-style: solid;">
-                            </td>
-                            <td class="border-r border-black" style="border-top: none; border-right-style: solid;">
-                            </td>
-                            <td style="border-top: none;"></td>
-                        </tr>
+                        @php
+                            $specific_measures = is_array($ticket->preventive_measure_specific) ? $ticket->preventive_measure_specific : [];
+                            $systemic_measures = is_array($ticket->preventive_measure_systemic) ? $ticket->preventive_measure_systemic : [];
+                        @endphp
+                        <!-- เฉพาะกรณี 4 rows -->
+                        @for ($i = 0; $i < 4; $i++)
+                            <tr class="h-5{{ $i == 3 ? ' border-b border-black' : '' }}" {{ $i == 3 ? 'style="border-bottom-style: solid;"' : '' }}>
+                                @if ($i == 0)
+                                    <td rowspan="4" class="w-6 border-r border-b border-black section-title"
+                                        style="writing-mode: vertical-rl; transform: rotate(180deg);">เฉพาะกรณี</td>
+                                @endif
+                                <td class="border-r border-black{{ $i < 3 ? ' border-b' : '' }} text-left px-1 val truncate"
+                                    style="{{ $i < 3 ? 'border-bottom-style: dotted; ' : '' }}border-right-style: solid;">
+                                    {{ $specific_measures[$i]['detail'] ?? '' }}
+                                </td>
+                                <td class="border-r border-black{{ $i < 3 ? ' border-b' : '' }} val"
+                                    style="{{ $i < 3 ? 'border-bottom-style: dotted; ' : '' }}border-right-style: solid;">
+                                    {{ isset($specific_measures[$i]['due_date']) && $specific_measures[$i]['due_date'] ? \Carbon\Carbon::parse($specific_measures[$i]['due_date'])->locale('th')->translatedFormat('d F Y') : '' }}
+                                </td>
+                                <td class="{{ $i < 3 ? 'border-b' : 'border-b-0' }} val text-left px-1 truncate" style="{{ $i < 3 ? 'border-bottom-style: dotted;' : 'border-bottom: none;' }}">
+                                    {{ isset($specific_measures[$i]['detail']) && $specific_measures[$i]['detail'] != '' ? ($ticket->pcarAnalyzedBy ? $ticket->pcarAnalyzedBy->name : '') : '' }}
+                                </td>
+                            </tr>
+                        @endfor
                         <!-- ทั้งระบบ 4 rows -->
-                        <tr class="h-5">
-                            <td rowspan="4" class="w-6 border-r border-b border-black section-title"
-                                style="writing-mode: vertical-rl; transform: rotate(180deg);">ทั้งระบบ</td>
-                            <td class="border-r border-black border-b"
-                                style="border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-r border-black border-b"
-                                style="border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-b" style="border-bottom-style: dotted;"></td>
-                        </tr>
-                        <tr class="h-5">
-                            <td class="border-r border-black border-b"
-                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-r border-black border-b"
-                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-b" style="border-top: none; border-bottom-style: dotted;"></td>
-                        </tr>
-                        <tr class="h-5">
-                            <td class="border-r border-black border-b"
-                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-r border-black border-b"
-                                style="border-top: none; border-bottom-style: dotted; border-right-style: solid;"></td>
-                            <td class="border-b" style="border-top: none; border-bottom-style: dotted;"></td>
-                        </tr>
-                        <tr class="h-5">
-                            <td class="border-r border-b-0 border-black"
-                                style="border-top: none; border-right-style: solid; border-bottom: none;"></td>
-                            <td class="border-r border-b-0 border-black"
-                                style="border-top: none; border-right-style: solid; border-bottom: none;"></td>
-                            <td class="border-b-0" style="border-top: none; border-bottom: none;"></td>
-                        </tr>
+                        @for ($i = 0; $i < 4; $i++)
+                            <tr class="h-5">
+                                @if ($i == 0)
+                                    <td rowspan="4" class="w-6 border-r border-b border-black section-title"
+                                        style="writing-mode: vertical-rl; transform: rotate(180deg);">ทั้งระบบ</td>
+                                @endif
+                                <td class="border-r border-black{{ $i < 3 ? ' border-b' : '' }} text-left px-1 val truncate"
+                                    style="{{ $i < 3 ? 'border-bottom-style: dotted; ' : '' }}border-right-style: solid;">
+                                    {{ $systemic_measures[$i]['detail'] ?? '' }}
+                                </td>
+                                <td class="border-r border-black{{ $i < 3 ? ' border-b' : '' }} val"
+                                    style="{{ $i < 3 ? 'border-bottom-style: dotted; ' : '' }}border-right-style: solid;">
+                                    {{ isset($systemic_measures[$i]['due_date']) && $systemic_measures[$i]['due_date'] ? \Carbon\Carbon::parse($systemic_measures[$i]['due_date'])->locale('th')->translatedFormat('d F Y') : '' }}
+                                </td>
+                                <td class="{{ $i < 3 ? 'border-b' : 'border-b-0' }} val text-left px-1 truncate" style="{{ $i < 3 ? 'border-bottom-style: dotted;' : 'border-bottom: none;' }}">
+                                    {{ isset($systemic_measures[$i]['detail']) && $systemic_measures[$i]['detail'] != '' ? ($ticket->pcarAnalyzedBy ? $ticket->pcarAnalyzedBy->name : '') : '' }}
+                                </td>
+                            </tr>
+                        @endfor
                     </table>
                 </td>
                 <td rowspan="2" class="section-title  border-b border-black bg-white"
@@ -764,43 +745,43 @@
                         สรุปปัญหา/สาเหตุเกิดจาก</div>
                     <table class="w-full h-full text-center border-hidden text-[8px]">
                         <tr class="border-b border-black">
-                            <td class="border-r border-black p-[2px]"><span class="checkbox"></span> คน</td>
-                            <td class="border-r border-black p-[2px]"><span class="checkbox"></span> เครื่องจักร</td>
-                            <td class="border-r border-black p-[2px]"><span class="checkbox"></span> วัสดุ</td>
-                            <td class="border-r border-black p-[2px]"><span class="checkbox"></span> วิธีการ</td>
-                            <td class="p-[2px]"><span class="checkbox"></span> สิ่งแวดล้อม</td>
+                            <td class="border-r border-black p-[2px]"><span class="checkbox flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'คน') ? '✓' : '' }}</span> คน</td>
+                            <td class="border-r border-black p-[2px]"><span class="checkbox flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'เครื่องจักร') ? '✓' : '' }}</span> เครื่องจักร</td>
+                            <td class="border-r border-black p-[2px]"><span class="checkbox flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'วัสดุ') ? '✓' : '' }}</span> วัสดุ</td>
+                            <td class="border-r border-black p-[2px]"><span class="checkbox flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'วิธีการ') ? '✓' : '' }}</span> วิธีการ</td>
+                            <td class="p-[2px]"><span class="checkbox flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'สิ่งแวดล้อม') ? '✓' : '' }}</span> สิ่งแวดล้อม</td>
                         </tr>
                         <tr class="align-top">
                             <td class="border-r border-black p-[2px] text-left pl-1 pt-1">
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox flex items-center justify-center font-bold">{{ $ticket->root_cause_category == 'คน - ไม่รู้มาตรฐาน' ? '✓' : '' }}</span>
                                     ไม่รู้มาตรฐาน</div>
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox flex items-center justify-center font-bold">{{ $ticket->root_cause_category == 'คน - ไม่ทำตามมาตรฐาน' ? '✓' : '' }}</span>
                                     ไม่ทำตามมาตรฐาน</div>
-                                <div class="h-[14px] flex items-center"><span class="checkbox"></span>
+                                <div class="h-[14px] flex items-center"><span class="checkbox flex items-center justify-center font-bold">{{ $ticket->root_cause_category == 'คน - ทำตามแล้วยังเกิด' ? '✓' : '' }}</span>
                                     ทำตามแล้วยังเกิด</div>
                             </td>
                             <td class="border-r border-black p-[2px] text-left pl-1 pt-1">
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox flex items-center justify-center font-bold">{{ $ticket->root_cause_category == 'เครื่องจักร - ออกแบบไม่ดี' ? '✓' : '' }}</span>
                                     ออกแบบไม่ดี</div>
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox flex items-center justify-center font-bold">{{ $ticket->root_cause_category == 'เครื่องจักร - ไม่ได้กำหนดมาตรฐาน' ? '✓' : '' }}</span>
                                     ไม่ได้กำหนดมาตรฐาน</div>
                             </td>
                             <td class="border-r border-black p-[2px] text-left pl-1 pt-1">
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox flex items-center justify-center font-bold">{{ $ticket->root_cause_category == 'วัสดุ - ไม่ได้กำหนดมาตรฐาน' ? '✓' : '' }}</span>
                                     ไม่ได้กำหนดมาตรฐาน</div>
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox flex items-center justify-center font-bold">{{ $ticket->root_cause_category == 'วัสดุ - กำหนดไม่เหมาะสม' ? '✓' : '' }}</span>
                                     กำหนดไม่เหมาะสม</div>
                             </td>
                             <td class="border-r border-black p-[2px] text-left pl-1 pt-1">
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox flex items-center justify-center font-bold">{{ $ticket->root_cause_category == 'วิธีการ - ไม่มีมาตรฐาน' ? '✓' : '' }}</span>
                                     ไม่มีมาตรฐาน</div>
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox flex items-center justify-center font-bold">{{ $ticket->root_cause_category == 'วิธีการ - กำหนดไม่เหมาะสม' ? '✓' : '' }}</span>
                                     กำหนดไม่เหมาะสม</div>
                             </td>
                             <td class="p-[2px] text-left pl-1 pt-1">
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox flex items-center justify-center font-bold">{{ $ticket->root_cause_category == 'สิ่งแวดล้อม - ไม่มีมาตรฐาน' ? '✓' : '' }}</span>
                                     ไม่มีมาตรฐาน</div>
-                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox"></span>
+                                <div class="h-[14px] flex items-center mb-1"><span class="checkbox flex items-center justify-center font-bold">{{ $ticket->root_cause_category == 'สิ่งแวดล้อม - กำหนดไม่เหมาะสม' ? '✓' : '' }}</span>
                                     กำหนดไม่เหมาะสม</div>
                             </td>
                         </tr>
