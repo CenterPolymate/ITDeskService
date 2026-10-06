@@ -142,7 +142,7 @@
                             <span class="text-xs font-bold text-slate-400 bg-white px-3 py-1 rounded-full shadow-sm"><span id="title-counter">0</span>/100</span>
                         </label>
                         <input id="title" type="text" name="title" value="{{ old('title') }}" maxlength="100" required placeholder="สรุปสั้นๆ ให้เรารู้ว่าเกิดอะไรขึ้น เช่น เปิดคอมไม่ติดเลย" oninput="document.getElementById('title-counter').innerText = this.value.length;" 
-                            class="block w-full py-3 px-4 bg-white border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-bold text-lg text-slate-800 placeholder:text-slate-400 placeholder:font-normal scroll-mt-24">
+                            class="block w-full py-3 px-4 bg-white border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 placeholder:font-normal scroll-mt-24">
                         <x-input-error :messages="$errors->get('title')" class="mt-2" />
                     </div>
 
