@@ -83,10 +83,10 @@
                         </div>
                         
                         <div class="col-span-1 md:col-span-2 pt-2">
-                            <label class="block font-semibold text-sm text-slate-700 mb-3">สถานะเครื่องจักร ณ ปัจจุบัน</label>
+                            <label class="block font-semibold text-sm text-slate-700 mb-3">สถานะเครื่องจักร ณ ปัจจุบัน <span class="text-rose-500">*</span></label>
                             <div class="grid grid-cols-2 gap-3 sm:gap-4">
                                 <label class="cursor-pointer relative group">
-                                    <input type="radio" name="is_machine_stopped" value="1" class="peer sr-only" {{ old('is_machine_stopped') === '1' ? 'checked' : '' }}>
+                                    <input type="radio" name="is_machine_stopped" value="1" required class="peer sr-only" {{ old('is_machine_stopped') === '1' ? 'checked' : '' }}>
                                     <div class="flex items-center justify-center p-3 sm:p-4 bg-white border-2 border-slate-200 rounded-xl group-hover:bg-slate-50 peer-checked:border-rose-500 peer-checked:bg-rose-50 peer-checked:text-rose-700 transition-all duration-200 text-slate-600 font-bold text-sm sm:text-base">
                                         <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                                         <span class="truncate">เครื่องจักรหยุด</span>
@@ -94,7 +94,7 @@
                                     <div class="absolute inset-0 border-2 border-rose-500 rounded-xl opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity duration-200"></div>
                                 </label>
                                 <label class="cursor-pointer relative group">
-                                    <input type="radio" name="is_machine_stopped" value="0" class="peer sr-only" {{ old('is_machine_stopped') === '0' ? 'checked' : '' }}>
+                                    <input type="radio" name="is_machine_stopped" value="0" required class="peer sr-only" {{ old('is_machine_stopped') === '0' ? 'checked' : '' }}>
                                     <div class="flex items-center justify-center p-3 sm:p-4 bg-white border-2 border-slate-200 rounded-xl group-hover:bg-slate-50 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 transition-all duration-200 text-slate-600 font-bold text-sm sm:text-base">
                                         <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         <span class="truncate">เครื่องจักรปกติ</span>

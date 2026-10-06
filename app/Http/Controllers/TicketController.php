@@ -31,13 +31,14 @@ class TicketController extends Controller
             'actual_user_name' => 'nullable|string|max:100',
             'machine_name' => 'nullable|string|max:100',
             'machine_code' => 'nullable|string|max:50',
-            'is_machine_stopped' => 'nullable|boolean',
+            'is_machine_stopped' => 'required|boolean',
             'attachments' => 'nullable|array|max:2',
             'attachments.*' => 'file|mimes:jpg,jpeg,png|max:5120', // 5MB max per file
         ], [
             'location.required' => 'กรุณาระบุสถานที่/จุดที่เกิดปัญหา',
             'requester_phone.required' => 'กรุณากรอกเบอร์โทรศัพท์ติดต่อกลับ',
             'requester_phone.regex' => 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (เช่น 081-123-4567 หรือ 0811234567)',
+            'is_machine_stopped.required' => 'กรุณาระบุสถานะเครื่องจักร ณ ปัจจุบัน',
             'attachments.max' => 'แนบรูปภาพได้สูงสุด 2 รูปเท่านั้น',
         ]);
 
