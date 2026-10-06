@@ -174,12 +174,14 @@
                                 <p class="text-sm font-medium text-blue-600/70">รองรับ PNG, JPG (สูงสุด 2 รูป)</p>
                             </div>
 
-                            <div id="image-preview-container" class="hidden w-full relative z-30 mt-4 flex flex-col items-center">
-                                <div id="preview-grid" class="flex flex-row flex-wrap gap-4 justify-center mb-6"></div>
-                                <button type="button" onclick="removeImage(event)" class="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-rose-500 font-bold rounded-full shadow-sm hover:shadow-md hover:bg-rose-50 border border-rose-100 transition-all pointer-events-auto">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    ลบและเลือกใหม่
-                                </button>
+                            <div id="image-preview-container" class="hidden w-full relative z-30 mt-4">
+                                <div class="flex flex-col items-center">
+                                    <div id="preview-grid" class="flex flex-row flex-wrap gap-4 justify-center mb-6"></div>
+                                    <button type="button" onclick="removeImage(event)" class="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-rose-500 font-bold rounded-full shadow-sm hover:shadow-md hover:bg-rose-50 border border-rose-100 transition-all pointer-events-auto">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        ลบและเลือกใหม่
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
