@@ -12,7 +12,7 @@ class TicketController extends Controller
     /**
      * Show the form for creating a new ticket.
      */
-    public function create()
+    public function create(): \Illuminate\View\View|\Illuminate\Contracts\View\Factory
     {
         return view('tickets.create');
     }
@@ -20,7 +20,7 @@ class TicketController extends Controller
     /**
      * Store a newly created ticket in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
             'title' => 'required|string|max:100',
@@ -106,7 +106,7 @@ class TicketController extends Controller
     /**
      * Display the specified ticket.
      */
-    public function show($id)
+    public function show(string $id): \Illuminate\View\View|\Illuminate\Contracts\View\Factory
     {
         $ticket = HelpdeskCase::with(['analyzingBy', 'inProgressBy', 'resolvedBy', 'closedBy', 'cancelledBy'])->findOrFail($id);
 
@@ -122,7 +122,7 @@ class TicketController extends Controller
     /**
      * Print the specified ticket report (P-CAR Form).
      */
-    public function print($id)
+    public function print(string $id): \Illuminate\View\View|\Illuminate\Contracts\View\Factory
     {
         $ticket = HelpdeskCase::with(['analyzingBy', 'inProgressBy', 'resolvedBy', 'closedBy', 'cancelledBy'])->findOrFail($id);
 
@@ -138,7 +138,7 @@ class TicketController extends Controller
     /**
      * Export the specified ticket report (P-CAR Form) to Excel.
      */
-    public function exportExcel($id)
+    public function exportExcel(string $id): \Illuminate\Http\Response
     {
         $ticket = HelpdeskCase::with(['analyzingBy', 'inProgressBy', 'resolvedBy', 'closedBy', 'cancelledBy'])->findOrFail($id);
 
@@ -163,7 +163,7 @@ class TicketController extends Controller
     /**
      * Update the specified ticket (Triage & Escalate).
      */
-    public function assign(Request $request, $id)
+    public function assign(Request $request, string $id): \Illuminate\Http\RedirectResponse
     {
         $ticket = HelpdeskCase::findOrFail($id);
 
@@ -193,7 +193,7 @@ class TicketController extends Controller
             'escalated_to_team' => $request->escalated_to_team === 'None' ? null : $request->escalated_to_team,
             'status' => $status,
             'assigned_at' => now(),
-            'assigned_by' => auth()->id(),
+            'assigned_by' => Auth::id(),
         ];
 
         // Determine SLA based on priority and company from database
@@ -235,7 +235,7 @@ class TicketController extends Controller
     /**
      * Update the ticket status by assigned team (Step 3 & 4).
      */
-    public function updateStatus(Request $request, $id)
+    public function updateStatus(Request $request, string $id): \Illuminate\Http\RedirectResponse
     {
         $ticket = HelpdeskCase::findOrFail($id);
 
@@ -371,11 +371,11 @@ class TicketController extends Controller
                 }
 
                 $pcarNo = $ticket->pcar_no;
-                if (!$pcarNo) {
-                    $prefix = 'PCAR-' . date('Ym') . '-';
+                if (! $pcarNo) {
+                    $prefix = 'PCAR-'.date('Ym').'-';
                     $lastPcar = HelpdeskCase::where('pcar_no', 'like', $prefix.'%')->orderBy('pcar_no', 'desc')->first();
                     $lastNumber = $lastPcar ? (int) substr($lastPcar->pcar_no, -4) : 0;
-                    $pcarNo = $prefix . str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+                    $pcarNo = $prefix.str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
                 }
 
                 $updateData['pcar_no'] = $pcarNo;
