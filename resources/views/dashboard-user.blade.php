@@ -34,14 +34,14 @@
 
             <!-- Welcome Banner & New Ticket Action -->
             <div class="mb-6 bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 flex justify-between items-center">
+                <div class="p-6 text-gray-900 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
                     <div>
                         <h3 class="text-lg font-medium text-gray-900">สวัสดี, {{ Auth::user()->name }}</h3>
                         <p class="mt-1 text-sm text-gray-600">ยินดีต้อนรับสู่ระบบแจ้งซ่อม ITDeskService คุณสามารถติดตามสถานะการแจ้งซ่อม หรือเปิดใบงานใหม่ได้ที่นี่</p>
                     </div>
-                    <div>
+                    <div class="w-full sm:w-auto shrink-0">
 
-                        <a href="{{ route('tickets.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
+                        <a href="{{ route('tickets.create') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-3 sm:py-2 bg-blue-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150 shadow-sm">
                             + เปิดใบงานใหม่ (New Ticket)
                         </a>
                     </div>
