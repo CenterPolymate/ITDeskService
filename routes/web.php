@@ -10,6 +10,7 @@ Route::get('/', function () {
 use App\Http\Controllers\Api\LineLiffController;
 use App\Http\Controllers\Api\LineWebhookController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
@@ -34,7 +35,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
     Route::get('/tickets/{id}', [TicketController::class, 'show'])->name('tickets.show');
     Route::get('/tickets/{id}/print', [TicketController::class, 'print'])->name('tickets.print');
-    Route::get('/tickets/{id}/export', [TicketController::class, 'exportExcel'])->name('tickets.export');
     Route::put('/tickets/{id}/assign', [TicketController::class, 'assign'])->name('tickets.assign');
     Route::put('/tickets/{id}/status', [TicketController::class, 'updateStatus'])->name('tickets.updateStatus');
 
@@ -68,10 +68,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('audit_logs', [AuditLogController::class, 'index'])->name('audit_logs.index');
 
     // Backup Routes
-    Route::get('backups', [App\Http\Controllers\BackupController::class, 'index'])->name('backups.index');
-    Route::post('backups', [App\Http\Controllers\BackupController::class, 'store'])->name('backups.store');
-    Route::get('backups/download', [App\Http\Controllers\BackupController::class, 'download'])->name('backups.download');
-    Route::delete('backups', [App\Http\Controllers\BackupController::class, 'destroy'])->name('backups.destroy');
+    Route::get('backups', [BackupController::class, 'index'])->name('backups.index');
+    Route::post('backups', [BackupController::class, 'store'])->name('backups.store');
+    Route::get('backups/download', [BackupController::class, 'download'])->name('backups.download');
+    Route::delete('backups', [BackupController::class, 'destroy'])->name('backups.destroy');
 
     // Impersonate Routes
     Route::post('/impersonate/{user}', [ImpersonateController::class, 'impersonate'])->name('impersonate');

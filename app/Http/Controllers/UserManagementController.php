@@ -135,8 +135,9 @@ class UserManagementController extends Controller
             return redirect()->route('users.index')->with('error', 'ไม่สามารถระงับบัญชีของตัวเองได้');
         }
 
-        if (!$user->hasHistory()) {
+        if (! $user->hasHistory()) {
             $user->delete();
+
             return redirect()->route('users.index')->with('success', 'ลบบัญชีผู้ใช้งานถาวรเรียบร้อยแล้ว (เนื่องจากเป็นบัญชีที่ไม่มีประวัติการใช้งาน)');
         }
 
@@ -181,16 +182,16 @@ class UserManagementController extends Controller
         $users = $query->orderBy('role')->orderBy('name')->get();
 
         $headers = [
-            "Content-type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename=it_users_" . date('Ymd_His') . ".csv",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=it_users_'.date('Ymd_His').'.csv',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
         ];
 
-        $callback = function() use($users) {
+        $callback = function () use ($users) {
             $file = fopen('php://output', 'w');
-            fputs($file, "\xEF\xBB\xBF"); // BOM for Excel UTF-8
+            fwrite($file, "\xEF\xBB\xBF"); // BOM for Excel UTF-8
             fputcsv($file, ['ชื่อ', 'อีเมล', 'ตำแหน่ง (Role)', 'บริษัท', 'แผนก', 'สถานะ', 'ใช้งานล่าสุด']);
 
             foreach ($users as $user) {
@@ -201,7 +202,7 @@ class UserManagementController extends Controller
                     $user->company,
                     $user->department ?? '-',
                     $user->is_active ? 'Active' : 'Inactive',
-                    $user->last_login_at ? $user->last_login_at->format('Y-m-d H:i:s') : 'ไม่เคยเข้าใช้งาน'
+                    $user->last_login_at ? $user->last_login_at->format('Y-m-d H:i:s') : 'ไม่เคยเข้าใช้งาน',
                 ]);
             }
 

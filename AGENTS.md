@@ -59,7 +59,7 @@
    - **Administrator Profiles:** ห้ามให้สิทธิ์ Role `administrator` แก้ไข "ชื่อ (Name)" ของตัวเองได้โดยตรงผ่านหน้าเว็บ ต้องจำกัดสิทธิ์ทั้งใน View และ ProfileController
    - **Mobile-First Data Tables & UX:** ตารางข้อมูลต่างๆ บนแดชบอร์ด (ยกเว้นระบบหลังบ้านของ Administrator/Helpdesk) จะต้องรองรับ Responsive แบบ Cards View บนมือถือ และในส่วนของ Role `user` จะต้องเน้น Mobile UX เป็นพิเศษ โดยฟังก์ชันอัปโหลดหลักฐานตอนเปิดเคส ต้องรองรับการถ่ายรูปจากกล้องมือถือได้ทันที (ใช้ `accept="image/*" capture="environment"`)
    - **Date Format:** รูปแบบการแสดงผลวันที่ (ที่ไม่ใช่อินพุตจากฟอร์ม) ต้องใช้รูปแบบ `dd/MMMM/yyyy` (เช่น `10 มกราคม 2026`) หรือเทียบเท่า `d F Y` ในภาษา PHP เสมอ
-   - **Printable Report (P-CAR Form 4):** การออกแบบหน้าจอ Report (`print.blade.php`) จะต้องยึดสัดส่วนตารางและรูปแบบของเอกสารกระดาษต้นฉบับ P-CAR แบบ Pixel-perfect และลด Margin ลงให้เหลือพื้นที่สำหรับข้อมูลมากที่สุด
+   - **Printable Report (P-CAR Form 4):** การออกแบบหน้าจอ Report (`print.blade.php`) จะต้องยึดสัดส่วนตารางและรูปแบบของเอกสารกระดาษต้นฉบับ P-CAR แบบ Pixel-perfect และลด Margin ลงให้เหลือพื้นที่สำหรับข้อมูลมากที่สุด พิมพ์ได้พอดี 1 หน้ากระดาษ Legal (ซ่อนปุ่มและเลขหน้า) ห้ามมีฟังก์ชันดาวน์โหลด Excel ของใบงาน และที่มาของเวลา: T1 ฝั่งผู้รับแจ้งใช้ `assigned_by`/`assigned_at` เท่านั้น, T3 = `analyzing_at` → `in_progress_at`, T5 = `in_progress_at` → `resolved_at`
    - **Account Security & Retention:**
      - การสมัครสมาชิกต้องผ่านการยืนยันตัวตนด้วยอีเมล (Email Verification)
      - ใช้แนวทาง "Smart Delete": หากกดลบผู้ใช้งานที่ยังไม่เคยมีประวัติ (ไม่มีข้อมูลผูกกับใบงาน) ระบบจะลบถาวร (Hard Delete) เพื่อลดบัญชีขยะ แต่ถ้าเคยมีประวัติแล้ว ให้เปลี่ยนเป็นระงับบัญชี (Deactivate - `is_active`) แทนเพื่อป้องกันข้อมูลใบงานสูญหาย

@@ -304,16 +304,16 @@ class CompanyController extends Controller
         $companies = Company::with('departments')->orderBy('name')->get();
 
         $headers = [
-            "Content-type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename=companies_" . date('Ymd_His') . ".csv",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=companies_'.date('Ymd_His').'.csv',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
         ];
 
-        $callback = function() use($companies) {
+        $callback = function () use ($companies) {
             $file = fopen('php://output', 'w');
-            fputs($file, "\xEF\xBB\xBF"); // BOM for Excel UTF-8
+            fwrite($file, "\xEF\xBB\xBF"); // BOM for Excel UTF-8
             fputcsv($file, ['ชื่อบริษัท', 'ตัวย่อ', 'โดเมนอีเมล', 'แผนกที่มีในระบบ', 'สถานะ']);
 
             foreach ($companies as $company) {
@@ -323,7 +323,7 @@ class CompanyController extends Controller
                     $company->short_name ?? '-',
                     $company->email_domains,
                     $departments ?: '-',
-                    $company->is_active ? 'Active' : 'Inactive'
+                    $company->is_active ? 'Active' : 'Inactive',
                 ]);
             }
 

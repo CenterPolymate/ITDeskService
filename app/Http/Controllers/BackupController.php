@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BackupController extends Controller
 {
@@ -22,10 +22,10 @@ class BackupController extends Controller
 
         $disk = Storage::disk(config('backup.backup.destination.disks')[0]);
         $backupName = config('backup.backup.name');
-        
+
         $files = $disk->files($backupName);
         $backups = [];
-        
+
         // Reverse array so newest is first
         $files = array_reverse($files);
 
@@ -33,9 +33,9 @@ class BackupController extends Controller
             if (substr($file, -4) === '.zip' && $disk->exists($file)) {
                 $backups[] = [
                     'file_path' => $file,
-                    'file_name' => str_replace($backupName . '/', '', $file),
+                    'file_name' => str_replace($backupName.'/', '', $file),
                     'file_size' => $this->humanFilesize($disk->size($file)),
-                    'last_modified' => \Carbon\Carbon::createFromTimestamp($disk->lastModified($file))->translatedFormat('d F Y H:i:s'),
+                    'last_modified' => Carbon::createFromTimestamp($disk->lastModified($file))->translatedFormat('d F Y H:i:s'),
                 ];
             }
         }
@@ -46,6 +46,7 @@ class BackupController extends Controller
     public function create()
     {
         $this->authorizeAdministrator();
+
         return view('backups.create');
     }
 
@@ -63,23 +64,23 @@ class BackupController extends Controller
             } else {
                 Artisan::call('backup:run');
             }
-            
+
             $output = Artisan::output();
-            
+
             return redirect()->route('backups.index')->with('success', 'การสำรองข้อมูลสำเร็จเรียบร้อยแล้ว')->with('backup_output', $output);
         } catch (\Exception $e) {
-            return redirect()->route('backups.index')->with('error', 'เกิดข้อผิดพลาดในการสำรองข้อมูล: ' . $e->getMessage());
+            return redirect()->route('backups.index')->with('error', 'เกิดข้อผิดพลาดในการสำรองข้อมูล: '.$e->getMessage());
         }
     }
 
     public function download(Request $request)
     {
         $this->authorizeAdministrator();
-        
+
         $fileName = $request->query('file_name');
         $backupName = config('backup.backup.name');
-        $file = $backupName . '/' . $fileName;
-        
+        $file = $backupName.'/'.$fileName;
+
         $disk = Storage::disk(config('backup.backup.destination.disks')[0]);
 
         if ($disk->exists($file)) {
@@ -95,12 +96,13 @@ class BackupController extends Controller
 
         $fileName = $request->input('file_name');
         $backupName = config('backup.backup.name');
-        $file = $backupName . '/' . $fileName;
-        
+        $file = $backupName.'/'.$fileName;
+
         $disk = Storage::disk(config('backup.backup.destination.disks')[0]);
 
         if ($disk->exists($file)) {
             $disk->delete($file);
+
             return redirect()->route('backups.index')->with('success', 'ลบไฟล์สำรองข้อมูลเรียบร้อยแล้ว');
         }
 
@@ -109,8 +111,9 @@ class BackupController extends Controller
 
     private function humanFilesize($bytes, $decimals = 2)
     {
-        $size = array('B','kB','MB','GB','TB','PB','EB','ZB','YB');
+        $size = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
         $factor = floor((strlen($bytes) - 1) / 3);
-        return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$size[$factor];
+
+        return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)).@$size[$factor];
     }
 }

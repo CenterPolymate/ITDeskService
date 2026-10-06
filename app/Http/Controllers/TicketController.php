@@ -4,15 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\HelpdeskCase;
 use App\Models\Sla;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class TicketController extends Controller
 {
     /**
      * Show the form for creating a new ticket.
      */
-    public function create(): \Illuminate\View\View|\Illuminate\Contracts\View\Factory
+    public function create(): View|Factory
     {
         return view('tickets.create');
     }
@@ -20,7 +23,7 @@ class TicketController extends Controller
     /**
      * Store a newly created ticket in storage.
      */
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $request->validate([
             'title' => 'required|string|max:100',
@@ -106,7 +109,7 @@ class TicketController extends Controller
     /**
      * Display the specified ticket.
      */
-    public function show(string $id): \Illuminate\View\View|\Illuminate\Contracts\View\Factory
+    public function show(string $id): View|Factory
     {
         $ticket = HelpdeskCase::with(['analyzingBy', 'inProgressBy', 'resolvedBy', 'closedBy', 'cancelledBy'])->findOrFail($id);
 
@@ -122,7 +125,7 @@ class TicketController extends Controller
     /**
      * Print the specified ticket report (P-CAR Form).
      */
-    public function print(string $id): \Illuminate\View\View|\Illuminate\Contracts\View\Factory
+    public function print(string $id): View|Factory
     {
         $ticket = HelpdeskCase::with(['analyzingBy', 'inProgressBy', 'resolvedBy', 'closedBy', 'cancelledBy'])->findOrFail($id);
 
@@ -136,34 +139,9 @@ class TicketController extends Controller
     }
 
     /**
-     * Export the specified ticket report (P-CAR Form) to Excel.
-     */
-    public function exportExcel(string $id): \Illuminate\Http\Response
-    {
-        $ticket = HelpdeskCase::with(['analyzingBy', 'inProgressBy', 'resolvedBy', 'closedBy', 'cancelledBy'])->findOrFail($id);
-
-        // Check if user has permission to view
-        $user = Auth::user();
-        if ($user->role === 'user' && $ticket->requester_email !== $user->email) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $filenameId = $ticket->pcar_no ?: $ticket->ticket_no;
-        $headers = [
-            'Content-type' => 'application/vnd.ms-excel',
-            'Content-Disposition' => "attachment; filename=\"PCAR_{$filenameId}.xls\"",
-            'Pragma' => 'no-cache',
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0',
-        ];
-
-        return response()->view('tickets.export-excel', compact('ticket'))->withHeaders($headers);
-    }
-
-    /**
      * Update the specified ticket (Triage & Escalate).
      */
-    public function assign(Request $request, string $id): \Illuminate\Http\RedirectResponse
+    public function assign(Request $request, string $id): RedirectResponse
     {
         $ticket = HelpdeskCase::findOrFail($id);
 
@@ -235,7 +213,7 @@ class TicketController extends Controller
     /**
      * Update the ticket status by assigned team (Step 3 & 4).
      */
-    public function updateStatus(Request $request, string $id): \Illuminate\Http\RedirectResponse
+    public function updateStatus(Request $request, string $id): RedirectResponse
     {
         $ticket = HelpdeskCase::findOrFail($id);
 
@@ -307,7 +285,7 @@ class TicketController extends Controller
 
             if ($request->has('parts') && is_array($request->parts)) {
                 foreach ($request->parts as $part) {
-                    if (!empty($part['part_name']) && !empty($part['quantity']) && !empty($part['unit'])) {
+                    if (! empty($part['part_name']) && ! empty($part['quantity']) && ! empty($part['unit'])) {
                         $ticket->parts()->create([
                             'part_name' => $part['part_name'],
                             'quantity' => $part['quantity'],
@@ -323,20 +301,26 @@ class TicketController extends Controller
 
             return redirect()->route('tickets.show', $id)->with('success', 'บันทึกการแก้ไขและส่งเพื่อรอผู้แจ้งรับงานเรียบร้อยแล้ว');
         } elseif ($request->action === 'update_notes') {
-            $ticket->update([
+            $updateData = [
                 'resolution_notes' => $request->resolution_notes,
                 'why_1' => $request->why_1,
                 'why_2' => $request->why_2,
                 'why_3' => $request->why_3,
                 'root_cause_detail' => $request->root_cause_detail,
-            ]);
+            ];
+
+            if ($ticket->preventive_measure === 'pending_review') {
+                $updateData['pcar_analyzed_at'] = now();
+            }
+
+            $ticket->update($updateData);
 
             // Sync parts if provided
             if ($request->has('parts')) {
                 $ticket->parts()->delete();
                 if (is_array($request->parts)) {
                     foreach ($request->parts as $part) {
-                        if (!empty($part['part_name']) && !empty($part['quantity']) && !empty($part['unit'])) {
+                        if (! empty($part['part_name']) && ! empty($part['quantity']) && ! empty($part['unit'])) {
                             $ticket->parts()->create([
                                 'part_name' => $part['part_name'],
                                 'quantity' => $part['quantity'],

@@ -33,25 +33,34 @@
 
         @page {
             size: Legal;
-            margin: 5mm;
+            margin: 0;
         }
 
         @media print {
             body {
                 background: white;
+                padding: 0 !important;
+                margin: 0 !important;
             }
 
             .legal-page {
                 box-shadow: none;
                 margin: 0;
-                padding: 0;
+                padding: 5mm;
+                box-sizing: border-box;
                 width: 100%;
-                height: 100%;
-                /* changed from min-height */
+                height: auto;
+                min-height: 0;
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+            html, body {
+                height: auto !important;
+                overflow: visible;
             }
 
             .no-print {
-                display: none;
+                display: none !important;
             }
         }
 
@@ -120,15 +129,12 @@
 
 <body class="py-4">
     <div class="max-w-[216mm] mx-auto mb-4 no-print flex justify-between">
-        <button onclick="window.history.back()"
+        <button
+            onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '{{ route('tickets.show', $ticket->id) }}'; }"
             class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
             &larr; กลับ
         </button>
         <div>
-            <a href="{{ route('tickets.export', $ticket->id) }}"
-                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2 inline-block">
-                ดาวน์โหลด Excel
-            </a>
             <button onclick="window.print()"
                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 พิมพ์ (Print)
@@ -288,7 +294,7 @@
                     <div class="flex flex-col justify-start h-full pt-1">
                         <div class="flex items-end mb-1">
                             @php
-                                $receivedAt = $ticket->assigned_at ?? $ticket->created_at;
+                                $receivedAt = $ticket->assigned_at;
                             @endphp
                             <span class="mr-2 text-[11px]">ลงชื่อ</span>
                             <div
@@ -315,7 +321,7 @@
                                     {{ $ticket->assignedBy ? $ticket->assignedBy->name : '' }}</div>
                                 <div
                                     class="w-28 border-b border-dotted border-black ml-4 text-center val text-[10px] leading-none pb-[2px]">
-                                    {{ $receivedAt->locale('th')->translatedFormat('d F Y') }}</div>
+                                    {{ $receivedAt ? $receivedAt->locale('th')->translatedFormat('d F Y') : '' }}</div>
                             </div>
                             <div class="flex items-end mt-1">
                                 <span class="mr-2 invisible text-[11px]">ลงชื่อ</span>
@@ -325,7 +331,7 @@
                                     <span class="mr-1">เวลา</span>
                                     <div
                                         class="w-16 border-b border-dotted border-black text-center val leading-none pb-[2px]">
-                                        {{ $receivedAt->format('H:i') }}</div>
+                                        {{ $receivedAt ? $receivedAt->format('H:i') : '' }}</div>
                                     <span class="ml-1">น.</span>
                                 </div>
                             </div>
@@ -428,16 +434,13 @@
             <tr>
                 @php
                     $t3_val =
-                        $ticket->pcar_analyzed_at && $ticket->pcar_opened_at
-                            ? $ticket->pcar_opened_at
+                        $ticket->analyzing_at && $ticket->in_progress_at
+                            ? $ticket->analyzing_at
                                 ->copy()
                                 ->startOfMinute()
-                                ->diffInMinutes($ticket->pcar_analyzed_at->copy()->startOfMinute())
+                                ->diffInMinutes($ticket->in_progress_at->copy()->startOfMinute())
                             : null;
-                    $calculated_finish =
-                        $ticket->analyzing_at && $t3_val !== null
-                            ? $ticket->analyzing_at->copy()->addMinutes($t3_val)
-                            : null;
+                    $calculated_finish = $ticket->analyzing_at && $ticket->in_progress_at ? $ticket->in_progress_at : null;
                 @endphp
                 <td colspan="2" class="p-1 border-b border-black text-center text-[9px]">
                     เสร็จวันที่ <span
@@ -505,11 +508,11 @@
             </tr>
             <tr>
                 <td colspan="2" class="p-1 border-b border-black text-center text-[9px] whitespace-nowrap">
-                    เริ่มวันที่ <span class="dotted-line w-28"></span> <span class="ml-2">เวลา</span> <span
-                        class="dotted-line w-16"></span> น.
-                    <span class="ml-2">เสร็จวันที่</span> <span class="dotted-line w-28"></span> <span
-                        class="ml-2">เวลา</span> <span class="dotted-line w-16"></span> น.
-                    <span class="ml-2">ระยะเวลาซ่อมแซม</span> <span class="dotted-line w-12"></span> นาที ( T4 )
+                    เริ่มวันที่ <span class="dotted-line w-28"></span> เวลา <span
+                        class="dotted-line w-8"></span> น.
+                    <span class="ml-2">เสร็จวันที่</span> <span class="dotted-line w-28"></span> เวลา <span
+                        class="dotted-line w-8"></span> น.
+                    <span class="ml-2">ระยะเวลาซ่อมแซม</span> <span class="dotted-line w-10"></span> นาที ( T4 )
                 </td>
             </tr>
 
@@ -548,7 +551,7 @@
                     <div class="flex mt-1 px-4">
                         <span class="mr-2">ลงชื่อ</span>
                         <div class="flex-1 dotted-line val text-blue-700 text-center pb-[2px]">
-                            {{ $ticket->requester_name }}</div><span class="ml-2">ผู้รับงาน</span>
+                            {{ $ticket->approved_at ? $ticket->requester_name : '' }}</div><span class="ml-2">ผู้รับงาน</span>
                     </div>
                 </td>
             </tr>
@@ -561,8 +564,8 @@
                                 ->startOfMinute()
                                 ->diffInMinutes($ticket->resolved_at->copy()->startOfMinute())
                             : null;
-                    $t5_start = $calculated_finish;
-                    $t5_finish = $t5_start && $t5_val !== null ? $t5_start->copy()->addMinutes($t5_val) : null;
+                    $t5_start = $ticket->in_progress_at;
+                    $t5_finish = $ticket->in_progress_at && $ticket->resolved_at ? $ticket->resolved_at : null;
                 @endphp
                 <td colspan="2"
                     class="p-1 border-b border-t-0 border-black text-center text-[9px] whitespace-nowrap">
@@ -588,13 +591,23 @@
                 <td class="p-1 border-r-0 border-black align-top border-b-0 pb-0">
                     <div class="flex mt-1 px-4">
                         <span class="mr-2">ลงชื่อ</span>
-                        <div class="flex-1 dotted-line"></div><span class="ml-2">ผู้ส่งมอบงาน.</span>
+                        <div class="flex-1 dotted-line val text-blue-700 text-center pb-[2px]">
+                            @php
+                                $t6_deliverer = '';
+                                if ($ticket->status === 'closed') {
+                                    $t6_deliverer = $ticket->closedBy?->role === 'helpdesk'
+                                        ? $ticket->closedBy->name
+                                        : ($ticket->resolvedBy?->name ?? '');
+                                }
+                            @endphp
+                            {{ $t6_deliverer }}</div><span class="ml-2">ผู้ส่งมอบงาน.</span>
                     </div>
                 </td>
                 <td class="p-1 border-l-0 border-black align-top border-b-0 pb-0">
                     <div class="flex mt-1 px-4">
                         <span class="mr-2">ลงชื่อ</span>
-                        <div class="flex-1 dotted-line"></div><span class="ml-2">ผู้รับงาน</span>
+                        <div class="flex-1 dotted-line val text-blue-700 text-center pb-[2px]">
+                            {{ $ticket->status === 'closed' ? $ticket->requester_name : '' }}</div><span class="ml-2">ผู้รับงาน</span>
                     </div>
                 </td>
                 <td rowspan="2" class="section-title border-b border-black bg-white"
@@ -602,11 +615,21 @@
                 <td rowspan="2" class="align-middle text-center text-[10px] border-b border-black">T 6</td>
             </tr>
             <tr>
+                @php
+                    $t6_val =
+                        $ticket->resolved_at && $ticket->closed_at
+                            ? $ticket->resolved_at
+                                ->copy()
+                                ->startOfMinute()
+                                ->diffInMinutes($ticket->closed_at->copy()->startOfMinute())
+                            : null;
+                    $t6_finish = $t5_finish && $t6_val !== null ? $t5_finish->copy()->addMinutes($t6_val) : null;
+                @endphp
                 <td colspan="2"
                     class="p-1 border-b border-t-0 border-black text-center text-[9px] whitespace-nowrap">
-                    ตรวจรับวันที่ <span class="dotted-line w-28"></span>
-                    <span class="ml-2">เวลา</span> <span class="dotted-line w-16"></span> น.
-                    <span class="ml-2">เวลาในการทดสอบ</span> <span class="dotted-line w-16"></span> นาที ( T6 )
+                    ตรวจรับวันที่ <span class="dotted-line w-28 text-blue-700">{{ $t6_finish ? $t6_finish->locale('th')->translatedFormat('d F Y') : '' }}</span>
+                    <span class="ml-2">เวลา</span> <span class="dotted-line w-16 text-blue-700">{{ $t6_finish ? $t6_finish->format('H:i') : '' }}</span> น.
+                    <span class="ml-2">เวลาในการทดสอบ</span> <span class="dotted-line w-16 text-blue-700">{{ $t6_val !== null ? $t6_val : '' }}</span> นาที ( T6 )
                 </td>
             </tr>
 
@@ -763,11 +786,11 @@
                         สรุปปัญหา/สาเหตุเกิดจาก</div>
                     <table class="w-full h-full text-center border-hidden text-[8px]">
                         <tr class="border-b border-black">
-                            <td class="border-r border-black p-[2px]"><span class="checkbox flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'คน') ? '✓' : '' }}</span> คน</td>
-                            <td class="border-r border-black p-[2px]"><span class="checkbox flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'เครื่องจักร') ? '✓' : '' }}</span> เครื่องจักร</td>
-                            <td class="border-r border-black p-[2px]"><span class="checkbox flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'วัสดุ') ? '✓' : '' }}</span> วัสดุ</td>
-                            <td class="border-r border-black p-[2px]"><span class="checkbox flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'วิธีการ') ? '✓' : '' }}</span> วิธีการ</td>
-                            <td class="p-[2px]"><span class="checkbox flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'สิ่งแวดล้อม') ? '✓' : '' }}</span> สิ่งแวดล้อม</td>
+                            <td class="border-r border-black p-[2px]"><div class="flex items-center justify-center"><span class="checkbox shrink-0 flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'คน') ? '✓' : '' }}</span><span>คน</span></div></td>
+                            <td class="border-r border-black p-[2px]"><div class="flex items-center justify-center"><span class="checkbox shrink-0 flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'เครื่องจักร') ? '✓' : '' }}</span><span>เครื่องจักร</span></div></td>
+                            <td class="border-r border-black p-[2px]"><div class="flex items-center justify-center"><span class="checkbox shrink-0 flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'วัสดุ') ? '✓' : '' }}</span><span>วัสดุ</span></div></td>
+                            <td class="border-r border-black p-[2px]"><div class="flex items-center justify-center"><span class="checkbox shrink-0 flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'วิธีการ') ? '✓' : '' }}</span><span>วิธีการ</span></div></td>
+                            <td class="p-[2px]"><div class="flex items-center justify-center"><span class="checkbox shrink-0 flex items-center justify-center font-bold">{{ str_starts_with($ticket->root_cause_category, 'สิ่งแวดล้อม') ? '✓' : '' }}</span><span>สิ่งแวดล้อม</span></div></td>
                         </tr>
                         <tr class="align-top">
                             <td class="border-r border-black p-[2px] text-left pl-1 pt-1">
@@ -816,9 +839,9 @@
                         <div class="flex-1 dotted-line border-black"></div><span
                             class="ml-2">ผจก.ฝ่ายที่รับผิดชอบ</span>
                     </div>
-                    <div class="flex mt-1 px-4 text-[9px]">
+                    <div class="flex mt-1 px-4 text-[9px] justify-center">
                         <span class="mr-2">วันที่</span>
-                        <div class="w-28 dotted-line border-black"></div>
+                        <div class="w-44 dotted-line border-black"></div>
                     </div>
                 </td>
                 <td class="p-1 border-b-0 border-black align-top">
@@ -826,9 +849,9 @@
                         <span class="mr-2">ลงชื่อ</span>
                         <div class="flex-1 dotted-line border-black"></div><span class="ml-2">Asst. QMR/QMR</span>
                     </div>
-                    <div class="flex mt-1 px-4 text-[9px]">
+                    <div class="flex mt-1 px-4 text-[9px] justify-center">
                         <span class="mr-2">วันที่</span>
-                        <div class="w-28 dotted-line border-black"></div>
+                        <div class="w-44 dotted-line border-black"></div>
                     </div>
                 </td>
                 <td class="section-title  border-b-0 border-black bg-white"
@@ -844,6 +867,33 @@
             <div>FS - A13 - 004</div>
         </div>
     </div>
+    <script>
+        (function () {
+            var mm = 96 / 25.4;
+            var availableHeight = 344 * mm; // Legal 356mm - margin 5mm x2 - safety
+
+            function fitToPage() {
+                var page = document.querySelector('.legal-page');
+                if (!page) { return; }
+                page.style.zoom = '';
+                page.style.height = 'auto';
+                var contentHeight = page.offsetHeight - (10 * mm); // ตัด padding ฝั่งหน้าจอ (5mm x2)
+                if (contentHeight > availableHeight) {
+                    page.style.zoom = (availableHeight / contentHeight).toFixed(4);
+                }
+            }
+
+            function resetFit() {
+                var page = document.querySelector('.legal-page');
+                if (!page) { return; }
+                page.style.zoom = '';
+                page.style.height = '';
+            }
+
+            window.addEventListener('beforeprint', fitToPage);
+            window.addEventListener('afterprint', resetFit);
+        })();
+    </script>
 </body>
 
 </html>

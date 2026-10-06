@@ -134,14 +134,21 @@
                                 <a href="{{ route('tickets.show', $case->id) }}" class="block bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow p-4">
                                     <div class="flex justify-between items-start mb-2">
                                         <span class="text-sm font-bold text-blue-600">#{{ $case->ticket_no }}</span>
-                                        <span class="px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full 
-                                            {{ $case->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : '' }}
-                                            {{ $case->status === 'in_progress' ? 'bg-blue-100 text-blue-800' : '' }}
-                                            {{ $case->status === 'resolved' ? 'bg-green-100 text-green-800' : '' }}
-                                            {{ $case->status === 'closed' ? 'bg-gray-100 text-gray-800' : '' }}
-                                        ">
-                                            {{ $case->status_label }}
-                                        </span>
+                                        <div class="flex flex-col items-end">
+                                            <span class="px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full 
+                                                {{ $case->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : '' }}
+                                                {{ $case->status === 'in_progress' ? 'bg-blue-100 text-blue-800' : '' }}
+                                                {{ $case->status === 'resolved' ? 'bg-cyan-100 text-cyan-800' : '' }}
+                                                {{ $case->status === 'closed' ? 'bg-green-100 text-green-800' : '' }}
+                                            ">
+                                                {{ $case->status_label }}
+                                            </span>
+                                            @if($case->task2_status_label)
+                                            <span class="mt-1 px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full shadow-sm {{ $case->task2_status_color }}">
+                                                {{ $case->task2_status_label }}
+                                            </span>
+                                            @endif
+                                        </div>
                                     </div>
                                     <h4 class="text-base font-semibold text-gray-900 mb-1 leading-tight">{{ $case->title }}</h4>
                                     <div class="flex justify-between items-center text-xs text-gray-500 mt-3 pt-3 border-t border-gray-100">
@@ -185,11 +192,18 @@
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                                     {{ $case->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : '' }}
                                                     {{ $case->status === 'in_progress' ? 'bg-blue-100 text-blue-800' : '' }}
-                                                    {{ $case->status === 'resolved' ? 'bg-green-100 text-green-800' : '' }}
-                                                    {{ $case->status === 'closed' ? 'bg-gray-100 text-gray-800' : '' }}
+                                                    {{ $case->status === 'resolved' ? 'bg-cyan-100 text-cyan-800' : '' }}
+                                                    {{ $case->status === 'closed' ? 'bg-green-100 text-green-800' : '' }}
                                                 ">
                                                     {{ $case->status_label }}
                                                 </span>
+                                                @if($case->task2_status_label)
+                                                <div class="mt-1.5">
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full shadow-sm {{ $case->task2_status_color }}">
+                                                        {{ $case->task2_status_label }}
+                                                    </span>
+                                                </div>
+                                                @endif
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $case->created_at->translatedFormat('d F Y H:i') }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

@@ -135,9 +135,10 @@ class DashboardController extends Controller
             // Task 2 Stats
             'task2_total' => (clone $baseQuery)->where('status', 'closed')->count(),
             'task2_manager_review' => (clone $baseQuery)->where('status', 'closed')->whereNull('requires_preventive_measure')->count(),
-            'task2_in_progress' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where(function ($q) {
-                $q->whereNull('preventive_measure')->orWhere('preventive_measure', 'in_progress');
+            'task2_assigned' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where(function ($q) {
+                $q->whereNull('preventive_measure')->orWhere('preventive_measure', 'assigned');
             })->count(),
+            'task2_in_progress' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where('preventive_measure', 'in_progress')->count(),
             'task2_pending_review' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where('preventive_measure', 'pending_review')->count(),
             'task2_completed' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where('preventive_measure', 'done')->count(),
         ];
@@ -158,6 +159,7 @@ class DashboardController extends Controller
         // Percentages for Task 2 relative to Task 2 Total
         $t2_total = $stats['task2_total'];
         $stats['percent_t2_manager'] = $t2_total > 0 ? round(($stats['task2_manager_review'] / $t2_total) * 100) : 0;
+        $stats['percent_t2_assigned'] = $t2_total > 0 ? round(($stats['task2_assigned'] / $t2_total) * 100) : 0;
         $stats['percent_t2_in_progress'] = $t2_total > 0 ? round(($stats['task2_in_progress'] / $t2_total) * 100) : 0;
         $stats['percent_t2_pending'] = $t2_total > 0 ? round(($stats['task2_pending_review'] / $t2_total) * 100) : 0;
         $stats['percent_t2_completed'] = $t2_total > 0 ? round(($stats['task2_completed'] / $t2_total) * 100) : 0;

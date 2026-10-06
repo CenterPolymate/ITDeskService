@@ -194,7 +194,7 @@
             </div>
 
             <!-- Task 2 KPI Cards Row -->
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8 auto-rows-fr">
+            <div class="grid grid-cols-2 md:grid-cols-3 {{ in_array(Auth::user()->role, ['manager', 'administrator']) ? 'lg:grid-cols-6' : 'lg:grid-cols-5' }} gap-4 mb-8 auto-rows-fr">
 
                 <!-- 1. เคสทั้งหมด (Task 2 All Cases) -->
                 <a href="?status=task2_all#tickets-table" class="glass-card rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-indigo-200 hover:border-indigo-300">
@@ -220,6 +220,19 @@
                     </div>
                 </a>
                 @endif
+                
+                <!-- 2.5 รอดำเนินการ / มอบหมายแล้ว (Assigned / Pending) -->
+                <a href="?status=task2_assigned#tickets-table" class="glass-card rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-rose-200 hover:border-rose-300">
+                    <div class="absolute right-0 top-0 w-24 h-24 bg-rose-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 translate-x-8 -translate-y-8"></div>
+                    <p class="text-sm font-bold text-rose-800 mb-2 leading-tight">รอดำเนินการ / มอบหมายแล้ว</p>
+                    <div class="flex items-end justify-between mt-auto">
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-4xl font-black text-rose-600 leading-none drop-shadow-sm">{{ number_format($stats['task2_assigned']) }}</span>
+                            <span class="text-sm font-bold text-gray-400 bg-white/60 px-2 rounded-md">{{ $stats['percent_t2_assigned'] }}%</span>
+                        </div>
+                        <svg class="w-7 h-7 text-rose-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                </a>
 
                 <!-- 3. กำลังดำเนินการป้องกัน (In Progress) -->
                 <a href="?status=task2_in_progress#tickets-table" class="glass-card rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-yellow-300 hover:border-yellow-400">
@@ -336,16 +349,23 @@
                                         'pending' => 'bg-yellow-100 text-yellow-700',
                                         'analyzing' => 'bg-purple-100 text-purple-700',
                                         'in_progress' => 'bg-blue-100 text-blue-700',
-                                        'resolved' => 'bg-green-100 text-green-700',
+                                        'resolved' => 'bg-cyan-100 text-cyan-700',
                                         'approved' => 'bg-amber-100 text-amber-700',
-                                        'closed' => 'bg-gray-200 text-gray-700',
+                                        'closed' => 'bg-green-100 text-green-800',
                                         'cancelled' => 'bg-red-100 text-red-700',
                                     ];
                                     $sColor = $statusColors[$case->status] ?? 'bg-gray-100 text-gray-800';
                                 @endphp
-                                <span class="px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full shadow-sm {{ $sColor }}">
-                                    {{ $case->status_label }}
-                                </span>
+                                <div class="flex flex-col items-end">
+                                    <span class="px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full shadow-sm {{ $sColor }}">
+                                        {{ $case->status_label }}
+                                    </span>
+                                    @if($case->task2_status_label)
+                                    <span class="mt-1 px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full shadow-sm {{ $case->task2_status_color }}">
+                                        {{ $case->task2_status_label }}
+                                    </span>
+                                    @endif
+                                </div>
                             </div>
                             <h4 class="text-base font-semibold text-gray-900 mb-1 leading-tight">{{ $case->title }}</h4>
                             <div class="text-xs text-gray-500 mb-3">โดย: {{ $case->requester_name }} ({{ $case->department }})</div>
@@ -434,9 +454,9 @@
                                                 'pending' => 'bg-yellow-100 text-yellow-700',
                                                 'analyzing' => 'bg-purple-100 text-purple-700',
                                                 'in_progress' => 'bg-blue-100 text-blue-700',
-                                                'resolved' => 'bg-green-100 text-green-700',
+                                                'resolved' => 'bg-cyan-100 text-cyan-700',
                                                 'approved' => 'bg-amber-100 text-amber-700',
-                                                'closed' => 'bg-gray-200 text-gray-700',
+                                                'closed' => 'bg-green-100 text-green-800',
                                                 'cancelled' => 'bg-red-100 text-red-700',
                                             ];
                                             $sColor = $statusColors[$case->status] ?? 'bg-gray-100 text-gray-800';
@@ -444,6 +464,13 @@
                                         <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm {{ $sColor }}">
                                             {{ $case->status_label }}
                                         </span>
+                                        @if($case->task2_status_label)
+                                        <div class="mt-1.5">
+                                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full shadow-sm {{ $case->task2_status_color }}">
+                                                {{ $case->task2_status_label }}
+                                            </span>
+                                        </div>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <a href="{{ route('tickets.show', $case->id) }}" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-md transition-colors">ดูรายละเอียด</a>

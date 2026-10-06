@@ -258,13 +258,17 @@ class HelpdeskCase extends Model
                         ->whereNull('requires_preventive_measure');
                 } elseif ($status === 'task2_all') {
                     $query->where('status', 'closed');
-                } elseif ($status === 'task2_in_progress') {
+                } elseif ($status === 'task2_assigned') {
                     $query->where('status', 'closed')
                         ->where('requires_preventive_measure', true)
                         ->where(function ($q) {
                             $q->whereNull('preventive_measure')
-                                ->orWhereIn('preventive_measure', ['assigned', 'in_progress']);
+                                ->orWhere('preventive_measure', 'assigned');
                         });
+                } elseif ($status === 'task2_in_progress') {
+                    $query->where('status', 'closed')
+                        ->where('requires_preventive_measure', true)
+                        ->where('preventive_measure', 'in_progress');
                 } elseif ($status === 'task2_pending_review') {
                     $query->where('status', 'closed')
                         ->where('requires_preventive_measure', true)
@@ -315,6 +319,52 @@ class HelpdeskCase extends Model
             'cancelled' => 'ยกเลิกเคส',
             default => $this->status,
         };
+    }
+
+    public function getTask2StatusLabelAttribute(): ?string
+    {
+        if ($this->status !== 'closed') {
+            return null;
+        }
+
+        if (is_null($this->requires_preventive_measure)) {
+            return 'รอหัวหน้าตรวจสอบ';
+        }
+
+        if ($this->requires_preventive_measure) {
+            return match ($this->preventive_measure) {
+                null, 'assigned' => 'PCAR: รอดำเนินการ',
+                'in_progress' => 'PCAR: กำลังดำเนินการ',
+                'pending_review' => 'PCAR: รอตรวจสอบปิด',
+                'done' => 'PCAR: ปิดมาตรการ',
+                default => 'PCAR: ' . $this->preventive_measure,
+            };
+        }
+
+        return null;
+    }
+
+    public function getTask2StatusColorAttribute(): ?string
+    {
+        if ($this->status !== 'closed') {
+            return null;
+        }
+
+        if (is_null($this->requires_preventive_measure)) {
+            return 'bg-orange-100 text-orange-700';
+        }
+
+        if ($this->requires_preventive_measure) {
+            return match ($this->preventive_measure) {
+                null, 'assigned' => 'bg-rose-100 text-rose-700',
+                'in_progress' => 'bg-yellow-100 text-yellow-700',
+                'pending_review' => 'bg-blue-100 text-blue-700',
+                'done' => 'bg-teal-100 text-teal-700',
+                default => 'bg-gray-100 text-gray-700',
+            };
+        }
+
+        return null;
     }
 
     /**

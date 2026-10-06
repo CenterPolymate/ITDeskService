@@ -123,136 +123,177 @@
                         </div>
                         @endif
 
-                        <!-- บันทึกการสืบสภาพและวิเคราะห์ -->
-                        @if($ticket->analysis_notes && is_array($ticket->analysis_notes) && Auth::user()->role !== 'user')
-                        <div class="mt-6 border-t pt-4">
-                            <h4 class="text-md font-semibold text-purple-700 mb-3">การวิเคราะห์หาสาเหตุ (Root Cause Analysis):</h4>
-                            <div class="bg-purple-50 p-4 rounded-md border border-purple-200 text-sm space-y-3">
-                                @if(!empty($ticket->analysis_notes['root_cause']))
-                                    <div class="flex gap-2">
-                                        <span class="font-bold text-purple-900 w-40 shrink-0 whitespace-nowrap">สาเหตุของปัญหาเบื้องต้น :</span>
-                                        <span class="text-gray-900 font-medium">{{ $ticket->analysis_notes['root_cause'] }}</span>
+                        @php
+                            $canEditNotes = ($isAssignedTeam || ($user->role === 'helpdesk' && is_null($ticket->escalated_to_team))) && in_array($ticket->status, ['in_progress', 'resolved']);
+                        @endphp
+                        
+                        <div x-data="{ editMode: false }">
+                            <!-- โหมดแสดงผลปกติ -->
+                            <div x-show="!editMode" x-transition>
+                                <!-- บันทึกการสืบสภาพและวิเคราะห์ -->
+                                @if(!empty($ticket->root_cause_detail) && Auth::user()->role !== 'user')
+                                <div class="mt-6 border-t pt-4">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <h4 class="text-md font-semibold text-purple-700">การวิเคราะห์หาสาเหตุ (Root Cause Analysis):</h4>
+                                        @if($canEditNotes)
+                                        <button type="button" @click="editMode = true" class="text-sm font-medium text-amber-600 hover:text-amber-800 flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-md border border-amber-200 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                            แก้ไขบันทึกการซ่อม
+                                        </button>
+                                        @endif
                                     </div>
+                                    <div class="bg-purple-50 p-4 rounded-md border border-purple-200 text-sm space-y-3">
+                                        @if($ticket->why_1)
+                                        <div class="flex gap-2">
+                                            <span class="font-bold text-purple-900 w-16 shrink-0">ทำไม 1:</span>
+                                            <span class="text-gray-900">{{ $ticket->why_1 }}</span>
+                                        </div>
+                                        @endif
+                                        @if($ticket->why_2)
+                                        <div class="flex gap-2">
+                                            <span class="font-bold text-purple-900 w-16 shrink-0">ทำไม 2:</span>
+                                            <span class="text-gray-900">{{ $ticket->why_2 }}</span>
+                                        </div>
+                                        @endif
+                                        @if($ticket->why_3)
+                                        <div class="flex gap-2">
+                                            <span class="font-bold text-purple-900 w-16 shrink-0">ทำไม 3:</span>
+                                            <span class="text-gray-900">{{ $ticket->why_3 }}</span>
+                                        </div>
+                                        @endif
+                                        <div class="flex gap-2 pt-2 border-t border-purple-200">
+                                            <span class="font-bold text-purple-900 w-28 whitespace-nowrap shrink-0">สาเหตุรากเหง้า:</span>
+                                            <span class="text-gray-900 font-medium">{{ $ticket->root_cause_detail }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
+
+                                <!-- บันทึกการแก้ไขปัญหาเฉพาะหน้า -->
+                                @if($ticket->resolution_notes || $ticket->parts->count() > 0)
+                                <div class="mt-6 border-t pt-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="text-md font-semibold text-green-700">บันทึกการแก้ไขปัญหาเฉพาะหน้า (Resolution Notes):</h4>
+                                        @if($canEditNotes && empty($ticket->root_cause_detail))
+                                        <!-- กรณีไม่มี RCA ให้ปุ่มแก้ไขมาอยู่ตรงนี้แทน -->
+                                        <button type="button" @click="editMode = true" class="text-sm font-medium text-amber-600 hover:text-amber-800 flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-md border border-amber-200 transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                            แก้ไขบันทึกการซ่อม
+                                        </button>
+                                        @endif
+                                    </div>
+                                    
+                                    @if($ticket->resolution_notes)
+                                    <p class="text-gray-700 whitespace-pre-wrap bg-green-50 p-4 rounded-md border border-green-200">{{ $ticket->resolution_notes }}</p>
+                                    @endif
+                                    
+                                    @if($ticket->parts->count() > 0)
+                                    <div class="mt-4">
+                                        <h4 class="text-sm font-semibold text-green-700 mb-2">รายการอะไหล่ / วัสดุอุปกรณ์ที่ใช้:</h4>
+                                        <div class="bg-white border border-gray-200 rounded-md overflow-x-auto">
+                                            <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
+                                                <thead class="bg-gray-50">
+                                                    <tr>
+                                                        <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500 w-12">ลำดับ</th>
+                                                        <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">ชื่ออะไหล่/วัสดุ</th>
+                                                        <th scope="col" class="px-4 py-2 text-right font-medium text-gray-500">จำนวน</th>
+                                                        <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">หน่วยนับ</th>
+                                                        <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">เอกสารเบิก/ใบขอซื้อ</th>
+                                                        <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">ซื้อจากบริษัท</th>
+                                                        <th scope="col" class="px-4 py-2 text-right font-medium text-gray-500">ราคา/หน่วย</th>
+                                                        <th scope="col" class="px-4 py-2 text-right font-medium text-gray-500">รวม</th>
+                                                        <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">หมายเหตุ</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-200 bg-white">
+                                                    @php $grandTotal = 0; @endphp
+                                                    @foreach($ticket->parts as $index => $part)
+                                                    @php 
+                                                        $itemTotal = $part->unit_price ? $part->quantity * $part->unit_price : 0;
+                                                        $grandTotal += $itemTotal;
+                                                    @endphp
+                                                    <tr class="hover:bg-gray-50">
+                                                        <td class="px-4 py-2 text-gray-500">{{ $index + 1 }}</td>
+                                                        <td class="px-4 py-2 font-medium text-gray-900">{{ $part->part_name }}</td>
+                                                        <td class="px-4 py-2 text-right text-gray-700">{{ $part->quantity }}</td>
+                                                        <td class="px-4 py-2 text-gray-700">{{ $part->unit }}</td>
+                                                        <td class="px-4 py-2 text-gray-500">{{ $part->document_no ?: '-' }}</td>
+                                                        <td class="px-4 py-2 text-gray-500">{{ $part->vendor ?: '-' }}</td>
+                                                        <td class="px-4 py-2 text-right text-gray-700">{{ $part->unit_price ? number_format($part->unit_price, 2) : '-' }}</td>
+                                                        <td class="px-4 py-2 text-right text-gray-700">{{ $itemTotal ? number_format($itemTotal, 2) : '-' }}</td>
+                                                        <td class="px-4 py-2 text-gray-500">{{ $part->remarks ?: '-' }}</td>
+                                                    </tr>
+                                                    @endforeach
+                                                </tbody>
+                                                @if($grandTotal > 0)
+                                                <tfoot class="bg-gray-50">
+                                                    <tr>
+                                                        <td colspan="7" class="px-4 py-2 text-right font-bold text-gray-700">ยอดรวมทั้งหมด:</td>
+                                                        <td class="px-4 py-2 text-right font-bold text-green-700">{{ number_format($grandTotal, 2) }}</td>
+                                                        <td></td>
+                                                    </tr>
+                                                </tfoot>
+                                                @endif
+                                            </table>
+                                        </div>
+                                    </div>
+                                    @endif
+                                </div>
                                 @endif
                             </div>
-                        </div>
-                        @endif
 
-                        <!-- บันทึกการแก้ไขปัญหาเฉพาะหน้า -->
-                        @if($ticket->resolution_notes || $ticket->parts->count() > 0)
-                        <div class="mt-6 border-t pt-4">
-                            @if($ticket->resolution_notes)
-                            <h4 class="text-md font-semibold text-green-700 mb-2">บันทึกการแก้ไขปัญหาเฉพาะหน้า (Resolution Notes):</h4>
-                            <p class="text-gray-700 whitespace-pre-wrap bg-green-50 p-4 rounded-md border border-green-200">{{ $ticket->resolution_notes }}</p>
-                            @endif
-                            
-                            @if($ticket->parts->count() > 0)
-                            <div class="mt-4">
-                                <h4 class="text-sm font-semibold text-green-700 mb-2">รายการอะไหล่ / วัสดุอุปกรณ์ที่ใช้:</h4>
-                                <div class="bg-white border border-gray-200 rounded-md overflow-x-auto">
-                                    <table class="min-w-full divide-y divide-gray-200 text-sm whitespace-nowrap">
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500 w-12">ลำดับ</th>
-                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">ชื่ออะไหล่/วัสดุ</th>
-                                                <th scope="col" class="px-4 py-2 text-right font-medium text-gray-500">จำนวน</th>
-                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">หน่วยนับ</th>
-                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">เอกสารเบิก/ใบขอซื้อ</th>
-                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">ซื้อจากบริษัท</th>
-                                                <th scope="col" class="px-4 py-2 text-right font-medium text-gray-500">ราคา/หน่วย</th>
-                                                <th scope="col" class="px-4 py-2 text-right font-medium text-gray-500">รวม</th>
-                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">หมายเหตุ</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-200 bg-white">
-                                            @php $grandTotal = 0; @endphp
-                                            @foreach($ticket->parts as $index => $part)
-                                            @php 
-                                                $itemTotal = $part->unit_price ? $part->quantity * $part->unit_price : 0;
-                                                $grandTotal += $itemTotal;
-                                            @endphp
-                                            <tr class="hover:bg-gray-50">
-                                                <td class="px-4 py-2 text-gray-500">{{ $index + 1 }}</td>
-                                                <td class="px-4 py-2 font-medium text-gray-900">{{ $part->part_name }}</td>
-                                                <td class="px-4 py-2 text-right text-gray-700">{{ $part->quantity }}</td>
-                                                <td class="px-4 py-2 text-gray-700">{{ $part->unit }}</td>
-                                                <td class="px-4 py-2 text-gray-500">{{ $part->document_no ?: '-' }}</td>
-                                                <td class="px-4 py-2 text-gray-500">{{ $part->vendor ?: '-' }}</td>
-                                                <td class="px-4 py-2 text-right text-gray-700">{{ $part->unit_price ? number_format($part->unit_price, 2) : '-' }}</td>
-                                                <td class="px-4 py-2 text-right text-gray-700">{{ $itemTotal ? number_format($itemTotal, 2) : '-' }}</td>
-                                                <td class="px-4 py-2 text-gray-500">{{ $part->remarks ?: '-' }}</td>
-                                            </tr>
-                                            @endforeach
-                                        </tbody>
-                                        @if($grandTotal > 0)
-                                        <tfoot class="bg-gray-50">
-                                            <tr>
-                                                <td colspan="7" class="px-4 py-2 text-right font-bold text-gray-700">ยอดรวมทั้งหมด:</td>
-                                                <td class="px-4 py-2 text-right font-bold text-green-700">{{ number_format($grandTotal, 2) }}</td>
-                                                <td></td>
-                                            </tr>
-                                        </tfoot>
+                            <!-- โหมดแก้ไข (Inline Edit Form) -->
+                            @if($canEditNotes)
+                            <div x-show="editMode" x-cloak x-transition class="mt-6 border-t pt-4">
+                                <div class="p-5 border border-amber-200 bg-amber-50/50 rounded-lg shadow-inner relative">
+                                    <form action="{{ route('tickets.updateStatus', $ticket->id) }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="hidden" name="action" value="update_notes">
+                                        
+                                        <div class="font-semibold text-amber-800 text-sm mb-4 pb-2 border-b border-amber-200 pr-20">แก้ไขบันทึกการซ่อม</div>
+                                        
+                                        @if(!empty($ticket->root_cause_detail))
+                                        <div class="space-y-3 mb-6">
+                                            <div class="flex items-center gap-3">
+                                                <label class="w-24 text-sm font-bold text-gray-800 shrink-0 mt-2">ทำไม 1 :</label>
+                                                <input type="text" name="why_1" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" value="{{ $ticket->why_1 }}" />
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <label class="w-24 text-sm font-bold text-gray-800 shrink-0 mt-2">ทำไม 2 :</label>
+                                                <input type="text" name="why_2" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" value="{{ $ticket->why_2 }}" />
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <label class="w-24 text-sm font-bold text-gray-800 shrink-0 mt-2">ทำไม 3 :</label>
+                                                <input type="text" name="why_3" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" value="{{ $ticket->why_3 }}" />
+                                            </div>
+                                            <div class="flex items-start gap-3 mt-2 pt-2 border-t border-amber-100">
+                                                <label class="w-32 text-sm font-bold text-gray-800 shrink-0 mt-2">สาเหตุรากเหง้า :</label>
+                                                <textarea name="root_cause_detail" required rows="3" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm">{{ $ticket->root_cause_detail }}</textarea>
+                                            </div>
+                                        </div>
                                         @endif
-                                    </table>
+                                        
+                                        @if(!empty($ticket->resolution_notes))
+                                        <div class="mb-5">
+                                            <label for="resolution_notes" class="block font-bold text-gray-800 text-sm mb-2">แก้ไขบันทึกการแก้ไขปัญหาเฉพาะหน้า</label>
+                                            <textarea name="resolution_notes" id="resolution_notes" rows="3" {{ $ticket->status === 'resolved' ? 'required' : '' }} class="w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm">{{ $ticket->resolution_notes }}</textarea>
+                                        </div>
+                                        @endif
+                                        
+                                        <div class="flex justify-end gap-3 pt-2">
+                                            <button type="button" @click="editMode = false" class="py-2 px-6 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors">
+                                                ยกเลิก
+                                            </button>
+                                            <button type="submit" class="flex justify-center py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors">
+                                                💾 บันทึกการแก้ไข
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                             @endif
                         </div>
-                        @endif
-
-                        <!-- ฟอร์มแก้ไขข้อมูลแบบ Inline -->
-                        @if(($isAssignedTeam || ($user->role === 'helpdesk' && is_null($ticket->escalated_to_team))) && in_array($ticket->status, ['in_progress', 'resolved']))
-                        <div x-data="{ editMode: false }" class="mt-4 pt-4 border-t">
-                            <div class="flex justify-end">
-                                <button type="button" @click="editMode = !editMode" class="text-sm font-medium text-amber-600 hover:text-amber-800 flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-md border border-amber-200 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                    <span x-text="editMode ? 'ยกเลิกการแก้ไข' : 'แก้ไขบันทึกการซ่อม'"></span>
-                                </button>
-                            </div>
-                            
-                            <div x-show="editMode" x-cloak class="mt-4 p-5 border border-amber-200 bg-amber-50/50 rounded-lg shadow-inner">
-                                <form action="{{ route('tickets.updateStatus', $ticket->id) }}" method="POST">
-                                    @csrf
-                                    @method('PUT')
-                                    <input type="hidden" name="action" value="update_notes">
-                                    
-                                    <h4 class="font-bold text-gray-800 text-sm mb-4 pb-2 border-b border-amber-200">แก้ไขข้อมูลการวิเคราะห์และแก้ไขปัญหา</h4>
-                                    
-                                    <div class="space-y-3 mb-6">
-                                        <div class="flex items-center gap-3">
-                                            <label class="w-24 text-sm font-bold text-gray-800 shrink-0 mt-2">ทำไม 1 :</label>
-                                            <input type="text" name="why_1" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" value="{{ $ticket->why_1 }}" />
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <label class="w-24 text-sm font-bold text-gray-800 shrink-0 mt-2">ทำไม 2 :</label>
-                                            <input type="text" name="why_2" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" value="{{ $ticket->why_2 }}" />
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <label class="w-24 text-sm font-bold text-gray-800 shrink-0 mt-2">ทำไม 3 :</label>
-                                            <input type="text" name="why_3" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" value="{{ $ticket->why_3 }}" />
-                                        </div>
-                                        <div class="flex items-start gap-3 mt-2 pt-2 border-t border-amber-100">
-                                            <label class="w-32 text-sm font-bold text-gray-800 shrink-0 mt-2">สาเหตุรากเหง้า :</label>
-                                            <textarea name="root_cause_detail" required rows="3" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm">{{ $ticket->root_cause_detail }}</textarea>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mb-5">
-                                        <label for="resolution_notes" class="block font-bold text-gray-800 text-sm mb-2">แก้ไขบันทึกการแก้ไขปัญหาเฉพาะหน้า</label>
-                                        <textarea name="resolution_notes" id="resolution_notes" rows="3" {{ $ticket->status === 'resolved' ? 'required' : '' }} class="w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm">{{ $ticket->resolution_notes }}</textarea>
-                                    </div>
-                                    
-
-                                    
-                                    <div class="flex justify-end gap-3">
-                                        <button type="submit" class="flex justify-center py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors">
-                                            💾 บันทึกการแก้ไข
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        @endif
                     </div>
 
                     <!-- Action Form for Assigned Team (Tier 2) -->
@@ -303,19 +344,7 @@
                                     </button>
                                     <p class="text-xs text-gray-500 mt-2 text-center">* หากระบุสาเหตุของปัญหาเบื้องต้น ระบบจะจบบันทึกเวลาสืบสภาพและเริ่มขั้นตอนแก้ไขทันที</p>
                                 @elseif($ticket->status === 'in_progress')
-                                    @if(!empty($ticket->root_cause_detail))
-                                    <div class="mb-4 bg-gray-50 p-3 rounded-md border border-gray-200">
-                                        <h4 class="text-xs font-bold text-gray-500 mb-1">การวิเคราะห์หาสาเหตุ:</h4>
-                                        <ul class="text-sm text-gray-800 list-disc ml-4">
-                                            @if($ticket->why_1)<li><strong>ทำไม 1:</strong> {{ $ticket->why_1 }}</li>@endif
-                                            @if($ticket->why_2)<li><strong>ทำไม 2:</strong> {{ $ticket->why_2 }}</li>@endif
-                                            @if($ticket->why_3)<li><strong>ทำไม 3:</strong> {{ $ticket->why_3 }}</li>@endif
-                                        </ul>
-                                        <div class="mt-2 text-sm text-gray-800">
-                                            <strong>สาเหตุรากเหง้า:</strong> {{ $ticket->root_cause_detail }}
-                                        </div>
-                                    </div>
-                                    @endif
+
                                     <input type="hidden" name="action" value="resolve">
                                     <div class="mb-4">
                                         <label for="resolution_notes" class="block font-bold text-gray-700 text-sm mb-2">บันทึกการแก้ไขปัญหาเฉพาะหน้า (Resolution Notes)</label>
@@ -468,9 +497,9 @@
                                     <label class="block font-bold text-gray-700 text-sm mb-1">ส่งต่อให้ทีมเฉพาะทาง (Tier 2) ดำเนินการ Task 2 <span class="text-red-500">*</span></label>
                                     <select name="escalated_to_team" class="block w-full border-gray-300 focus:border-gray-800 focus:ring-gray-800 rounded-md shadow-sm" x-bind:required="requiresPreventive == '1'">
                                         <option value="" disabled {{ is_null($ticket->escalated_to_team) ? 'selected' : '' }}>เลือกทีม...</option>
-                                        <option value="team_hardware" {{ $ticket->escalated_to_team === 'team_hardware' ? 'selected' : '' }}>ช่างฮาร์ดแวร์ (Hardware Team)</option>
-                                        <option value="team_network" {{ $ticket->escalated_to_team === 'team_network' ? 'selected' : '' }}>ช่างเครือข่าย (Network Team)</option>
-                                        <option value="team_software" {{ $ticket->escalated_to_team === 'team_software' ? 'selected' : '' }}>ช่างซอฟต์แวร์ (Software Team)</option>
+                                        <option value="Hardware" {{ $ticket->escalated_to_team === 'Hardware' ? 'selected' : '' }}>ช่างฮาร์ดแวร์ (Hardware Team)</option>
+                                        <option value="Network" {{ $ticket->escalated_to_team === 'Network' ? 'selected' : '' }}>ช่างเครือข่าย (Network Team)</option>
+                                        <option value="Software" {{ $ticket->escalated_to_team === 'Software' ? 'selected' : '' }}>ช่างซอฟต์แวร์ (Software Team)</option>
                                     </select>
                                     <p class="text-xs text-gray-500 mt-1">ใบงานนี้จะถูกส่งไปยัง Dashboard ของทีมที่เลือก เพื่อให้ดำเนินการวิเคราะห์ P-CAR ต่อไป</p>
                                 </div>
@@ -495,13 +524,13 @@
                         
                         @if($ticket->preventive_measure === 'assigned')
                             <div class="text-center py-6 bg-teal-50 rounded-lg border border-teal-100">
-                                <p class="text-teal-800 font-medium mb-4">ผู้จัดการได้มอบหมายงาน Task 2 ให้กับทีมของคุณ กรุณากดปุ่มด้านล่างเพื่อเริ่มดำเนินการสืบสภาพและวิเคราะห์ปัญหา</p>
+                                <p class="text-teal-800 font-medium mb-4">ผู้จัดการได้มอบหมายงาน Task 2 ให้กับทีมของคุณ กรุณากดปุ่มด้านล่างเพื่อเริ่มดำเนินการป้องกัน</p>
                                 <form action="{{ route('tickets.updateStatus', $ticket->id) }}" method="POST">
                                     @csrf
                                     @method('PUT')
                                     <input type="hidden" name="action" value="start_preventive_measure">
                                     <button type="submit" class="inline-flex items-center px-6 py-3 bg-teal-600 border border-transparent rounded-md font-bold text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors">
-                                        ▶️ เริ่มดำเนินการสืบสภาพ (Start Task 2)
+                                        ▶️ เริ่มดำเนินการป้องกัน (Start Task 2)
                                     </button>
                                 </form>
                             </div>
@@ -1251,7 +1280,7 @@
                                     @endif
                                 </div>
                                 <div class="w-full">
-                                    <p class="text-sm font-semibold text-gray-800">2. หาสาเหตุรากเหง้า และสร้างมาตรการป้องกัน</p>
+                                    <p class="text-sm font-semibold text-gray-800">2. ดำเนินการสร้างมาตรการป้องกัน</p>
                                     @if(in_array($ticket->preventive_measure, ['in_progress', 'pending_review', 'done']))
                                         @if($ticket->pcar_opened_at)
                                             <p class="text-xs text-gray-500 mt-1">เริ่ม: {{ $ticket->pcar_opened_at->translatedFormat('d F Y H:i น.') }}</p>
