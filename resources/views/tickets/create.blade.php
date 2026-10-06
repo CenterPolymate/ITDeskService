@@ -46,7 +46,7 @@
                                     <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"></path></svg>
                                 </div>
                                 <input id="requester_phone" type="text" name="requester_phone" value="{{ old('requester_phone') }}" required pattern="^0[0-9]{1,2}-?[0-9]{3}-?[0-9]{4}$" placeholder="081-123-4567" 
-                                    class="block w-full pl-12 py-3 bg-white/50 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
+                                    class="block w-full pl-12 py-3 bg-white/50 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 placeholder:font-normal scroll-mt-24">
                             </div>
                             <x-input-error :messages="$errors->get('requester_phone')" class="mt-2" />
                         </div>
@@ -63,19 +63,19 @@
                         <div>
                             <label for="actual_user_name" class="block font-bold text-sm text-slate-700 mb-2">แจ้งแทนผู้อื่น (ระบุชื่อผู้ใช้จริง)</label>
                             <input id="actual_user_name" type="text" name="actual_user_name" value="{{ old('actual_user_name') }}" placeholder="ปล่อยว่างหากแจ้งให้ตนเอง" 
-                                class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
+                                class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 placeholder:font-normal scroll-mt-24">
                             <x-input-error :messages="$errors->get('actual_user_name')" class="mt-2" />
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label for="machine_name" class="block font-bold text-sm text-slate-700 mb-2">ชื่ออุปกรณ์</label>
                                 <input id="machine_name" type="text" name="machine_name" value="{{ old('machine_name') }}" placeholder="เช่น PC-01" 
-                                    class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
+                                    class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 placeholder:font-normal scroll-mt-24">
                             </div>
                             <div>
                                 <label for="machine_code" class="block font-bold text-sm text-slate-700 mb-2">รหัสอุปกรณ์</label>
                                 <input id="machine_code" type="text" name="machine_code" value="{{ old('machine_code') }}" placeholder="เช่น MCH-01" 
-                                    class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
+                                    class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 placeholder:font-normal scroll-mt-24">
                             </div>
                         </div>
                     </div>
@@ -131,7 +131,7 @@
                                 สถานที่ <span class="text-rose-500">*</span>
                             </label>
                             <input id="location" type="text" name="location" value="{{ old('location') }}" required placeholder="ระบุอาคาร, ชั้น, หรือโซน" 
-                                class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
+                                class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 placeholder:font-normal scroll-mt-24">
                             <x-input-error :messages="$errors->get('location')" class="mt-2" />
                         </div>
                     </div>
@@ -142,7 +142,7 @@
                             <span class="text-xs font-bold text-slate-400 bg-white px-3 py-1 rounded-full shadow-sm"><span id="title-counter">0</span>/100</span>
                         </label>
                         <input id="title" type="text" name="title" value="{{ old('title') }}" maxlength="100" required placeholder="สรุปสั้นๆ ให้เรารู้ว่าเกิดอะไรขึ้น เช่น เปิดคอมไม่ติดเลย" oninput="document.getElementById('title-counter').innerText = this.value.length;" 
-                            class="block w-full py-3 px-4 bg-white border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-bold text-lg text-slate-800 placeholder-slate-300 scroll-mt-24">
+                            class="block w-full py-3 px-4 bg-white border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-bold text-lg text-slate-800 placeholder:text-slate-400 placeholder:font-normal scroll-mt-24">
                         <x-input-error :messages="$errors->get('title')" class="mt-2" />
                     </div>
 
@@ -151,7 +151,7 @@
                             รายละเอียดเพิ่มเติม <span class="text-rose-500">*</span>
                         </label>
                         <textarea id="description" name="description" rows="4" maxlength="400" required placeholder="เล่าให้เราฟังหน่อยว่าเกิดอะไรขึ้นก่อนหน้านี้..." 
-                            class="block w-full py-4 px-4 bg-white/50 border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 resize-none font-medium leading-relaxed scroll-mt-24">{{ old('description') }}</textarea>
+                            class="block w-full py-4 px-4 bg-white/50 border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 resize-none font-medium placeholder:text-slate-400 placeholder:font-normal leading-relaxed scroll-mt-24">{{ old('description') }}</textarea>
                         <x-input-error :messages="$errors->get('description')" class="mt-2" />
                     </div>
                 </div>
