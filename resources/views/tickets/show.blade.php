@@ -741,7 +741,13 @@
                                 <div class="flex {{ $comment->user_id === Auth::id() ? 'justify-end' : 'justify-start' }}">
                                     <div class="{{ $comment->user_id === Auth::id() ? 'bg-indigo-50 border-indigo-100 text-indigo-900' : 'bg-gray-50 border-gray-200 text-gray-800' }} border p-3 rounded-lg max-w-[80%]">
                                         <div class="flex justify-between items-center mb-1 gap-4">
-                                            <span class="font-bold text-xs">{{ $comment->user->name }} ({{ $comment->user->role }})</span>
+                                            <span class="font-bold text-xs">
+                                                @if(Auth::user()->role === 'user' && $comment->user->role !== 'user')
+                                                    เจ้าหน้าที่ไอที (IT Support)
+                                                @else
+                                                    {{ $comment->user->name }} ({{ $comment->user->role }})
+                                                @endif
+                                            </span>
                                             <span class="text-[10px] text-gray-500">{{ $comment->created_at->translatedFormat('d F Y H:i') }}</span>
                                         </div>
                                         <p class="text-sm whitespace-pre-wrap">{{ $comment->message }}</p>
