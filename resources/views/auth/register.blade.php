@@ -87,7 +87,7 @@
 
         <!-- Email Address -->
         <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">อีเมล (Email) <span class="text-red-500">*</span></label>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">อีเมลบริษัท (Company Email) <span class="text-red-500">*</span></label>
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
