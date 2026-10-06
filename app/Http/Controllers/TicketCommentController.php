@@ -15,7 +15,7 @@ class TicketCommentController extends Controller
 
         $request->validate([
             'message' => 'required|string',
-            'attachment' => 'nullable|file|mimes:jpg,jpeg,png|max:5120', // Images only, max 5MB
+            'attachment' => 'nullable|image|max:5120', // Images only, max 5MB
         ]);
 
         $path = null;

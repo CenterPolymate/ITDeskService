@@ -786,6 +786,7 @@
                                         <span id="file-name-{{ $ticket->id }}">แนบไฟล์รูปภาพ (ไม่เกิน 5MB)</span>
                                     </label>
                                     <input type="file" name="attachment" id="attachment" class="hidden" accept="image/*" capture="environment" onchange="if(this.files[0] && this.files[0].size > 5242880) { alert('ขนาดไฟล์เกิน 5MB'); this.value=''; document.getElementById('file-name-{{ $ticket->id }}').textContent = 'แนบไฟล์รูปภาพ (ไม่เกิน 5MB)'; } else { document.getElementById('file-name-{{ $ticket->id }}').textContent = this.files[0] ? this.files[0].name : 'แนบไฟล์รูปภาพ (ไม่เกิน 5MB)'; }">
+                                    <x-input-error :messages="$errors->get('attachment')" class="mt-2" />
                                 </div>
                                 <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
                                     ส่งข้อความ
