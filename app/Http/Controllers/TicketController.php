@@ -139,9 +139,10 @@ class TicketController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $filenameId = $ticket->pcar_no ?: $ticket->ticket_no;
         $headers = [
             'Content-type' => 'application/vnd.ms-excel',
-            'Content-Disposition' => "attachment; filename=\"PCAR_{$ticket->ticket_no}.xls\"",
+            'Content-Disposition' => "attachment; filename=\"PCAR_{$filenameId}.xls\"",
             'Pragma' => 'no-cache',
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
             'Expires' => '0',
@@ -365,7 +366,16 @@ class TicketController extends Controller
 
             return redirect()->route('tickets.show', $id)->with('success', 'บันทึกการตรวจสอบและส่งต่องานเรียบร้อยแล้ว');
         } elseif ($request->action === 'start_preventive_measure') {
+            $pcarNo = $ticket->pcar_no;
+            if (!$pcarNo) {
+                $prefix = 'PCAR-' . date('Ym') . '-';
+                $lastPcar = HelpdeskCase::where('pcar_no', 'like', $prefix.'%')->orderBy('pcar_no', 'desc')->first();
+                $lastNumber = $lastPcar ? (int) substr($lastPcar->pcar_no, -4) : 0;
+                $pcarNo = $prefix . str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+            }
+
             $ticket->update([
+                'pcar_no' => $pcarNo,
                 'preventive_measure' => 'in_progress',
                 'pcar_opened_at' => now(),
                 'pcar_opened_by' => Auth::id(),

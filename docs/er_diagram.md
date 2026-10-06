@@ -40,6 +40,7 @@ erDiagram
     HELPDESK_CASES {
         bigint id PK
         string ticket_no "รหัสใบงาน (Unique) รูปแบบ IT-YYYYMM-XXXX (Running Number รายเดือน)"
+        string pcar_no "รหัสใบ PCAR (Nullable, Unique) รูปแบบ PCAR-YYYYMM-XXXX"
         string title "หัวข้อปัญหา"
         text description "รายละเอียด"
         string category "ประเภทอุปกรณ์ / หมวดหมู่"

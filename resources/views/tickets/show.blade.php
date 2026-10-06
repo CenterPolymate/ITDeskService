@@ -3,6 +3,9 @@
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('รายละเอียดใบแจ้งซ่อม (Ticket Details) #') . $ticket->ticket_no }}
+                @if($ticket->pcar_no)
+                    <span class="ml-2 text-sm text-gray-500 font-normal">| PCAR #{{ $ticket->pcar_no }}</span>
+                @endif
             </h2>
             <div class="flex items-center space-x-4 print:hidden">
                 @if(auth()->user()->role !== 'user')

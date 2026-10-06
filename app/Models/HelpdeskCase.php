@@ -39,6 +39,7 @@ class HelpdeskCase extends Model
     protected $fillable = [
         'user_id',
         'ticket_no',
+        'pcar_no',
         'title',
         'description',
         'category',

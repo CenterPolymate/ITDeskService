@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P-CAR Report - {{ $ticket->ticket_no }}</title>
+    <title>P-CAR Report - {{ $ticket->pcar_no ?: $ticket->ticket_no }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -155,7 +155,7 @@
                 <td class="p-1 border-b border-black align-middle" style="width: 22%;">
                     <div class="text-left whitespace-nowrap overflow-hidden flex items-center">
                         <span class="text-[10px]">P-CAR No.</span>
-                        <span class="font-bold val ml-1 text-[11px]">{{ $ticket->ticket_no }}</span>
+                        <span class="font-bold val ml-1 text-[11px]">{{ $ticket->pcar_no ?: $ticket->ticket_no }}</span>
                     </div>
                 </td>
                 <td class="py-1 px-0 border-b border-black text-center text-[9px] align-middle tracking-tighter whitespace-nowrap overflow-hidden"
