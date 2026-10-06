@@ -175,10 +175,10 @@
                         <h3 class="text-sm sm:text-base font-bold text-slate-700">หลักฐาน / ไฟล์แนบ (Optional)</h3>
                     </div>
                     <div class="p-5 sm:p-6">
-                        <div id="drop-zone" class="relative flex flex-col items-center justify-center p-6 sm:p-10 border-2 border-indigo-200/70 border-dashed rounded-2xl hover:bg-indigo-50/50 transition-all duration-300 group bg-slate-50/30 overflow-hidden">
+                        <div id="drop-zone" class="relative flex flex-col items-center justify-center p-6 sm:p-10 border-2 border-indigo-200/70 border-dashed rounded-2xl hover:bg-indigo-50/50 transition-all duration-300 group bg-slate-50/30 overflow-hidden min-h-[160px] sm:min-h-[200px]">
                             <input id="attachments" name="attachments[]" type="file" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" accept="image/*" capture="environment" onchange="handleFileSelect(this)">
                             
-                            <div class="space-y-4 text-center pointer-events-none absolute inset-0 flex flex-col items-center justify-center z-10 transition-opacity duration-300" id="upload-content">
+                            <div class="space-y-4 text-center pointer-events-none flex flex-col items-center justify-center z-10 transition-opacity duration-300" id="upload-content">
                                 <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100 group-hover:scale-110 group-hover:shadow-md group-hover:border-indigo-100 transition-all duration-300">
                                     <svg class="w-8 h-8 sm:w-10 sm:h-10 text-indigo-500 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                 </div>
@@ -188,7 +188,7 @@
                                 </div>
                             </div>
 
-                            <div id="image-preview-container" class="hidden w-full relative z-30 flex flex-col items-center min-h-[140px] justify-center">
+                            <div id="image-preview-container" class="hidden w-full relative z-30 flex flex-col items-center justify-center">
                                 <div id="preview-grid" class="flex flex-row flex-wrap gap-4 justify-center mb-5 w-full"></div>
                                 <button type="button" onclick="removeImage(event)" class="text-xs sm:text-sm text-rose-600 font-bold hover:text-rose-800 pointer-events-auto bg-rose-50 hover:bg-rose-100 px-5 py-2.5 rounded-full transition-colors flex items-center gap-2 shadow-sm border border-rose-100">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
