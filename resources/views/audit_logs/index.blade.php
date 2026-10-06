@@ -207,7 +207,7 @@
                         <!-- Desktop Table View -->
                         <div class="hidden md:block overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50/80 sticky top-16 z-10 outline outline-1 outline-gray-200 backdrop-blur-sm">
+                                <thead class="bg-gray-50 border-b border-gray-200">
                                     <tr>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">เวลา</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ผู้ใช้งาน</th>
