@@ -267,15 +267,16 @@
                 </td>
                 <td class="p-1 border-b border-black align-top">
                     <div class="font-bold">ภาพประกอบ</div>
-                    <div class="mt-1 flex justify-center items-center gap-1 flex-wrap">
+                    <div class="mt-1 flex justify-center items-center gap-1 w-full h-[110px]">
                         @if ($ticket->attachments && $ticket->attachments->count() > 0)
+                            @php $imgCount = $ticket->attachments->count(); @endphp
                             @foreach ($ticket->attachments as $attachment)
                                 <img src="{{ asset('storage/' . $attachment->file_path) }}" alt="Attachment"
-                                    class="max-w-[48%] max-h-[60px] object-contain">
+                                    class="{{ $imgCount == 1 ? 'max-w-[95%]' : 'max-w-[48%]' }} max-h-full object-contain p-[2px]">
                             @endforeach
                         @elseif ($ticket->attachment_path)
                             <img src="{{ asset('storage/' . $ticket->attachment_path) }}" alt="Attachment"
-                                class="max-w-full max-h-[60px] object-contain">
+                                class="max-w-[95%] max-h-full object-contain p-[2px]">
                         @endif
                     </div>
                 </td>
