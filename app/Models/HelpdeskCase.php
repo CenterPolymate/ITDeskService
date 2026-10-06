@@ -56,6 +56,8 @@ class HelpdeskCase extends Model
         'department',
         'location',
         'assigned_to',
+        'assigned_by',
+        'assigned_at',
         'escalated_to_team',
         'analysis_notes',
         'attachment_path',
