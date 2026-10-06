@@ -85,7 +85,7 @@
                         <label class="block font-bold text-sm text-slate-700 mb-3">สถานะเครื่องจักร ณ ปัจจุบัน <span class="text-rose-500">*</span></label>
                         <div class="grid grid-cols-2 gap-4">
                             <label class="cursor-pointer relative group h-full block">
-                                <input type="radio" name="is_machine_stopped" value="0" required class="peer sr-only scroll-mt-24" {{ old('is_machine_stopped') === '0' ? 'checked' : '' }}>
+                                <input type="radio" name="is_machine_stopped" value="0" required class="peer sr-only scroll-mt-24" @checked(old('is_machine_stopped') === '0')>
                                 <div class="h-full flex flex-col items-center justify-center p-4 sm:p-6 bg-white border-2 border-slate-100 rounded-2xl group-hover:border-emerald-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300 transform peer-checked:-translate-y-1">
                                     <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-500 text-2xl mb-3 group-hover:scale-110 transition-transform peer-checked:bg-emerald-500 peer-checked:text-white">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -95,7 +95,7 @@
                             </label>
                             
                             <label class="cursor-pointer relative group h-full block">
-                                <input type="radio" name="is_machine_stopped" value="1" required class="peer sr-only scroll-mt-24" {{ old('is_machine_stopped') === '1' ? 'checked' : '' }}>
+                                <input type="radio" name="is_machine_stopped" value="1" required class="peer sr-only scroll-mt-24" @checked(old('is_machine_stopped') === '1')>
                                 <div class="h-full flex flex-col items-center justify-center p-4 sm:p-6 bg-white border-2 border-slate-100 rounded-2xl group-hover:border-rose-200 peer-checked:border-rose-500 peer-checked:bg-rose-50 peer-checked:shadow-[0_0_20px_rgba(244,63,94,0.15)] transition-all duration-300 transform peer-checked:-translate-y-1">
                                     <div class="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center text-rose-500 text-2xl mb-3 group-hover:scale-110 transition-transform peer-checked:bg-rose-500 peer-checked:text-white">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -119,10 +119,10 @@
                             <label for="category" class="block font-bold text-sm text-slate-700 mb-2">หมวดหมู่</label>
                             <select id="category" name="category" class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
                                 <option value="" disabled selected>-- เลือกประเภทปัญหา --</option>
-                                <option value="Hardware" {{ old('category') == 'Hardware' ? 'selected' : '' }}>อุปกรณ์ Hardware</option>
-                                <option value="Software" {{ old('category') == 'Software' ? 'selected' : '' }}>โปรแกรม Software</option>
-                                <option value="Network" {{ old('category') == 'Network' ? 'selected' : '' }}>ระบบ Network</option>
-                                <option value="Other" {{ old('category') == 'Other' ? 'selected' : '' }}>อื่นๆ</option>
+                                <option value="Hardware" @selected(old('category') == 'Hardware')>อุปกรณ์ Hardware</option>
+                                <option value="Software" @selected(old('category') == 'Software')>โปรแกรม Software</option>
+                                <option value="Network" @selected(old('category') == 'Network')>ระบบ Network</option>
+                                <option value="Other" @selected(old('category') == 'Other')>อื่นๆ</option>
                             </select>
                             <x-input-error :messages="$errors->get('category')" class="mt-2" />
                         </div>
