@@ -19,13 +19,13 @@
         </div>
     </x-slot>
 
-    <div class="py-8 sm:py-12 min-h-[calc(100vh-160px)]">
+    <div class="py-4 sm:py-12 min-h-[calc(100vh-160px)]">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <form method="POST" action="{{ route('tickets.store') }}" enctype="multipart/form-data" class="space-y-8">
+            <form method="POST" action="{{ route('tickets.store') }}" enctype="multipart/form-data" class="space-y-5 sm:space-y-8">
                 @csrf
 
                 <!-- Section 1: User Info (Floating Glass Card) -->
-                <div class="bg-white/70 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80 group hover:bg-white/90 transition-colors duration-500">
+                <div class="bg-white/70 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80 group hover:bg-white/90 transition-colors duration-500">
                     <div class="flex flex-col md:flex-row gap-6 md:items-center">
                         <div class="flex items-center gap-5 flex-1">
                             <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-100 to-indigo-100 border border-white shadow-inner flex items-center justify-center text-indigo-600 font-black text-2xl group-hover:rotate-3 transition-transform duration-300">
@@ -54,7 +54,7 @@
                 </div>
 
                 <!-- Section 2: Machine Details (Playful Grid) -->
-                <div class="bg-white/70 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80">
+                <div class="bg-white/70 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80">
                     <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
                         <span class="p-2 bg-purple-100 text-purple-600 rounded-xl">💻</span> ข้อมูลอุปกรณ์
                     </h3>
@@ -109,7 +109,7 @@
                 </div>
 
                 <!-- Section 3: Problem Details -->
-                <div class="bg-white/70 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80">
+                <div class="bg-white/70 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80">
                     <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
                         <span class="p-2 bg-pink-100 text-pink-600 rounded-xl">📝</span> รายละเอียดปัญหา
                     </h3>
@@ -157,7 +157,7 @@
                 </div>
 
                 <!-- Section 4: File Upload -->
-                <div class="bg-white/70 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80">
+                <div class="bg-white/70 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/80">
                     <h3 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
                         <span class="p-2 bg-blue-100 text-blue-600 rounded-xl">📸</span> รูปภาพประกอบ
                     </h3>
