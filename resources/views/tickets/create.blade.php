@@ -75,33 +75,6 @@
                             </div>
                         </div>
 
-                        <!-- Template ช่วยกรอกด่วน (Quick Issue Templates) -->
-                        <div class="mb-8 p-4 bg-blue-50 rounded-lg border border-blue-100" x-data="{
-                            fillTemplate(title, category, desc) {
-                                let t = document.getElementById('title'); t.value = title; t.dispatchEvent(new Event('input'));
-                                document.getElementById('category').value = category;
-                                let d = document.getElementById('description'); d.value = desc; d.dispatchEvent(new Event('input'));
-                            }
-                        }">
-                            <h3 class="text-sm font-semibold text-blue-800 uppercase tracking-wider mb-3 flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                                อาการที่พบบ่อย (Quick Templates)
-                            </h3>
-                            <div class="flex flex-wrap gap-2">
-                                <button type="button" @click="fillTemplate('เปิดคอมพิวเตอร์ไม่ติด / ไม่มีภาพหน้าจอ', 'Hardware', 'What: เปิดคอมพิวเตอร์ไม่ติด ไม่มีภาพขึ้นหน้าจอ\nWhere/When: \nWhy/How: ')" class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-full text-blue-700 bg-white hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                    💻 เปิดคอมไม่ติด
-                                </button>
-                                <button type="button" @click="fillTemplate('อินเทอร์เน็ตใช้งานไม่ได้ / หลุดบ่อย', 'Network', 'What: อินเทอร์เน็ตเชื่อมต่อไม่ได้ หรือหลุดบ่อย\nWhere/When: \nWhy/How: ')" class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-full text-blue-700 bg-white hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                    🌐 เน็ตหลุด/เข้าไม่ได้
-                                </button>
-                                <button type="button" @click="fillTemplate('เครื่องพิมพ์ปริ้นงานไม่ออก / กระดาษติด', 'Hardware', 'What: ปริ้นเตอร์ปริ้นไม่ออก หรือกระดาษติด\nWhere/When: \nWhy/How: ')" class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-full text-blue-700 bg-white hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                    🖨️ ปริ้นงานไม่ออก
-                                </button>
-                                <button type="button" @click="fillTemplate('ลืมรหัสผ่าน / เข้าใช้งานระบบไม่ได้', 'Software', 'What: ลืมรหัสผ่านเข้าใช้งานระบบ \nWhere/When: \nWhy/How: ')" class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-full text-blue-700 bg-white hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                                    🔑 ลืมรหัสผ่าน
-                                </button>
-                            </div>
-                        </div>
 
                         <!-- ข้อมูลปัญหา -->
                         <div class="mb-8">
