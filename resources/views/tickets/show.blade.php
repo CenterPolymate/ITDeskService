@@ -777,7 +777,8 @@
                             @csrf
                             <div class="mb-3">
                                 <label for="message" class="sr-only">ข้อความ</label>
-                                <textarea name="message" id="message" rows="3" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="พิมพ์ข้อความตอบกลับที่นี่..."></textarea>
+                                <textarea name="message" id="message" rows="3" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="พิมพ์ข้อความตอบกลับที่นี่..."></textarea>
+                                <x-input-error :messages="$errors->get('message')" class="mt-2" />
                             </div>
                             <div class="flex justify-between items-center">
                                 <div>

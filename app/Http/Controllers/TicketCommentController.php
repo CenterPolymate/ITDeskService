@@ -14,7 +14,7 @@ class TicketCommentController extends Controller
         $ticket = HelpdeskCase::findOrFail($id);
 
         $request->validate([
-            'message' => 'required|string',
+            'message' => 'required_without:attachment|nullable|string',
             'attachment' => 'nullable|image|max:5120', // Images only, max 5MB
         ]);
 
