@@ -46,7 +46,7 @@
                                     <span class="text-lg">📱</span>
                                 </div>
                                 <input id="requester_phone" type="text" name="requester_phone" value="{{ old('requester_phone') }}" required pattern="^0[0-9]{1,2}-?[0-9]{3}-?[0-9]{4}$" placeholder="081-123-4567" 
-                                    class="block w-full pl-12 py-3 bg-white/50 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium">
+                                    class="block w-full pl-12 py-3 bg-white/50 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
                             </div>
                             <x-input-error :messages="$errors->get('requester_phone')" class="mt-2" />
                         </div>
@@ -63,19 +63,19 @@
                         <div>
                             <label for="actual_user_name" class="block font-bold text-sm text-slate-700 mb-2">แจ้งแทนผู้อื่น (ระบุชื่อผู้ใช้จริง)</label>
                             <input id="actual_user_name" type="text" name="actual_user_name" value="{{ old('actual_user_name') }}" placeholder="ปล่อยว่างหากแจ้งให้ตนเอง" 
-                                class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium">
+                                class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
                             <x-input-error :messages="$errors->get('actual_user_name')" class="mt-2" />
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label for="machine_name" class="block font-bold text-sm text-slate-700 mb-2">ชื่ออุปกรณ์</label>
                                 <input id="machine_name" type="text" name="machine_name" value="{{ old('machine_name') }}" placeholder="เช่น PC-01" 
-                                    class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium">
+                                    class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
                             </div>
                             <div>
                                 <label for="machine_code" class="block font-bold text-sm text-slate-700 mb-2">รหัสอุปกรณ์</label>
                                 <input id="machine_code" type="text" name="machine_code" value="{{ old('machine_code') }}" placeholder="เช่น MCH-01" 
-                                    class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium">
+                                    class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
                             </div>
                         </div>
                     </div>
@@ -85,7 +85,7 @@
                         <label class="block font-bold text-sm text-slate-700 mb-3">สถานะเครื่องจักร ณ ปัจจุบัน <span class="text-rose-500">*</span></label>
                         <div class="grid grid-cols-2 gap-4">
                             <label class="cursor-pointer relative group h-full block">
-                                <input type="radio" name="is_machine_stopped" value="0" required class="peer sr-only" {{ old('is_machine_stopped') === '0' ? 'checked' : '' }}>
+                                <input type="radio" name="is_machine_stopped" value="0" required class="peer sr-only scroll-mt-24" {{ old('is_machine_stopped') === '0' ? 'checked' : '' }}>
                                 <div class="h-full flex flex-col items-center justify-center p-4 sm:p-6 bg-white border-2 border-slate-100 rounded-2xl group-hover:border-emerald-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300 transform peer-checked:-translate-y-1">
                                     <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-500 text-2xl mb-3 group-hover:scale-110 transition-transform peer-checked:bg-emerald-500 peer-checked:text-white">
                                         ✨
@@ -95,7 +95,7 @@
                             </label>
                             
                             <label class="cursor-pointer relative group h-full block">
-                                <input type="radio" name="is_machine_stopped" value="1" required class="peer sr-only" {{ old('is_machine_stopped') === '1' ? 'checked' : '' }}>
+                                <input type="radio" name="is_machine_stopped" value="1" required class="peer sr-only scroll-mt-24" {{ old('is_machine_stopped') === '1' ? 'checked' : '' }}>
                                 <div class="h-full flex flex-col items-center justify-center p-4 sm:p-6 bg-white border-2 border-slate-100 rounded-2xl group-hover:border-rose-200 peer-checked:border-rose-500 peer-checked:bg-rose-50 peer-checked:shadow-[0_0_20px_rgba(244,63,94,0.15)] transition-all duration-300 transform peer-checked:-translate-y-1">
                                     <div class="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center text-rose-500 text-2xl mb-3 group-hover:scale-110 transition-transform peer-checked:bg-rose-500 peer-checked:text-white">
                                         🚨
@@ -117,7 +117,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
                             <label for="category" class="block font-bold text-sm text-slate-700 mb-2">หมวดหมู่</label>
-                            <select id="category" name="category" class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium">
+                            <select id="category" name="category" class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
                                 <option value="" disabled selected>-- เลือกประเภทปัญหา --</option>
                                 <option value="Hardware" {{ old('category') == 'Hardware' ? 'selected' : '' }}>🖥️ อุปกรณ์ Hardware</option>
                                 <option value="Software" {{ old('category') == 'Software' ? 'selected' : '' }}>💿 โปรแกรม Software</option>
@@ -131,7 +131,7 @@
                                 สถานที่ <span class="text-rose-500">*</span>
                             </label>
                             <input id="location" type="text" name="location" value="{{ old('location') }}" required placeholder="ระบุอาคาร, ชั้น, หรือโซน" 
-                                class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium">
+                                class="block w-full py-3 px-4 bg-white/50 border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium scroll-mt-24">
                             <x-input-error :messages="$errors->get('location')" class="mt-2" />
                         </div>
                     </div>
@@ -142,7 +142,7 @@
                             <span class="text-xs font-bold text-slate-400 bg-white px-3 py-1 rounded-full shadow-sm"><span id="title-counter">0</span>/100</span>
                         </label>
                         <input id="title" type="text" name="title" value="{{ old('title') }}" maxlength="100" required placeholder="สรุปสั้นๆ ให้เรารู้ว่าเกิดอะไรขึ้น เช่น เปิดคอมไม่ติดเลย" oninput="document.getElementById('title-counter').innerText = this.value.length;" 
-                            class="block w-full py-3 px-4 bg-white border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-bold text-lg text-slate-800 placeholder-slate-300">
+                            class="block w-full py-3 px-4 bg-white border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-bold text-lg text-slate-800 placeholder-slate-300 scroll-mt-24">
                         <x-input-error :messages="$errors->get('title')" class="mt-2" />
                     </div>
 
@@ -151,7 +151,7 @@
                             รายละเอียดเพิ่มเติม <span class="text-rose-500">*</span>
                         </label>
                         <textarea id="description" name="description" rows="4" maxlength="400" required placeholder="เล่าให้เราฟังหน่อยว่าเกิดอะไรขึ้นก่อนหน้านี้..." 
-                            class="block w-full py-4 px-4 bg-white/50 border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 resize-none font-medium leading-relaxed">{{ old('description') }}</textarea>
+                            class="block w-full py-4 px-4 bg-white/50 border-slate-200 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 resize-none font-medium leading-relaxed scroll-mt-24">{{ old('description') }}</textarea>
                         <x-input-error :messages="$errors->get('description')" class="mt-2" />
                     </div>
                 </div>
