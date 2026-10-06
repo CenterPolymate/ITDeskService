@@ -468,15 +468,21 @@
                             <td class="w-[10%] border-r border-black p-[1px]">จำนวนเงิน</td>
                             <td class="p-[1px]">หมายเหตุ</td>
                         </tr>
-                        @for ($i = 0; $i < 4; $i++)
+                        @php
+                            $parts = $ticket->parts ?? collect();
+                            $maxRows = max(4, $parts->count());
+                        @endphp
+                        @for ($i = 0; $i < $maxRows; $i++)
                             <tr class="border-b border-black h-4">
-                                <td class="border-r border-black"></td>
-                                <td class="border-r border-black"></td>
-                                <td class="border-r border-black"></td>
-                                <td class="border-r border-black"></td>
-                                <td class="border-r border-black"></td>
-                                <td class="border-r border-black"></td>
-                                <td></td>
+                                <td class="border-r border-black p-[1px]">{{ $i < $parts->count() ? $i + 1 : '' }}</td>
+                                <td class="border-r border-black p-[1px] text-left px-1 truncate text-blue-700">
+                                    {{ $i < $parts->count() ? $parts[$i]->part_name . ' (' . $parts[$i]->quantity . ' ' . $parts[$i]->unit . ')' : '' }}
+                                </td>
+                                <td class="border-r border-black p-[1px]"></td>
+                                <td class="border-r border-black p-[1px]"></td>
+                                <td class="border-r border-black p-[1px]"></td>
+                                <td class="border-r border-black p-[1px]"></td>
+                                <td class="p-[1px]"></td>
                             </tr>
                         @endfor
                         <tr>

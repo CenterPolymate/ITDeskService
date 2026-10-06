@@ -315,6 +315,22 @@ class TicketController extends Controller
                 'root_cause_detail' => $request->root_cause_detail,
             ]);
 
+            // Sync parts if provided
+            if ($request->has('parts')) {
+                $ticket->parts()->delete();
+                if (is_array($request->parts)) {
+                    foreach ($request->parts as $part) {
+                        if (!empty($part['part_name']) && !empty($part['quantity']) && !empty($part['unit'])) {
+                            $ticket->parts()->create([
+                                'part_name' => $part['part_name'],
+                                'quantity' => $part['quantity'],
+                                'unit' => $part['unit'],
+                            ]);
+                        }
+                    }
+                }
+            }
+
             return redirect()->route('tickets.show', $id)->with('success', 'อัปเดตข้อมูลสำเร็จแล้ว');
         } elseif ($request->action === 'accept_resolution') {
             $isRequester = Auth::user()->email === $ticket->requester_email;

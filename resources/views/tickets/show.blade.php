@@ -139,10 +139,40 @@
                         @endif
 
                         <!-- บันทึกการแก้ไขปัญหาเฉพาะหน้า -->
-                        @if($ticket->resolution_notes)
+                        @if($ticket->resolution_notes || $ticket->parts->count() > 0)
                         <div class="mt-6 border-t pt-4">
+                            @if($ticket->resolution_notes)
                             <h4 class="text-md font-semibold text-green-700 mb-2">บันทึกการแก้ไขปัญหาเฉพาะหน้า (Resolution Notes):</h4>
                             <p class="text-gray-700 whitespace-pre-wrap bg-green-50 p-4 rounded-md border border-green-200">{{ $ticket->resolution_notes }}</p>
+                            @endif
+                            
+                            @if($ticket->parts->count() > 0)
+                            <div class="mt-4">
+                                <h4 class="text-sm font-semibold text-green-700 mb-2">รายการอะไหล่ / วัสดุอุปกรณ์ที่ใช้:</h4>
+                                <div class="bg-white border border-gray-200 rounded-md overflow-hidden">
+                                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500 w-16">ลำดับ</th>
+                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500">ชื่ออะไหล่/วัสดุ</th>
+                                                <th scope="col" class="px-4 py-2 text-right font-medium text-gray-500 w-24">จำนวน</th>
+                                                <th scope="col" class="px-4 py-2 text-left font-medium text-gray-500 w-24">หน่วยนับ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-200 bg-white">
+                                            @foreach($ticket->parts as $index => $part)
+                                            <tr>
+                                                <td class="px-4 py-2 text-gray-500">{{ $index + 1 }}</td>
+                                                <td class="px-4 py-2 font-medium text-gray-900">{{ $part->part_name }}</td>
+                                                <td class="px-4 py-2 text-right text-gray-700">{{ $part->quantity }}</td>
+                                                <td class="px-4 py-2 text-gray-700">{{ $part->unit }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            @endif
                         </div>
                         @endif
 
@@ -186,6 +216,26 @@
                                     <div class="mb-5">
                                         <label for="resolution_notes" class="block font-bold text-gray-800 text-sm mb-2">แก้ไขบันทึกการแก้ไขปัญหาเฉพาะหน้า</label>
                                         <textarea name="resolution_notes" id="resolution_notes" rows="3" {{ $ticket->status === 'resolved' ? 'required' : '' }} class="w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm">{{ $ticket->resolution_notes }}</textarea>
+                                    </div>
+                                    
+                                    <div class="mb-5 bg-amber-50 p-4 rounded-md border border-amber-200" x-data="{ parts: {{ json_encode($ticket->parts->map(function($p) { return ['part_name' => $p->part_name, 'quantity' => $p->quantity, 'unit' => $p->unit]; })->values()->all()) }} }">
+                                        <label class="block font-bold text-gray-800 text-sm mb-2">แก้ไขรายการอะไหล่ / วัสดุอุปกรณ์ที่ใช้ (ถ้ามี)</label>
+                                        <div class="space-y-2 mb-3">
+                                            <template x-for="(part, index) in parts" :key="index">
+                                                <div class="flex items-center gap-2">
+                                                    <input type="text" :name="`parts[${index}][part_name]`" x-model="part.part_name" required placeholder="ชื่ออะไหล่/วัสดุ" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" />
+                                                    <input type="number" :name="`parts[${index}][quantity]`" x-model="part.quantity" required min="1" placeholder="จำนวน" class="w-20 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" />
+                                                    <input type="text" :name="`parts[${index}][unit]`" x-model="part.unit" required placeholder="หน่วย (เช่น ชิ้น, เส้น)" class="w-32 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm" />
+                                                    <button type="button" @click="parts.splice(index, 1)" class="text-red-500 hover:text-red-700 p-2">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                    </button>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        <button type="button" @click="parts.push({part_name: '', quantity: 1, unit: 'ชิ้น'})" class="text-sm text-amber-700 hover:text-amber-900 font-bold flex items-center gap-1 border border-amber-600 px-3 py-1.5 rounded-md hover:bg-amber-100 transition-colors bg-white">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                            เพิ่มรายการอะไหล่/วัสดุ
+                                        </button>
                                     </div>
                                     
                                     <div class="flex justify-end gap-3">
@@ -262,8 +312,27 @@
                                     @endif
                                     <input type="hidden" name="action" value="resolve">
                                     <div class="mb-4">
-                                        <label for="resolution_notes" class="block font-bold text-gray-700 text-sm">บันทึกการแก้ไขปัญหาเฉพาะหน้า (Resolution Notes)</label>
-                                        <textarea name="resolution_notes" id="resolution_notes" rows="3" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" placeholder="ระบุรายละเอียดว่าแก้ไขปัญหาอย่างไร..."></textarea>
+                                        <label for="resolution_notes" class="block font-bold text-gray-700 text-sm mb-2">บันทึกการแก้ไขปัญหาเฉพาะหน้า (Resolution Notes)</label>
+                                        <textarea name="resolution_notes" id="resolution_notes" rows="3" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" placeholder="ระบุรายละเอียดว่าแก้ไขปัญหาอย่างไร..."></textarea>
+                                    </div>
+                                    <div class="mb-5 bg-gray-50 p-4 rounded-md border border-gray-200" x-data="{ parts: [] }">
+                                        <label class="block font-bold text-gray-700 text-sm mb-2">รายการอะไหล่ / วัสดุอุปกรณ์ที่ใช้ (ถ้ามี)</label>
+                                        <div class="space-y-2 mb-3">
+                                            <template x-for="(part, index) in parts" :key="index">
+                                                <div class="flex items-center gap-2">
+                                                    <input type="text" :name="`parts[${index}][part_name]`" x-model="part.part_name" required placeholder="ชื่ออะไหล่/วัสดุ" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" />
+                                                    <input type="number" :name="`parts[${index}][quantity]`" x-model="part.quantity" required min="1" placeholder="จำนวน" class="w-20 rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" />
+                                                    <input type="text" :name="`parts[${index}][unit]`" x-model="part.unit" required placeholder="หน่วย (เช่น ชิ้น, เส้น)" class="w-32 rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm" />
+                                                    <button type="button" @click="parts.splice(index, 1)" class="text-red-500 hover:text-red-700 p-2">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                    </button>
+                                                </div>
+                                            </template>
+                                        </div>
+                                        <button type="button" @click="parts.push({part_name: '', quantity: 1, unit: 'ชิ้น'})" class="text-sm text-emerald-600 hover:text-emerald-800 font-bold flex items-center gap-1 border border-emerald-600 px-3 py-1.5 rounded-md hover:bg-emerald-50 transition-colors bg-white">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                            เพิ่มรายการอะไหล่/วัสดุ
+                                        </button>
                                     </div>
                                     <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
                                         ✅ บันทึกและส่งมอบงาน

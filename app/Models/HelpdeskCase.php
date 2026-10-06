@@ -220,6 +220,11 @@ class HelpdeskCase extends Model
         return $this->hasMany(TicketComment::class, 'helpdesk_case_id');
     }
 
+    public function parts()
+    {
+        return $this->hasMany(TicketPart::class, 'helpdesk_case_id');
+    }
+
     /**
      * Filter cases query by criteria.
      *
