@@ -30,10 +30,11 @@
 
 6. **Documentation Update Rules:**
    - หากผู้ใช้พิมพ์คำว่า "อัพเดทเอกสาร" หรือ "update เอกสาร" ให้ดำเนินการตามขั้นตอนต่อไปนี้เสมอ:
-     1. ตรวจสอบและอัปเดตเอกสารทั้ง 6 ไฟล์ต่อไปนี้ให้เป็นปัจจุบัน (ภาษาไทย): `docs/er_diagram.md`, `docs/glossary.md`, `docs/implementation_plan.md`, `task.md`, `CONTEXT.md`, และ `AGENTS.md`
-     2. รันคำสั่ง `npm run build` (หากมีการแก้ไขไฟล์ CSS, JS หรือ Blade)
-     3. ทำการ Commit และ Push โค้ดทั้งหมดขึ้น Github
-     4. แจ้งเตือนให้ผู้ใช้งานล็อกอินเข้า SSH ของ CloudPanel แล้วพิมพ์คำสั่ง `git config --global --add safe.directory /home/itdeskservice-demo/htdocs/itdeskservice-demo.com` แล้วต่อด้วย `git pull` เพื่ออัปเดตเซิร์ฟเวอร์
+     1. สอบถามและขอให้ผู้ใช้งานตรวจสอบแท็บ "Problems" ใน VS Code ว่ามี Error หรือ Warning ค้างอยู่หรือไม่ (หากมีให้ผู้ใช้ส่งข้อความหรือแคปหน้าจอมาให้) เพื่อทำการแก้ไขโค้ดและเคลียร์ Problems ให้เป็น 0 ก่อนเป็นลำดับแรกเสมอ
+     2. ตรวจสอบและอัปเดตเอกสารทั้ง 6 ไฟล์ต่อไปนี้ให้เป็นปัจจุบัน (ภาษาไทย): `docs/er_diagram.md`, `docs/glossary.md`, `docs/implementation_plan.md`, `task.md`, `CONTEXT.md`, และ `AGENTS.md`
+     3. รันคำสั่ง `npm run build` (หากมีการแก้ไขไฟล์ CSS, JS หรือ Blade)
+     4. ทำการ Commit และ Push โค้ดทั้งหมดขึ้น Github
+     5. แจ้งเตือนให้ผู้ใช้งานล็อกอินเข้า SSH ของ CloudPanel แล้วพิมพ์คำสั่ง `git config --global --add safe.directory /home/itdeskservice-demo/htdocs/itdeskservice-demo.com` แล้วต่อด้วย `git pull` เพื่ออัปเดตเซิร์ฟเวอร์
 
 7. **Specific Workflow Constraints:**
    - **Ticket Creation (เปิดเคส):**
