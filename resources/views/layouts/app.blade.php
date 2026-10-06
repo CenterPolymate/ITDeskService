@@ -34,12 +34,20 @@
         </div>
         
         @if(session()->has('impersonated_by'))
-            <div class="fixed bottom-0 left-0 w-full bg-indigo-600 px-4 py-3 text-white text-center flex items-center justify-center gap-4 z-[100] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-                <span class="text-sm font-medium">คุณกำลังใช้งานระบบในฐานะ "{{ Auth::user()->name }}" (โหมดจำลองผู้ใช้)</span>
-                <form action="{{ route('impersonate.leave') }}" method="POST" class="m-0 p-0">
+            <div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 bg-slate-900/95 backdrop-blur-md px-4 py-2.5 rounded-full shadow-2xl border border-slate-700 w-max max-w-[90vw]">
+                <div class="flex items-center gap-2 truncate">
+                    <span class="relative flex h-2 w-2 shrink-0">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-xs font-medium text-slate-200 truncate">จำลอง: <span class="text-white font-bold">{{ Auth::user()->name }}</span></span>
+                </div>
+                <div class="w-px h-4 bg-slate-700 shrink-0"></div>
+                <form action="{{ route('impersonate.leave') }}" method="POST" class="m-0 p-0 shrink-0">
                     @csrf
-                    <button type="submit" class="bg-white text-indigo-600 hover:bg-indigo-50 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm transition-colors border border-transparent hover:border-indigo-200">
-                        กลับสู่บัญชีแอดมิน
+                    <button type="submit" class="text-rose-400 hover:text-rose-300 text-xs font-bold transition-colors flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        ออก
                     </button>
                 </form>
             </div>
