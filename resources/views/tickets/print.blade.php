@@ -267,8 +267,13 @@
                 </td>
                 <td class="p-1 border-b border-black align-top">
                     <div class="font-bold">ภาพประกอบ</div>
-                    <div class="mt-1 flex justify-center items-center">
-                        @if ($ticket->attachment_path)
+                    <div class="mt-1 flex justify-center items-center gap-1 flex-wrap">
+                        @if ($ticket->attachments && $ticket->attachments->count() > 0)
+                            @foreach ($ticket->attachments as $attachment)
+                                <img src="{{ asset('storage/' . $attachment->file_path) }}" alt="Attachment"
+                                    class="max-w-[48%] max-h-[60px] object-contain">
+                            @endforeach
+                        @elseif ($ticket->attachment_path)
                             <img src="{{ asset('storage/' . $ticket->attachment_path) }}" alt="Attachment"
                                 class="max-w-full max-h-[60px] object-contain">
                         @endif
