@@ -6,4 +6,5 @@
 - [x] ปรับปรุงระบบนำเข้าข้อมูล CSV (Import) รองรับ BOM และแก้ปัญหา JavaScript Dispatch event
 - [x] ปรับเงื่อนไขการเริ่มนับ SLA จากตอนแจกจ่ายงานให้เริ่มนับตั้งแต่ตอนกดสร้างใบงานทันที (4 ชั่วโมง) ครอบคลุมทั้ง Web และ LINE OA
 - [x] เพิ่มฟังก์ชัน Filter และการ์ด KPI สำหรับค้นหาและแสดงเคสที่แก้ไขเสร็จ "เกินกำหนด SLA (Breached SLA)" บนหน้า Dashboard
+- [x] ปรับปรุงหน้า Dashboard ของ Superadmin: ทำการ์ดให้กดคลิกได้, ปรับสี Chart, เพิ่มการ์ดสถิติ SLA Breached และ สถานะ Backup
 - **All current tasks are completed.**

@@ -412,4 +412,14 @@ class HelpdeskCase extends Model
 
         return $this->sla_due_at && $this->sla_due_at->isPast();
     }
+
+    /**
+     * Scope a query to only include breached SLA tickets (resolved_at > sla_due_at).
+     */
+    public function scopeBreached($query)
+    {
+        return $query->whereNotNull('resolved_at')
+                     ->whereNotNull('sla_due_at')
+                     ->whereColumn('resolved_at', '>', 'sla_due_at');
+    }
 }

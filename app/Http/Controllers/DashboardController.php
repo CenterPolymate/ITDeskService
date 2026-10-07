@@ -9,6 +9,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -19,6 +21,7 @@ class DashboardController extends Controller
         if ($user->role === 'administrator') {
             $totalTickets = HelpdeskCase::count();
             $resolvedTickets = HelpdeskCase::whereIn('status', ['resolved', 'approved', 'closed', 'cancelled'])->count();
+            $breachedTickets = HelpdeskCase::breached()->count();
 
             $stats = [
                 'total_it_users' => User::where('role', '!=', 'user')->count(),
@@ -30,6 +33,7 @@ class DashboardController extends Controller
                 'total_slas' => Sla::count(),
                 'total_tickets' => $totalTickets,
                 'resolved_tickets' => $resolvedTickets,
+                'breached_tickets' => $breachedTickets,
                 'resolution_rate' => $totalTickets > 0 ? round(($resolvedTickets / $totalTickets) * 100) : 0,
             ];
 
@@ -58,7 +62,26 @@ class DashboardController extends Controller
                 $chartData[] = $ticketStatuses[$key] ?? 0;
             }
 
-            return view('dashboard-superadmin', compact('stats', 'chartLabels', 'chartData'));
+            // Latest Backup
+            $latestBackup = null;
+            try {
+                $disk = Storage::disk(config('backup.backup.destination.disks')[0] ?? 'local');
+                $backupName = config('backup.backup.name');
+                $files = $disk->files($backupName);
+                $files = array_filter($files, fn($file) => substr($file, -4) === '.zip');
+                if (!empty($files)) {
+                    $latestFile = end($files); // last element is usually the newest if sorted alphabetically by timestamp
+                    $latestBackup = [
+                        'file_name' => str_replace($backupName.'/', '', $latestFile),
+                        'last_modified' => Carbon::createFromTimestamp($disk->lastModified($latestFile))->translatedFormat('d F Y H:i'),
+                        'size' => round($disk->size($latestFile) / 1048576, 2) . ' MB',
+                    ];
+                }
+            } catch (\Exception $e) {
+                // Ignore error if backup disk is missing or unreadable
+            }
+
+            return view('dashboard-superadmin', compact('stats', 'chartLabels', 'chartData', 'latestBackup'));
         }
 
         // 1. Data Isolation for General Users
