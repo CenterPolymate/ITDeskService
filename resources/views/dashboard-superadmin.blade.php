@@ -9,7 +9,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             
             <!-- Quick Stats Row 1 -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- IT Users -->
                 <a href="{{ route('users.index') }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between transition-transform hover:scale-105 hover:border-indigo-300 hover:shadow-md cursor-pointer group">
                     <div>
@@ -52,6 +52,32 @@
                     </div>
                     <div class="p-4 bg-teal-50 rounded-lg text-teal-500 group-hover:bg-teal-100 transition-colors">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    </div>
+                </a>
+
+                <!-- Backup -->
+                <a href="{{ route('backups.index') }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between transition-transform hover:scale-105 hover:border-blue-300 hover:shadow-md cursor-pointer group">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1 group-hover:text-blue-600 transition-colors">ระบบสำรองข้อมูล (Backup)</p>
+                        @if($latestBackup)
+                            <h3 class="text-lg font-black text-blue-600">{{ $latestBackup['last_modified'] }}</h3>
+                            <p class="text-xs text-green-600 mt-2 font-medium flex items-center">
+                                <span class="relative flex h-2 w-2 mr-1">
+                                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                  <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                </span>
+                                ขนาด: {{ $latestBackup['size'] }}
+                            </p>
+                        @else
+                            <h3 class="text-lg font-black text-gray-400">ไม่มีข้อมูล</h3>
+                            <p class="text-xs text-gray-500 mt-2 font-medium flex items-center">
+                                <span class="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1"></span>
+                                รอการสำรองข้อมูล
+                            </p>
+                        @endif
+                    </div>
+                    <div class="p-4 bg-blue-50 rounded-lg text-blue-500 group-hover:bg-blue-100 transition-colors">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
                     </div>
                 </a>
             </div>
@@ -107,36 +133,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <a href="{{ route('backups.index') }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6 hover:shadow-md hover:border-blue-300 transition-colors group cursor-pointer">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors">ระบบสำรองข้อมูล (Backup)</h3>
-                            <div class="p-2 bg-blue-50 text-blue-500 rounded-lg group-hover:bg-blue-100 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
-                            </div>
-                        </div>
-                        
-                        @if($latestBackup)
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="relative flex h-3 w-3">
-                                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                  <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                                </span>
-                                <span class="text-sm font-medium text-gray-700">สำรองข้อมูลล่าสุดเมื่อ:</span>
-                            </div>
-                            <p class="text-gray-600 text-sm mb-1 font-semibold">{{ $latestBackup['last_modified'] }}</p>
-                            <p class="text-xs text-gray-400">ขนาด: {{ $latestBackup['size'] }}</p>
-                        @else
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="relative flex h-3 w-3">
-                                  <span class="relative inline-flex rounded-full h-3 w-3 bg-gray-300"></span>
-                                </span>
-                                <span class="text-sm font-medium text-gray-500">ยังไม่มีประวัติการสำรองข้อมูล</span>
-                            </div>
-                            <p class="text-xs text-gray-400 mt-1">ระบบจะทำการสำรองข้อมูลอัตโนมัติทุกๆ เที่ยงคืน</p>
-                        @endif
-                    </a>
-
                 </div>
             </div>
         </div>
