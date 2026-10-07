@@ -61,6 +61,10 @@
                                 </div>
                                 <div class="text-sm text-gray-600 space-y-1 mb-3">
                                     <div class="flex justify-between">
+                                        <span class="text-gray-500">ประเภท:</span>
+                                        <span class="font-medium {{ $backup['type'] === 'เต็มระบบ' ? 'text-blue-600' : 'text-emerald-600' }}">{{ $backup['type'] }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
                                         <span class="text-gray-500">ขนาด:</span>
                                         <span>{{ $backup['file_size'] }}</span>
                                     </div>
@@ -92,6 +96,7 @@
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อไฟล์</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ประเภท</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ขนาด</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">เวลาที่สำรอง</th>
                                         <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">จัดการ</th>
@@ -101,6 +106,13 @@
                                     @foreach($backups as $backup)
                                     <tr>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{{ $backup['file_name'] }}</td>
+                                        <td class="px-4 py-2 whitespace-nowrap text-sm font-medium {{ $backup['type'] === 'เต็มระบบ' ? 'text-blue-600' : 'text-emerald-600' }}">
+                                            @if($backup['type'] === 'เต็มระบบ')
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">เต็มระบบ (Full)</span>
+                                            @else
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">ฐานข้อมูล (DB Only)</span>
+                                            @endif
+                                        </td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{{ $backup['file_size'] }}</td>
                                         <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{{ $backup['last_modified'] }}</td>
                                         <td class="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">

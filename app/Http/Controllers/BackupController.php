@@ -31,11 +31,25 @@ class BackupController extends Controller
 
         foreach ($files as $file) {
             if (substr($file, -4) === '.zip' && $disk->exists($file)) {
+                $fileName = str_replace($backupName.'/', '', $file);
+                
+                // Determine backup type from prefix or fallback to size estimation
+                $type = 'ไม่ทราบ';
+                if (str_starts_with($fileName, 'DB_')) {
+                    $type = 'เฉพาะฐานข้อมูล';
+                } elseif (str_starts_with($fileName, 'FULL_')) {
+                    $type = 'เต็มระบบ';
+                } else {
+                    // Fallback guess: < 5MB is likely DB only, else Full
+                    $type = $disk->size($file) > 5 * 1024 * 1024 ? 'เต็มระบบ' : 'เฉพาะฐานข้อมูล';
+                }
+
                 $backups[] = [
                     'file_path' => $file,
-                    'file_name' => str_replace($backupName.'/', '', $file),
+                    'file_name' => $fileName,
                     'file_size' => $this->humanFilesize($disk->size($file)),
                     'last_modified' => Carbon::createFromTimestamp($disk->lastModified($file))->translatedFormat('d F Y H:i:s'),
+                    'type' => $type,
                 ];
             }
         }
@@ -60,8 +74,10 @@ class BackupController extends Controller
 
         try {
             if ($request->type === 'db_only') {
+                config(['backup.backup.destination.filename_prefix' => 'DB_']);
                 Artisan::call('backup:run', ['--only-db' => true]);
             } else {
+                config(['backup.backup.destination.filename_prefix' => 'FULL_']);
                 Artisan::call('backup:run');
             }
 
