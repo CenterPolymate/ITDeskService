@@ -70,8 +70,9 @@
                                     <x-dropdown-link :href="route('categories.index')">
                                         {{ __('จัดการหมวดหมู่ปัญหา') }}
                                     </x-dropdown-link>
-                                    <x-dropdown-link :href="route('slas.index')">
-                                        {{ __('ตั้งค่า SLA') }}
+
+                                    <x-dropdown-link :href="route('holidays.index')">
+                                        {{ __('ตั้งค่าวันหยุด (Holidays)') }}
                                     </x-dropdown-link>
                                     <x-dropdown-link :href="route('settings.index')">
                                         {{ __('ตั้งค่าระบบ') }}
@@ -169,8 +170,9 @@
                 <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')" class="pl-8">
                     {{ __('จัดการหมวดหมู่ปัญหา') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('slas.index')" :active="request()->routeIs('slas.*')" class="pl-8">
-                    {{ __('ตั้งค่า SLA') }}
+
+                <x-responsive-nav-link :href="route('holidays.index')" :active="request()->routeIs('holidays.*')" class="pl-8">
+                    {{ __('ตั้งค่าวันหยุด (Holidays)') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('settings.index')" :active="request()->routeIs('settings.*')" class="pl-8">
                     {{ __('ตั้งค่าระบบ') }}

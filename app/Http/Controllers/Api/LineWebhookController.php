@@ -112,6 +112,10 @@ class LineWebhookController extends Controller
                 $ticketNo = 'IT-'.now()->format('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
             }
 
+            $companyModel = \App\Models\Company::where('name', $user->company)->first();
+            $slaType = $companyModel ? $companyModel->sla_type : '8x5';
+            $slaService = app(\App\Services\SlaService::class);
+
             $ticket = HelpdeskCase::create([
                 'user_id' => $user->id,
                 'ticket_no' => $ticketNo,
@@ -125,6 +129,7 @@ class LineWebhookController extends Controller
                 'requester_phone' => $data['requester_phone'],
                 'department' => $user->department ?? 'Unknown',
                 'location' => $data['location'],
+                'sla_due_at' => $slaService->calculateDueDate(now(), 4, $slaType),
             ]);
 
             $replyText = "✅ เปิดเคสสำเร็จ!\nหมายเลข Ticket ของคุณคือ: ".$ticket->ticket_no."\n\n(หากต้องการเช็คสถานะ พิมพ์ 'เช็คสถานะ ".$ticket->ticket_no."')";

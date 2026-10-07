@@ -36,6 +36,17 @@
                             @enderror
                         </div>
 
+                        <div class="mb-4">
+                            <label for="sla_type" class="block text-sm font-medium text-gray-700">ประเภท SLA (SLA Type) <span class="text-red-500">*</span></label>
+                            <select name="sla_type" id="sla_type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                <option value="8x5x4" {{ old('sla_type', '8x5x4') === '8x5x4' ? 'selected' : '' }}>8x5x4 (จันทร์-ศุกร์ 08:00-17:00 / ภายใน 4 ชม.)</option>
+                                <option value="24x7x4" {{ old('sla_type') === '24x7x4' ? 'selected' : '' }}>24x7x4 (ตลอด 24 ชั่วโมง / ภายใน 4 ชม.)</option>
+                            </select>
+                            @error('sla_type')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <div class="mb-6">
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="is_active" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" value="1" {{ old('is_active', true) ? 'checked' : '' }}>

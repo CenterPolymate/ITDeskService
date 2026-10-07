@@ -131,6 +131,9 @@ class DashboardController extends Controller
             })->count(),
             'preventive_completed' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where('preventive_measure', 'done')->count(),
             'urgent' => (clone $baseQuery)->where('priority', 'urgent')->whereNotIn('status', ['closed', 'cancelled'])->count(),
+            'breached' => (clone $baseQuery)->whereIn('status', ['resolved', 'closed'])
+                ->whereNotNull('sla_due_at')
+                ->whereColumn('resolved_at', '>', 'sla_due_at')->count(),
 
             // Task 2 Stats
             'task2_total' => (clone $baseQuery)->where('status', 'closed')->count(),
@@ -155,6 +158,7 @@ class DashboardController extends Controller
         $stats['percent_in_progress'] = $stats['total'] > 0 ? round(($stats['in_progress'] / $stats['total']) * 100) : 0;
         $stats['percent_testing'] = $stats['total'] > 0 ? round(($stats['testing'] / $stats['total']) * 100) : 0;
         $stats['percent_completed'] = $stats['total'] > 0 ? round(($stats['completed'] / $stats['total']) * 100) : 0;
+        $stats['percent_breached'] = $stats['completed'] > 0 ? round(($stats['breached'] / max($stats['completed'], 1)) * 100) : 0;
 
         // Percentages for Task 2 relative to Task 2 Total
         $t2_total = $stats['task2_total'];

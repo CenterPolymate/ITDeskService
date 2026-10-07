@@ -14,10 +14,10 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\ImpersonateController;
 use App\Http\Controllers\NormalUserController;
 use App\Http\Controllers\SettingController;
-use App\Http\Controllers\SlaController;
 use App\Http\Controllers\TicketCommentController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UserManagementController;
@@ -42,8 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/tickets/{id}/comments', [TicketCommentController::class, 'store'])->name('tickets.comments.store');
 
     // SLA Management
-    Route::get('/slas', [SlaController::class, 'index'])->name('slas.index');
-    Route::put('/slas', [SlaController::class, 'update'])->name('slas.update');
+    // (Removed as SLA is now globally fixed at 4 hours)
 
     // User Management
     Route::post('users/{user}/force-reset-password', [UserManagementController::class, 'forceResetPassword'])->name('users.force_reset_password');
@@ -61,6 +60,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('companies/{company}/departments/map', [CompanyController::class, 'mapDepartment'])->name('companies.departments.map');
     Route::put('companies/departments/{department}', [CompanyController::class, 'updateDepartment'])->name('companies.departments.update');
     Route::delete('companies/departments/{department}', [CompanyController::class, 'destroyDepartment'])->name('companies.departments.destroy');
+
+    Route::resource('holidays', HolidayController::class)->only(['index', 'store', 'destroy']);
 
     Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('settings', [SettingController::class, 'update'])->name('settings.update');

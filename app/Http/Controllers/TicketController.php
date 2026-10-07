@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\HelpdeskCase;
-use App\Models\Sla;
+use App\Services\SlaService;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -66,6 +67,10 @@ class TicketController extends Controller
 
         $ticketNo = $prefix.str_pad($newNumber, 4, '0', STR_PAD_LEFT);
 
+        $companyModel = \App\Models\Company::where('name', $user->company)->first();
+        $slaType = $companyModel ? $companyModel->sla_type : '8x5';
+        $slaService = app(\App\Services\SlaService::class);
+
         // Create Case
         $ticket = HelpdeskCase::create([
             'ticket_no' => $ticketNo,
@@ -85,6 +90,7 @@ class TicketController extends Controller
             'company' => $user->company,
             'department' => $user->department,
             'location' => $request->location,
+            'sla_due_at' => $slaService->calculateDueDate(now(), 4, $slaType),
         ]);
 
         // Handle File Upload (Max 2 files)
@@ -173,21 +179,6 @@ class TicketController extends Controller
             'assigned_at' => now(),
             'assigned_by' => Auth::id(),
         ];
-
-        // Determine SLA based on priority and company from database
-        $slaConfig = Sla::where('company', $ticket->company)
-            ->where('priority', $request->priority)
-            ->first();
-
-        // Fallback to a default if not found
-        if (! $slaConfig) {
-            $slaConfig = Sla::where('priority', $request->priority)->first();
-        }
-        $slaHours = $slaConfig ? $slaConfig->hours : 24;
-
-        if (is_null($ticket->sla_due_at)) {
-            $updateData['sla_due_at'] = now()->addHours($slaHours);
-        }
 
         if ($status === 'in_progress') {
             $updateData['in_progress_at'] = now();

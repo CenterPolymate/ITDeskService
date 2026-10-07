@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Company;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password as PasswordBroker;
@@ -147,67 +148,107 @@ class NormalUserController extends Controller
         return redirect()->route('normal_users.index')->with('success', 'ระงับบัญชีผู้ใช้งานเรียบร้อยแล้ว (ไม่สามารถลบถาวรได้เนื่องจากมีประวัติเชื่อมโยงกับใบงาน)');
     }
 
-    public function import(Request $request)
+    public function import(Request $request): RedirectResponse
     {
         $this->authorizeAdministrator();
         $request->validate([
-            'csv_file' => 'required|mimes:csv,txt|max:2048',
+            'csv_file' => ['required', 'file', 'max:2048', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! in_array(strtolower($value->getClientOriginalExtension()), ['csv', 'txt'], true)) {
+                    $fail('กรุณาเลือกไฟล์นามสกุล .csv เท่านั้น');
+                }
+            }],
+        ], [
+            'csv_file.required' => 'กรุณาเลือกไฟล์ CSV',
+            'csv_file.max' => 'ไฟล์ต้องมีขนาดไม่เกิน 2MB',
         ]);
 
-        $file = $request->file('csv_file');
-        $handle = fopen($file->getPathname(), 'r');
+        $rows = $this->readCsvRows($request->file('csv_file'));
 
-        // Skip BOM if present
-        $bom = fread($handle, 3);
-        if ($bom !== "\xEF\xBB\xBF") {
-            rewind($handle);
-        }
-
-        $header = fgetcsv($handle, 1000, ',');
-        $successCount = 0;
-        $errorCount = 0;
-
-        while (($data = fgetcsv($handle, 1000, ',')) !== false) {
-            if (count($data) >= 4) {
-                $name = trim($data[0]);
-                $email = trim($data[1]);
-                $company = trim($data[2]);
-                $department = trim($data[3]);
-                $phone = isset($data[4]) ? trim($data[4]) : null;
-
-                if (! empty($name) && ! empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    // Make sure company exists
-                    $companyExists = Company::where('name', $company)->exists();
-                    if ($companyExists) {
-                        User::updateOrCreate(
-                            ['email' => $email],
-                            [
-                                'name' => $name,
-                                'company' => $company,
-                                'department' => $department,
-                                'phone' => $phone,
-                                'role' => 'user',
-                                // Set a default password for new users if they don't exist
-                                'password' => User::where('email', $email)->exists() ? User::where('email', $email)->value('password') : Hash::make('password123'),
-                            ]
-                        );
-                        $successCount++;
-                    } else {
-                        $errorCount++;
-                    }
-                } else {
-                    $errorCount++;
-                }
+        // จับคู่ชื่อบริษัทแบบไม่สนตัวพิมพ์เล็ก/ใหญ่ และรองรับชื่อย่อ
+        $companies = Company::all(['name', 'short_name']);
+        $companyLookup = [];
+        foreach ($companies as $companyModel) {
+            $companyLookup[mb_strtolower($companyModel->name)] = $companyModel->name;
+            if (! empty($companyModel->short_name)) {
+                $companyLookup[mb_strtolower($companyModel->short_name)] = $companyModel->name;
             }
         }
-        fclose($handle);
 
-        $message = "นำเข้าข้อมูลสำเร็จ {$successCount} รายการ";
-        if ($errorCount > 0) {
-            $message .= " (ข้ามแถวที่ข้อมูลไม่ครบถ้วนหรือไม่พบบริษัท {$errorCount} รายการ)";
+        $createdCount = 0;
+        $updatedCount = 0;
+        $errors = [];
+
+        foreach ($rows as $index => $data) {
+            $lineNumber = $index + 2; // +1 หัวตาราง, +1 เริ่มนับจาก 1
+            $name = $data[0] ?? '';
+            $email = strtolower($data[1] ?? '');
+            $companyInput = $data[2] ?? '';
+            $department = ($data[3] ?? '') ?: null;
+            $phone = ($data[4] ?? '') ?: null;
+
+            if ($name === '' || $email === '') {
+                $errors[] = "แถว {$lineNumber}: ไม่มีชื่อหรืออีเมล";
+
+                continue;
+            }
+
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = "แถว {$lineNumber}: อีเมลไม่ถูกต้อง ({$email})";
+
+                continue;
+            }
+
+            $companyName = $companyLookup[mb_strtolower($companyInput)] ?? null;
+            if ($companyName === null) {
+                $errors[] = "แถว {$lineNumber}: ไม่พบบริษัท \"{$companyInput}\" ในระบบ";
+
+                continue;
+            }
+
+            $existingUser = User::where('email', $email)->first();
+
+            if ($existingUser) {
+                if ($existingUser->role !== 'user') {
+                    $errors[] = "แถว {$lineNumber}: อีเมล {$email} เป็นบัญชีเจ้าหน้าที่ ไม่สามารถนำเข้าทับได้";
+
+                    continue;
+                }
+
+                $existingUser->update([
+                    'name' => $name,
+                    'company' => $companyName,
+                    'department' => $department,
+                    'phone' => $phone,
+                ]);
+                $updatedCount++;
+
+                continue;
+            }
+
+            User::create([
+                'name' => $name,
+                'email' => $email,
+                'company' => $companyName,
+                'department' => $department,
+                'phone' => $phone,
+                'role' => 'user',
+                'password' => Hash::make('password123'),
+            ]);
+            $createdCount++;
         }
 
-        return redirect()->route('normal_users.index')->with('success', $message);
+        $message = "นำเข้าข้อมูลสำเร็จ: เพิ่มใหม่ {$createdCount} รายการ, อัปเดต {$updatedCount} รายการ";
+        if ($createdCount > 0) {
+            $message .= ' (รหัสผ่านเริ่มต้นของบัญชีใหม่คือ password123)';
+        }
+
+        $redirect = redirect()->route('normal_users.index')->with('success', $message);
+
+        if (! empty($errors)) {
+            $redirect->with('import_errors', $errors);
+        }
+
+        return $redirect;
     }
 
     public function forceResetPassword(User $normal_user)

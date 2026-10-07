@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -52,13 +53,48 @@ class LogAdminActions
         if ($shouldLog && ($response->isSuccessful() || $response->isRedirection())) {
             $changes = $request->except(['password', 'password_confirmation', '_token', '_method']);
 
+            // ไฟล์อัปโหลดแปลงเป็น JSON ไม่ได้ ให้บันทึกเป็นชื่อไฟล์แทน
+            array_walk_recursive($changes, function (mixed &$value): void {
+                if ($value instanceof UploadedFile) {
+                    $value = 'ไฟล์: '.$value->getClientOriginalName();
+                }
+            });
+
             $finalOldValues = null;
-            if ($oldValues && $changes) {
+
+            if ($method === 'DELETE' && $oldValues) {
+                // For DELETE, the request body is empty. Log the old values so we know what was deleted.
+                $changes = $oldValues;
+            } elseif ($oldValues && $changes) {
                 $finalOldValues = [];
+                $actualChanges = [];
+
                 foreach ($changes as $key => $val) {
                     if (array_key_exists($key, $oldValues)) {
-                        $finalOldValues[$key] = $oldValues[$key];
+                        $oldValStr = is_null($oldValues[$key]) ? '' : (string) $oldValues[$key];
+                        $newValStr = is_null($val) ? '' : (string) $val;
+
+                        // Handle checkbox boolean conversion
+                        if ($newValStr === 'on' && $oldValStr === '1') {
+                            $newValStr = '1';
+                        } elseif ($newValStr === 'on' && $oldValStr === '0') {
+                            $newValStr = '1';
+                        }
+
+                        if ($oldValStr !== $newValStr) {
+                            $finalOldValues[$key] = $oldValues[$key];
+                            $actualChanges[$key] = $val;
+                        }
+                    } else {
+                        $actualChanges[$key] = $val;
                     }
+                }
+
+                $changes = $actualChanges;
+
+                // If this is an update and no fields actually changed, skip logging
+                if (empty($changes) && in_array($method, ['PUT', 'PATCH'])) {
+                    return $response;
                 }
             }
 

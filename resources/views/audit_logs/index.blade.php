@@ -88,7 +88,13 @@
                                     $userName = $log->user->name ?? 'System';
                                     $actionText = $log->action;
                                     $badgeClass = 'bg-gray-100 text-gray-800';
-                                    if (str_contains($log->action, 'POST') || $log->action === 'created') {
+                                    if (str_contains($log->action, 'impersonate.leave')) {
+                                        $actionText = 'คืนสิทธิ์ (Leave)';
+                                        $badgeClass = 'bg-purple-50 text-purple-700 ring-purple-600/20';
+                                    } elseif (str_contains($log->action, 'impersonate')) {
+                                        $actionText = 'จำลองสิทธิ์';
+                                        $badgeClass = 'bg-purple-50 text-purple-700 ring-purple-600/20';
+                                    } elseif (str_contains($log->action, 'POST') || $log->action === 'created') {
                                         $actionText = 'เพิ่มข้อมูล';
                                         $badgeClass = 'bg-emerald-50 text-emerald-700 ring-emerald-600/20';
                                     } elseif (str_contains($log->action, 'PUT') || str_contains($log->action, 'PATCH') || $log->action === 'updated') {
@@ -105,7 +111,9 @@
                                     elseif (str_contains($log->target_type, 'users')) $targetText = 'ผู้ใช้งาน';
                                     elseif (str_contains($log->target_type, 'departments')) $targetText = 'แผนก/หน่วยงาน';
                                     elseif (str_contains($log->target_type, 'slas')) $targetText = 'SLA';
+                                    elseif (str_contains($log->target_type, 'holidays')) $targetText = 'วันหยุดนักขัตฤกษ์';
                                     elseif (str_contains($log->target_type, 'settings')) $targetText = 'ตั้งค่าระบบ';
+                                    elseif (str_contains($log->target_type, 'impersonate')) $targetText = 'บัญชีผู้ใช้';
                                     
                                     $displayId = $log->target_id;
                                     if ($displayId) {
@@ -143,9 +151,19 @@
                                     </div>
                                     
                                     <div class="bg-gray-50 rounded-lg p-3">
-                                        <div class="text-[11px] font-semibold text-gray-500 uppercase mb-2">ข้อมูลที่เปลี่ยนแปลง</div>
+                                        <div class="text-[11px] font-semibold text-gray-500 uppercase mb-2">รายละเอียด</div>
                                         <div class="text-xs text-gray-600">
-                                            @if($log->changes && is_array($log->changes))
+                                            @if(str_contains($log->target_type, 'impersonate'))
+                                                @if(str_contains($log->action, 'impersonate.leave'))
+                                                    <span class="text-gray-700">กลับสู่บัญชีหลัก (Admin)</span>
+                                                @else
+                                                    @php
+                                                        $targetUser = \App\Models\User::find((int)$displayId);
+                                                        $userName = $targetUser ? $targetUser->name : "ID: $displayId";
+                                                    @endphp
+                                                    <span class="text-gray-700">เข้าสู่ระบบด้วยสิทธิ์ของ: <span class="font-medium text-indigo-700">{{ $userName }}</span></span>
+                                                @endif
+                                            @elseif($log->changes && is_array($log->changes))
                                                 @php
                                                     $keyMap = [
                                                         'name' => 'ชื่อ',
@@ -161,35 +179,42 @@
                                                         'phone' => 'เบอร์โทรศัพท์',
                                                         'priority' => 'ความเร่งด่วน',
                                                         'hours' => 'จำนวนชั่วโมง',
+                                                        'sla_type' => 'ประเภท SLA',
+                                                        'date' => 'วันที่',
                                                     ];
                                                 @endphp
                                                 <div class="grid grid-cols-1 gap-2">
+                                                    @php $ignoredKeys = ['id', 'created_at', 'updated_at', 'deleted_at', 'email_verified_at', 'remember_token', 'password']; @endphp
                                                     @foreach($log->changes as $key => $value)
-                                                        <div class="flex flex-col gap-1 border-b border-gray-100 last:border-0 pb-1 last:pb-0">
-                                                            <span class="font-medium text-gray-700">{{ $keyMap[$key] ?? $key }}:</span>
-                                                            <div class="flex flex-col pl-2 border-l-2 border-gray-200 break-all">
+                                                        @if(in_array($key, $ignoredKeys)) @continue @endif
+                                                        @php
+                                                            $keyName = $keyMap[$key] ?? $key;
+                                                            $newValStr = is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : (string) $value;
+                                                            if ($newValStr === '') $newValStr = 'ว่างเปล่า';
+                                                            elseif (in_array($key, ['is_active', 'status'])) $newValStr = $value == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+                                                        @endphp
+                                                        <div class="text-sm border-b border-gray-100 last:border-0 pb-2 last:pb-0">
+                                                            @if(str_contains($log->action, 'DELETE') || $log->action === 'deleted')
+                                                                <span class="font-semibold text-gray-700">{{ $keyName }}:</span> <span class="text-gray-600">{{ $newValStr }}</span>
+                                                            @elseif(str_contains($log->action, 'POST') || $log->action === 'created')
+                                                                <span class="font-semibold text-gray-700">{{ $keyName }}:</span> <span class="text-gray-600">{{ $newValStr }}</span>
+                                                            @else
                                                                 @if($log->old_values && array_key_exists($key, $log->old_values))
-                                                                    @php $oldVal = $log->old_values[$key]; @endphp
-                                                                    <span class="text-rose-500 line-through">
-                                                                        @if(is_array($oldVal)) {{ json_encode($oldVal, JSON_UNESCAPED_UNICODE) }}
-                                                                        @elseif(is_null($oldVal) || $oldVal === '') <em class="opacity-75">ว่างเปล่า</em>
-                                                                        @elseif(in_array($key, ['is_active', 'status']))
-                                                                            {{ $oldVal == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}
-                                                                        @else {{ $oldVal }} @endif
-                                                                    </span>
+                                                                    @php
+                                                                        $oldVal = $log->old_values[$key];
+                                                                        $oldValStr = is_array($oldVal) ? json_encode($oldVal, JSON_UNESCAPED_UNICODE) : (string) $oldVal;
+                                                                        if ($oldValStr === '') $oldValStr = 'ว่างเปล่า';
+                                                                        elseif (in_array($key, ['is_active', 'status'])) $oldValStr = $oldVal == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+                                                                    @endphp
+                                                                    <div class="font-semibold text-blue-700 mb-1">{{ $keyName }}:</div>
+                                                                    <div class="pl-2 border-l-2 border-gray-200 text-gray-600 space-y-1">
+                                                                        <div><span class="text-xs text-gray-500 uppercase">เดิม:</span> <span class="text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded break-words">{{ $oldValStr }}</span></div>
+                                                                        <div><span class="text-xs text-gray-500 uppercase">ใหม่:</span> <span class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-medium break-words">{{ $newValStr }}</span></div>
+                                                                    </div>
+                                                                @else
+                                                                    <span class="font-semibold text-gray-700">{{ $keyName }}:</span> <span class="text-gray-600">{{ $newValStr }}</span>
                                                                 @endif
-                                                                <span class="text-emerald-600 font-medium mt-0.5">
-                                                                    @if(is_array($value))
-                                                                        {{ json_encode($value, JSON_UNESCAPED_UNICODE) }}
-                                                                    @elseif(is_null($value) || $value === '')
-                                                                        <em class="opacity-75">ว่างเปล่า</em>
-                                                                    @elseif(in_array($key, ['is_active', 'status']))
-                                                                        {{ $value == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}
-                                                                    @else
-                                                                        {{ $value }}
-                                                                    @endif
-                                                                </span>
-                                                            </div>
+                                                            @endif
                                                         </div>
                                                     @endforeach
                                                 </div>
@@ -213,7 +238,7 @@
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ผู้ใช้งาน</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">การกระทำ</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">เป้าหมาย</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">ข้อมูลที่เปลี่ยนแปลง</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase bg-gray-50">รายละเอียด</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-100">
@@ -236,7 +261,13 @@
                                             @php
                                                 $actionText = $log->action;
                                                 $badgeClass = 'bg-gray-100 text-gray-800';
-                                                if (str_contains($log->action, 'POST') || $log->action === 'created') {
+                                                if (str_contains($log->action, 'impersonate.leave')) {
+                                                    $actionText = 'คืนสิทธิ์ (Leave)';
+                                                    $badgeClass = 'bg-purple-50 text-purple-700 ring-purple-600/20';
+                                                } elseif (str_contains($log->action, 'impersonate')) {
+                                                    $actionText = 'จำลองสิทธิ์';
+                                                    $badgeClass = 'bg-purple-50 text-purple-700 ring-purple-600/20';
+                                                } elseif (str_contains($log->action, 'POST') || $log->action === 'created') {
                                                     $actionText = 'เพิ่มข้อมูล';
                                                     $badgeClass = 'bg-emerald-50 text-emerald-700 ring-emerald-600/20';
                                                 } elseif (str_contains($log->action, 'PUT') || str_contains($log->action, 'PATCH') || $log->action === 'updated') {
@@ -257,7 +288,9 @@
                                                 elseif (str_contains($log->target_type, 'users')) $targetText = 'ผู้ใช้งาน';
                                                 elseif (str_contains($log->target_type, 'departments')) $targetText = 'แผนก/หน่วยงาน';
                                                 elseif (str_contains($log->target_type, 'slas')) $targetText = 'SLA';
+                                                elseif (str_contains($log->target_type, 'holidays')) $targetText = 'วันหยุดนักขัตฤกษ์';
                                                 elseif (str_contains($log->target_type, 'settings')) $targetText = 'ตั้งค่าระบบ';
+                                                elseif (str_contains($log->target_type, 'impersonate')) $targetText = 'บัญชีผู้ใช้';
                                             @endphp
                                             {{ $targetText }} 
                                             @if($log->target_id) 
@@ -274,7 +307,17 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-500">
-                                            @if($log->changes && is_array($log->changes))
+                                            @if(str_contains($log->target_type, 'impersonate'))
+                                                @if(str_contains($log->action, 'impersonate.leave'))
+                                                    <span class="text-gray-700">กลับสู่บัญชีหลัก (Admin)</span>
+                                                @else
+                                                    @php
+                                                        $targetUser = \App\Models\User::find((int)$displayId);
+                                                        $userName = $targetUser ? $targetUser->name : "ID: $displayId";
+                                                    @endphp
+                                                    <span class="text-gray-700">เข้าสู่ระบบด้วยสิทธิ์ของ: <span class="font-medium text-indigo-700">{{ $userName }}</span></span>
+                                                @endif
+                                            @elseif($log->changes && is_array($log->changes))
                                                 @php
                                                     $keyMap = [
                                                         'name' => 'ชื่อ',
@@ -290,38 +333,46 @@
                                                         'phone' => 'เบอร์โทรศัพท์',
                                                         'priority' => 'ความเร่งด่วน',
                                                         'hours' => 'จำนวนชั่วโมง',
+                                                        'sla_type' => 'ประเภท SLA',
+                                                        'date' => 'วันที่',
                                                     ];
                                                 @endphp
-                                                <div class="grid grid-cols-1 gap-1">
+                                                <div class="grid grid-cols-1 gap-2">
+                                                    @php $ignoredKeys = ['id', 'created_at', 'updated_at', 'deleted_at', 'email_verified_at', 'remember_token', 'password']; @endphp
                                                     @foreach($log->changes as $key => $value)
-                                                            <div class="flex space-x-2 items-start">
-                                                                <span class="font-medium text-gray-700 whitespace-nowrap">{{ $keyMap[$key] ?? $key }}:</span>
-                                                                <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 break-all">
-                                                                    @if($log->old_values && array_key_exists($key, $log->old_values))
-                                                                        @php $oldVal = $log->old_values[$key]; @endphp
-                                                                        <span class="text-rose-500 line-through text-xs sm:text-sm">
-                                                                            @if(is_array($oldVal)) {{ json_encode($oldVal, JSON_UNESCAPED_UNICODE) }}
-                                                                            @elseif(is_null($oldVal) || $oldVal === '') <em class="opacity-75">ว่างเปล่า</em>
-                                                                            @elseif(in_array($key, ['is_active', 'status']))
-                                                                                {{ $oldVal == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}
-                                                                            @else {{ $oldVal }} @endif
-                                                                        </span>
-                                                                        <svg class="w-3 h-3 text-gray-400 hidden sm:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                                                                    @endif
-    
-                                                                    <span class="text-emerald-600 font-medium text-sm">
-                                                                        @if(is_array($value))
-                                                                            {{ json_encode($value, JSON_UNESCAPED_UNICODE) }}
-                                                                        @elseif(is_null($value) || $value === '')
-                                                                            <em class="opacity-75">ว่างเปล่า</em>
-                                                                        @elseif(in_array($key, ['is_active', 'status']))
-                                                                            {{ $value == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}
-                                                                        @else
-                                                                            {{ $value }}
-                                                                        @endif
-                                                                    </span>
-                                                                </div>
-                                                            </div>
+                                                        @if(in_array($key, $ignoredKeys)) @continue @endif
+                                                        @php
+                                                            $keyName = $keyMap[$key] ?? $key;
+                                                            $newValStr = is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : (string) $value;
+                                                            if ($newValStr === '') $newValStr = 'ว่างเปล่า';
+                                                            elseif (in_array($key, ['is_active', 'status'])) $newValStr = $value == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+                                                        @endphp
+                                                        <div class="text-sm">
+                                                            @if(str_contains($log->action, 'DELETE') || $log->action === 'deleted')
+                                                                <span class="font-medium text-gray-700">{{ $keyName }}:</span> <span class="text-gray-600">{{ $newValStr }}</span>
+                                                            @elseif(str_contains($log->action, 'POST') || $log->action === 'created')
+                                                                <span class="font-medium text-gray-700">{{ $keyName }}:</span> <span class="text-gray-600">{{ $newValStr }}</span>
+                                                            @else
+                                                                @if($log->old_values && array_key_exists($key, $log->old_values))
+                                                                    @php
+                                                                        $oldVal = $log->old_values[$key];
+                                                                        $oldValStr = is_array($oldVal) ? json_encode($oldVal, JSON_UNESCAPED_UNICODE) : (string) $oldVal;
+                                                                        if ($oldValStr === '') $oldValStr = 'ว่างเปล่า';
+                                                                        elseif (in_array($key, ['is_active', 'status'])) $oldValStr = $oldVal == 1 ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+                                                                    @endphp
+                                                                    <div class="flex flex-col mb-1.5">
+                                                                        <span class="font-medium text-blue-700">{{ $keyName }}:</span>
+                                                                        <div class="flex items-center flex-wrap gap-1.5 mt-0.5 text-[13px]">
+                                                                            <span class="text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded break-all">"{{ $oldValStr }}"</span>
+                                                                            <svg class="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                                                            <span class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-medium break-all">"{{ $newValStr }}"</span>
+                                                                        </div>
+                                                                    </div>
+                                                                @else
+                                                                    <span class="font-medium text-gray-700">{{ $keyName }}:</span> <span class="text-gray-600">{{ $newValStr }}</span>
+                                                                @endif
+                                                            @endif
+                                                        </div>
                                                     @endforeach
                                                 </div>
                                             @elseif($log->changes)

@@ -41,6 +41,7 @@ class CompanyController extends Controller
             'short_name' => 'nullable|string|max:50',
             'is_active' => 'boolean',
             'email_domains' => 'required|string|max:255',
+            'sla_type' => 'required|string|in:24x7x4,8x5x4',
         ]);
 
         $company = Company::create([
@@ -48,6 +49,7 @@ class CompanyController extends Controller
             'short_name' => $request->short_name,
             'is_active' => $request->has('is_active'),
             'email_domains' => $request->email_domains,
+            'sla_type' => $request->sla_type,
         ]);
 
         // Create default SLAs for the new company
@@ -96,6 +98,7 @@ class CompanyController extends Controller
             'short_name' => 'nullable|string|max:50',
             'is_active' => 'boolean',
             'email_domains' => 'required|string|max:255',
+            'sla_type' => 'required|string|in:24x7x4,8x5x4',
         ]);
 
         $oldName = $company->name;
@@ -106,6 +109,7 @@ class CompanyController extends Controller
             'short_name' => $request->short_name,
             'is_active' => $request->has('is_active'),
             'email_domains' => $request->email_domains,
+            'sla_type' => $request->sla_type,
         ]);
 
         // Update related SLAs if the name changed
@@ -226,27 +230,25 @@ class CompanyController extends Controller
     {
         $this->authorizeAdministrator();
         $request->validate([
-            'csv_file' => 'required|mimes:csv,txt|max:2048',
+            'csv_file' => ['required', 'file', 'max:2048', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! in_array(strtolower($value->getClientOriginalExtension()), ['csv', 'txt'], true)) {
+                    $fail('กรุณาเลือกไฟล์นามสกุล .csv เท่านั้น');
+                }
+            }],
+        ], [
+            'csv_file.required' => 'กรุณาเลือกไฟล์ CSV',
+            'csv_file.max' => 'ไฟล์ต้องมีขนาดไม่เกิน 2MB',
         ]);
 
-        $file = $request->file('csv_file');
-        $handle = fopen($file->getPathname(), 'r');
-
-        // Skip BOM if present
-        $bom = fread($handle, 3);
-        if ($bom !== "\xEF\xBB\xBF") {
-            rewind($handle);
-        }
-
-        $header = fgetcsv($handle, 1000, ',');
+        $rows = $this->readCsvRows($request->file('csv_file'));
         $successCount = 0;
         $errorCount = 0;
 
-        while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+        foreach ($rows as $data) {
             if (count($data) >= 3) {
-                $name = trim($data[0]);
-                $shortName = trim($data[1]);
-                $emailDomains = trim($data[2]);
+                $name = $data[0];
+                $shortName = $data[1] ?: null;
+                $emailDomains = $data[2];
 
                 if (! empty($name) && ! empty($emailDomains)) {
                     $company = Company::updateOrCreate(
@@ -287,7 +289,6 @@ class CompanyController extends Controller
                 }
             }
         }
-        fclose($handle);
 
         $message = "นำเข้าข้อมูลสำเร็จ {$successCount} รายการ";
         if ($errorCount > 0) {

@@ -251,6 +251,10 @@ class HelpdeskCase extends Model
                     $query->whereNotIn('status', ['closed', 'cancelled']);
                 } elseif ($status === 'completed') {
                     $query->whereIn('status', ['closed', 'cancelled']);
+                } elseif ($status === 'breached') {
+                    $query->whereIn('status', ['resolved', 'closed'])
+                          ->whereNotNull('sla_due_at')
+                          ->whereColumn('resolved_at', '>', 'sla_due_at');
                 } elseif ($status === 'pending') {
                     $query->whereIn('status', ['pending', 'assigned']);
                 } elseif ($status === 'manager_review' || $status === 'task2_manager_review') {
@@ -337,7 +341,7 @@ class HelpdeskCase extends Model
                 'in_progress' => 'PCAR: กำลังดำเนินการ',
                 'pending_review' => 'PCAR: รอตรวจสอบปิด',
                 'done' => 'PCAR: ปิดมาตรการ',
-                default => 'PCAR: ' . $this->preventive_measure,
+                default => 'PCAR: '.$this->preventive_measure,
             };
         }
 

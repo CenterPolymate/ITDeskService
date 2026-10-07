@@ -58,7 +58,7 @@ class AuditLogController extends Controller
             $file = fopen('php://output', 'w');
 
             fwrite($file, chr(0xEF).chr(0xBB).chr(0xBF)); // BOM for UTF-8 Excel
-            fputcsv($file, ['เวลา', 'ผู้ใช้งาน', 'การกระทำ', 'เป้าหมาย', 'รายละเอียดการเปลี่ยนแปลง']);
+            fputcsv($file, ['เวลา', 'ผู้ใช้งาน', 'การกระทำ', 'เป้าหมาย', 'รายละเอียด']);
 
             $query->chunk(100, function ($logs) use ($file) {
                 $keyMap = [
@@ -75,11 +75,17 @@ class AuditLogController extends Controller
                     'phone' => 'เบอร์โทรศัพท์',
                     'priority' => 'ความเร่งด่วน',
                     'hours' => 'จำนวนชั่วโมง',
+                    'sla_type' => 'ประเภท SLA',
+                    'date' => 'วันที่',
                 ];
 
                 foreach ($logs as $log) {
                     $actionText = $log->action;
-                    if (str_contains($log->action, 'POST') || $log->action === 'created') {
+                    if (str_contains($log->action, 'impersonate.leave')) {
+                        $actionText = 'คืนสิทธิ์การใช้งาน (Leave Impersonation)';
+                    } elseif (str_contains($log->action, 'impersonate')) {
+                        $actionText = 'จำลองสิทธิ์ (Impersonate)';
+                    } elseif (str_contains($log->action, 'POST') || $log->action === 'created') {
                         $actionText = 'เพิ่มข้อมูล';
                     } elseif (str_contains($log->action, 'PUT') || str_contains($log->action, 'PATCH') || $log->action === 'updated') {
                         $actionText = 'แก้ไขข้อมูล';
@@ -98,8 +104,12 @@ class AuditLogController extends Controller
                         $targetText = 'แผนก/หน่วยงาน';
                     } elseif (str_contains($log->target_type, 'slas')) {
                         $targetText = 'SLA';
+                    } elseif (str_contains($log->target_type, 'holidays')) {
+                        $targetText = 'วันหยุดนักขัตฤกษ์';
                     } elseif (str_contains($log->target_type, 'settings')) {
                         $targetText = 'ตั้งค่าระบบ';
+                    } elseif (str_contains($log->target_type, 'impersonate')) {
+                        $targetText = 'บัญชีผู้ใช้';
                     }
 
                     $displayId = $log->target_id;
@@ -115,8 +125,21 @@ class AuditLogController extends Controller
                     $target = $targetText.($displayId ? ' #'.$displayId : '');
 
                     $changesText = [];
-                    if (is_array($log->changes) && count($log->changes) > 0) {
+                    if (str_contains($log->target_type, 'impersonate')) {
+                        if (str_contains($log->action, 'impersonate.leave')) {
+                            $changesText[] = "กลับสู่บัญชีหลัก (Admin)";
+                        } else {
+                            $targetUser = \App\Models\User::find($displayId);
+                            $userName = $targetUser ? $targetUser->name : "ID: $displayId";
+                            $changesText[] = "เข้าสู่ระบบด้วยสิทธิ์ของ: $userName";
+                        }
+                    } elseif (is_array($log->changes) && count($log->changes) > 0) {
+                        $ignoredKeys = ['id', 'created_at', 'updated_at', 'deleted_at', 'email_verified_at', 'remember_token', 'password'];
                         foreach ($log->changes as $key => $value) {
+                            if (in_array($key, $ignoredKeys)) {
+                                continue;
+                            }
+                            
                             $keyName = $keyMap[$key] ?? $key;
 
                             $valStr = is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : (string) $value;

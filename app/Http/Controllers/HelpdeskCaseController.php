@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\HelpdeskCase;
+use App\Services\SlaService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -163,15 +165,6 @@ class HelpdeskCaseController extends Controller
         $nextId = (HelpdeskCase::max('id') ?? 0) + 1;
         $ticketNo = 'ITD-'.date('Y').'-'.str_pad((string) $nextId, 3, '0', STR_PAD_LEFT);
 
-        // Calculate SLA based on priority
-        $slaHours = match ($validated['priority']) {
-            'urgent' => 2,
-            'high' => 4,
-            'medium' => 8,
-            'low' => 24,
-            default => 8,
-        };
-
         $user = auth()->user();
 
         // Handle attachment upload if exists
@@ -179,6 +172,10 @@ class HelpdeskCaseController extends Controller
         if ($request->hasFile('attachment')) {
             $attachmentPath = $request->file('attachment')->store('attachments', 'public');
         }
+
+        $companyModel = Company::where('name', $user->company)->first();
+        $slaType = $companyModel ? $companyModel->sla_type : '8x5x4';
+        $slaService = app(SlaService::class);
 
         HelpdeskCase::create([
             ...$validated,
@@ -191,7 +188,7 @@ class HelpdeskCaseController extends Controller
             'department' => $user->department,
             'attachment_path' => $attachmentPath,
             'status' => 'pending',
-            'sla_due_at' => Carbon::now()->addHours($slaHours),
+            'sla_due_at' => $slaService->calculateDueDate(Carbon::now(), 4, $slaType),
         ]);
 
         return redirect()->route('dashboard')->with('success', "เปิดเคสแจ้งซ่อม {$ticketNo} เรียบร้อยแล้ว");

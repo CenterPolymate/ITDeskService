@@ -5,7 +5,7 @@
                 {{ __('จัดการรายชื่อบริษัท (Companies)') }}
             </h2>
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <button @click="$dispatch('open-import-modal')" class="inline-flex justify-center items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-emerald-700 w-full sm:w-auto">
+                <button type="button" x-data @click="$dispatch('open-import-modal')" class="inline-flex justify-center items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-emerald-700 w-full sm:w-auto">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                     Import CSV
                 </button>
@@ -58,6 +58,12 @@
                     <span class="block sm:inline">{{ session('success') }}</span>
                 </div>
             @endif
+
+            @error('csv_file')
+                <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                    <span class="block sm:inline">นำเข้าไม่สำเร็จ: {{ $message }}</span>
+                </div>
+            @enderror
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
