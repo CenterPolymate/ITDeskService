@@ -46,12 +46,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                 </div>
-                <select id="department_select" x-bind:name="(departments.length > 0 && selectedDepartment !== 'other') ? 'department' : ''" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white/50 backdrop-blur-sm transition duration-200" :disabled="!selectedCompany" x-bind:required="departments.length > 0 && selectedDepartment !== 'other'" @change="selectedDepartment = $event.target.value">
+                <select id="department_select" x-bind:name="(departments.length > 0 && selectedDepartment !== 'other') ? 'department' : ''" x-model="selectedDepartment" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white/50 backdrop-blur-sm transition duration-200" :disabled="!selectedCompany" x-bind:required="departments.length > 0 && selectedDepartment !== 'other'">
                     <option value="">กรุณาเลือกแผนกที่ท่านสังกัด</option>
                     <template x-for="dept in departments" :key="dept.id">
-                        <option :value="dept.name" x-text="dept.name" :selected="dept.name === selectedDepartment"></option>
+                        <option :value="dept.name" x-text="dept.name"></option>
                     </template>
-                    <option value="other" :selected="selectedDepartment === 'other'">อื่นๆ (พิมพ์ระบุเอง)</option>
+                    <option value="other">อื่นๆ (พิมพ์ระบุเอง)</option>
                 </select>
             </div>
 
@@ -166,6 +166,13 @@
                         this.selectedDepartment = 'other';
                     }
                 }
+
+                let initialDepartment = this.selectedDepartment;
+                this.$nextTick(() => {
+                    if (initialDepartment) {
+                        this.selectedDepartment = initialDepartment;
+                    }
+                });
 
                 this.$watch('selectedCompany', (value, oldValue) => {
                     // Reset department only if company actually changed
