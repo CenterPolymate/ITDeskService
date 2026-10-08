@@ -144,9 +144,9 @@
     function registerForm() {
         return {
             companies: @json($companies),
-            selectedCompany: '{{ old('company', '') }}',
+            selectedCompany: {!! json_encode(old('company', '')) !!},
             selectedDepartment: '',
-            customDepartment: '{{ old('department', '') }}',
+            customDepartment: {!! json_encode(old('department', '')) !!},
             
             get departments() {
                 if (!this.selectedCompany) return [];

@@ -113,9 +113,9 @@
         function profileForm() {
             return {
                 companies: @json($companies),
-                selectedCompany: '{{ old('company', $user->company ?? '') }}',
+                selectedCompany: {!! json_encode(old('company', $user->company ?? '')) !!},
                 selectedDepartment: '',
-                customDepartment: '{{ old('department', $user->department ?? '') }}',
+                customDepartment: {!! json_encode(old('department', $user->department ?? '')) !!},
                 
                 get departments() {
                     if (!this.selectedCompany) return [];

@@ -136,8 +136,8 @@
         function userForm() {
             return {
                 companies: @json($companies),
-                selectedCompany: '{{ old('company', $normal_user->company ?? '') }}',
-                selectedDepartment: '{{ old('department', $normal_user->department ?? '') }}',
+                selectedCompany: {!! json_encode(old('company', $normal_user->company ?? '')) !!},
+                selectedDepartment: {!! json_encode(old('department', $normal_user->department ?? '')) !!},
                 
                 get departments() {
                     if (!this.selectedCompany) return [];
