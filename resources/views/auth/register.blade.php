@@ -168,11 +168,11 @@
                 }
 
                 let initialDepartment = this.selectedDepartment;
-                this.$nextTick(() => {
+                setTimeout(() => {
                     if (initialDepartment) {
                         this.selectedDepartment = initialDepartment;
                     }
-                });
+                }, 50);
 
                 this.$watch('selectedCompany', (value, oldValue) => {
                     // Reset department only if company actually changed
