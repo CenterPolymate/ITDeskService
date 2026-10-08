@@ -7,14 +7,14 @@
 
         <!-- Login (Email or Username) -->
         <div>
-            <x-input-label for="login" :value="__('อีเมล หรือ ชื่อผู้ใช้งาน (Email / Username)')" class="text-gray-700 font-semibold" />
+            <x-input-label for="login" :value="__('อีเมล (Email)')" class="text-gray-700 font-semibold" />
             <div class="relative mt-1">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                     </svg>
                 </div>
-                <x-text-input id="login" class="block w-full pl-10 bg-white bg-opacity-70 border border-gray-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-lg shadow-sm transition duration-150 ease-in-out" type="text" name="login" :value="old('login')" required autofocus autocomplete="username" placeholder="อีเมล หรือ ชื่อผู้ใช้งาน" />
+                <x-text-input id="login" class="block w-full pl-10 bg-white bg-opacity-70 border border-gray-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 rounded-lg shadow-sm transition duration-150 ease-in-out" type="text" name="login" :value="old('login')" required autofocus autocomplete="username" placeholder="อีเมล" />
             </div>
             <x-input-error :messages="$errors->get('login')" class="mt-2" />
         </div>
