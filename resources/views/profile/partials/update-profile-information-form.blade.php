@@ -44,12 +44,12 @@
             <x-input-label for="department">แผนก (Department) <span class="text-red-500">*</span></x-input-label>
             <!-- Dropdown สำหรับเมื่อมีแผนก -->
             <div x-show="departments.length > 0 && selectedDepartment !== 'other'" style="display: none;">
-                <select id="department_select" x-bind:name="(departments.length > 0 && selectedDepartment !== 'other') ? 'department' : ''" x-model="selectedDepartment" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" :disabled="!selectedCompany" x-bind:required="departments.length > 0 && selectedDepartment !== 'other'">
+                <select id="department_select" x-bind:name="(departments.length > 0 && selectedDepartment !== 'other') ? 'department' : ''" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" :disabled="!selectedCompany" x-bind:required="departments.length > 0 && selectedDepartment !== 'other'" @change="selectedDepartment = $event.target.value">
                     <option value="">กรุณาเลือกแผนกที่ท่านสังกัด</option>
                     <template x-for="dept in departments" :key="dept.id">
-                        <option :value="dept.name" x-text="dept.name"></option>
+                        <option :value="dept.name" x-text="dept.name" :selected="dept.name === selectedDepartment"></option>
                     </template>
-                    <option value="other">อื่นๆ (พิมพ์ระบุเอง)</option>
+                    <option value="other" :selected="selectedDepartment === 'other'">อื่นๆ (พิมพ์ระบุเอง)</option>
                 </select>
             </div>
 

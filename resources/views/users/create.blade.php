@@ -72,10 +72,10 @@
                         <!-- Department -->
                         <div class="mt-4">
                             <x-input-label for="department" :value="__('หน่วยงาน/แผนก (Department)')" />
-                            <select id="department" name="department" x-model="selectedDepartment" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" :disabled="!selectedCompany || departments.length === 0">
+                            <select id="department" name="department" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" :disabled="!selectedCompany || departments.length === 0" @change="selectedDepartment = $event.target.value">
                                 <option value="">เลือกแผนก</option>
                                 <template x-for="dept in departments" :key="dept.id">
-                                    <option :value="dept.name" x-text="dept.name"></option>
+                                    <option :value="dept.name" x-text="dept.name" :selected="dept.name === selectedDepartment"></option>
                                 </template>
                             </select>
                             <p x-show="selectedCompany && departments.length === 0" class="mt-1 text-sm text-gray-500">บริษัทนี้ยังไม่มีการตั้งค่าแผนก</p>
