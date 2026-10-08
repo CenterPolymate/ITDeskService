@@ -8,4 +8,5 @@
 - [x] เพิ่มฟังก์ชัน Filter และการ์ด KPI สำหรับค้นหาและแสดงเคสที่แก้ไขเสร็จ "เกินกำหนด SLA (Breached SLA)" บนหน้า Dashboard
 - [x] ปรับปรุง Dashboard ของ Superadmin: ทำการ์ดให้กดคลิกได้, ปรับสี Chart, เพิ่มการ์ดสถิติ SLA Breached และ สถานะ Backup
 - [x] แก้ไขปัญหา Alpine.js ในหน้าแก้ไข/สร้างผู้ใช้ (User/Normal User) และหน้าแก้ไขโปรไฟล์ ที่ทำให้ช่อง "แผนก (Department)" หายไปเมื่อโหลดหน้าเว็บ
+- [x] ปรับปรุงข้อความในหน้า Login ให้รองรับเฉพาะ Email (ลบคำว่า Username ออก)
 - **All current tasks are completed.**
