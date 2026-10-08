@@ -137,8 +137,8 @@
                     }
 
                     this.$watch('selectedCompany', (value, oldValue) => {
-                        // Reset department only if company changed manually (not on load)
-                        if (oldValue !== undefined && oldValue !== '') {
+                        // Reset department only if company actually changed
+                        if (oldValue && oldValue !== value) {
                             this.selectedDepartment = '';
                             this.customDepartment = '';
                         }
