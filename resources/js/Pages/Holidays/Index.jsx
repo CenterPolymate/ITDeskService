@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+
 import { Head, useForm, router } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import InputLabel from '@/Components/InputLabel';
@@ -168,10 +168,14 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
     };
 
     return (
-        <AuthenticatedLayout
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">ตั้งค่าวันหยุดนักขัตฤกษ์</h2>}
-        >
+        <>
             <Head title="ตั้งค่าวันหยุดนักขัตฤกษ์" />
+
+            <header className="bg-white shadow">
+                <div className="max-w-7xl mx-auto py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
+                    <h2 className="font-semibold text-xl text-gray-800 leading-tight">ตั้งค่าวันหยุดนักขัตฤกษ์</h2>
+                </div>
+            </header>
 
             <div className="py-8">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
@@ -267,6 +271,6 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                     
                 </div>
             </div>
-        </AuthenticatedLayout>
+        </>
     );
 }
