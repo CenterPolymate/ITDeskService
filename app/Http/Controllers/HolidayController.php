@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Holiday;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class HolidayController extends Controller
 {
@@ -31,7 +32,11 @@ class HolidayController extends Controller
             });
         }
 
-        return view('holidays.index', compact('holidays', 'suggestedHolidays'));
+        return Inertia::render('Holidays/Index', [
+            'holidays' => $holidays,
+            'suggestedHolidays' => $suggestedHolidays,
+            'fetchYear' => $request->get('fetch_year', date('Y'))
+        ]);
     }
 
     private function fetchThaiHolidaysFromGoogle($year)
