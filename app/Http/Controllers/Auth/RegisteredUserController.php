@@ -19,11 +19,13 @@ class RegisteredUserController extends Controller
     /**
      * Display the registration view.
      */
-    public function create(): View
+    public function create(): \Inertia\Response
     {
         $companies = Company::with('departments')->where('is_active', true)->orderBy('name')->get();
 
-        return view('auth.register', compact('companies'));
+        return \Inertia\Inertia::render('Auth/Register', [
+            'companies' => $companies
+        ]);
     }
 
     /**
