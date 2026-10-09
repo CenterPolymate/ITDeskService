@@ -6,11 +6,11 @@ use App\Models\Company;
 use App\Models\HelpdeskCase;
 use App\Models\Sla;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -68,13 +68,13 @@ class DashboardController extends Controller
                 $disk = Storage::disk(config('backup.backup.destination.disks')[0] ?? 'local');
                 $backupName = config('backup.backup.name');
                 $files = $disk->files($backupName);
-                $files = array_filter($files, fn($file) => substr($file, -4) === '.zip');
-                if (!empty($files)) {
+                $files = array_filter($files, fn ($file) => substr($file, -4) === '.zip');
+                if (! empty($files)) {
                     $latestFile = end($files); // last element is usually the newest if sorted alphabetically by timestamp
                     $latestBackup = [
                         'file_name' => str_replace($backupName.'/', '', $latestFile),
                         'last_modified' => Carbon::createFromTimestamp($disk->lastModified($latestFile))->translatedFormat('d F Y H:i'),
-                        'size' => round($disk->size($latestFile) / 1048576, 2) . ' MB',
+                        'size' => round($disk->size($latestFile) / 1048576, 2).' MB',
                     ];
                 }
             } catch (\Exception $e) {

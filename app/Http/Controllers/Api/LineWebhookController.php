@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use App\Models\HelpdeskCase;
 use App\Models\User;
+use App\Services\SlaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use LINE\LINEBot;
@@ -112,9 +114,9 @@ class LineWebhookController extends Controller
                 $ticketNo = 'IT-'.now()->format('Ymd').'-'.str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
             }
 
-            $companyModel = \App\Models\Company::where('name', $user->company)->first();
+            $companyModel = Company::where('name', $user->company)->first();
             $slaType = $companyModel ? $companyModel->sla_type : '8x5';
-            $slaService = app(\App\Services\SlaService::class);
+            $slaService = app(SlaService::class);
 
             $ticket = HelpdeskCase::create([
                 'user_id' => $user->id,

@@ -37,7 +37,18 @@ class UserManagementController extends Controller
             $query->where('is_active', $request->status_filter);
         }
 
-        $users = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->query());
+        $sort = $request->get('sort', 'created_at');
+        $direction = $request->get('direction', 'desc');
+
+        $allowedSorts = ['name', 'email', 'role', 'company', 'department', 'is_active', 'created_at'];
+        if (! in_array($sort, $allowedSorts)) {
+            $sort = 'created_at';
+        }
+        if (! in_array($direction, ['asc', 'desc'])) {
+            $direction = 'desc';
+        }
+
+        $users = $query->orderBy($sort, $direction)->paginate(10)->appends($request->query());
 
         return view('users.index', compact('users'));
     }

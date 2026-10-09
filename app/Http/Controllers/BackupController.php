@@ -32,7 +32,7 @@ class BackupController extends Controller
         foreach ($files as $file) {
             if (substr($file, -4) === '.zip' && $disk->exists($file)) {
                 $fileName = str_replace($backupName.'/', '', $file);
-                
+
                 // Determine backup type from prefix or fallback to size estimation
                 $type = 'ไม่ทราบ';
                 if (str_starts_with($fileName, 'DB_')) {

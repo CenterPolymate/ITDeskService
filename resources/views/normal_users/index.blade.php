@@ -154,11 +154,11 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อ</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">อีเมล</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">แผนก</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">บริษัท</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+                                    <x-sortable-th field="name" label="ชื่อ" />
+                                    <x-sortable-th field="email" label="อีเมล" />
+                                    <x-sortable-th field="department" label="แผนก" />
+                                    <x-sortable-th field="company" label="บริษัท" />
+                                    <x-sortable-th field="is_active" label="สถานะ" />
                                     <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">จัดการ</th>
                                 </tr>
                             </thead>

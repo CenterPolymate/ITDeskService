@@ -67,9 +67,9 @@ class TicketController extends Controller
 
         $ticketNo = $prefix.str_pad($newNumber, 4, '0', STR_PAD_LEFT);
 
-        $companyModel = \App\Models\Company::where('name', $user->company)->first();
+        $companyModel = Company::where('name', $user->company)->first();
         $slaType = $companyModel ? $companyModel->sla_type : '8x5';
-        $slaService = app(\App\Services\SlaService::class);
+        $slaService = app(SlaService::class);
 
         // Create Case
         $ticket = HelpdeskCase::create([

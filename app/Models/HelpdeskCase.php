@@ -253,8 +253,8 @@ class HelpdeskCase extends Model
                     $query->whereIn('status', ['closed', 'cancelled']);
                 } elseif ($status === 'breached') {
                     $query->whereIn('status', ['resolved', 'closed'])
-                          ->whereNotNull('sla_due_at')
-                          ->whereColumn('resolved_at', '>', 'sla_due_at');
+                        ->whereNotNull('sla_due_at')
+                        ->whereColumn('resolved_at', '>', 'sla_due_at');
                 } elseif ($status === 'pending') {
                     $query->whereIn('status', ['pending', 'assigned']);
                 } elseif ($status === 'manager_review' || $status === 'task2_manager_review') {
@@ -419,7 +419,7 @@ class HelpdeskCase extends Model
     public function scopeBreached($query)
     {
         return $query->whereNotNull('resolved_at')
-                     ->whereNotNull('sla_due_at')
-                     ->whereColumn('resolved_at', '>', 'sla_due_at');
+            ->whereNotNull('sla_due_at')
+            ->whereColumn('resolved_at', '>', 'sla_due_at');
     }
 }

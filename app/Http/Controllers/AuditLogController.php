@@ -127,9 +127,9 @@ class AuditLogController extends Controller
                     $changesText = [];
                     if (str_contains($log->target_type, 'impersonate')) {
                         if (str_contains($log->action, 'impersonate.leave')) {
-                            $changesText[] = "กลับสู่บัญชีหลัก (Admin)";
+                            $changesText[] = 'กลับสู่บัญชีหลัก (Admin)';
                         } else {
-                            $targetUser = \App\Models\User::find($displayId);
+                            $targetUser = User::find($displayId);
                             $userName = $targetUser ? $targetUser->name : "ID: $displayId";
                             $changesText[] = "เข้าสู่ระบบด้วยสิทธิ์ของ: $userName";
                         }
@@ -139,7 +139,7 @@ class AuditLogController extends Controller
                             if (in_array($key, $ignoredKeys)) {
                                 continue;
                             }
-                            
+
                             $keyName = $keyMap[$key] ?? $key;
 
                             $valStr = is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : (string) $value;
