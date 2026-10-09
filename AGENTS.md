@@ -3,7 +3,7 @@
 ## Tech Stack (เทคโนโลยีที่ใช้)
 - **Framework:** Laravel 10/11
 - **Language:** PHP 8.3
-- **Frontend:** Tailwind CSS, Vite, Blade Templates
+- **Frontend:** React, Inertia.js, Tailwind CSS, Vite, Blade Templates (Hybrid SPA)
 
 ## Core Rules (กฎเกณฑ์หลัก)
 1. **Conventions & Architecture:**

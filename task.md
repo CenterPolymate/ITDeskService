@@ -11,4 +11,8 @@
 - [x] ปรับปรุงข้อความในหน้า Login ให้รองรับเฉพาะ Email (ลบคำว่า Username ออก)
 - [x] อัปเดตเอกสารระบบ Backup อธิบายสาเหตุการงดทำฟังก์ชัน Restore ผ่านหน้าเว็บและวิธี Restore ผ่าน Command Line เพื่อความปลอดภัย
 - [x] เพิ่มระบบ Sortable Column ในตารางแสดงข้อมูลผู้ใช้งาน (ทีม IT และ ทั่วไป) ให้สามารถกดเรียงลำดับ A-Z ที่หัวตารางได้
+- [x] เปลี่ยนแปลงโครงสร้าง Frontend จาก Blade/Alpine.js ไปเป็น React + Inertia.js + Tailwind CSS
+  - [x] ติดตั้งและกำหนดค่า Vite, React, Inertia, และ Ziggy ให้ทำงานร่วมกับ Blade เดิมได้ (Hybrid Mode)
+  - [x] ไมเกรตระบบ Authentication (Login, Register) เป็น React Components
+  - [x] แก้ไขปัญหา Redirect ระหว่าง React SPA กับ Blade Dashboard ด้วย `Inertia::location()`
 - **All current tasks are completed.**

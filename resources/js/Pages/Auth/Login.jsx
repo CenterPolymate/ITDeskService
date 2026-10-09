@@ -90,12 +90,12 @@ export default function Login({ status }) {
                         <span className="ms-2 text-sm text-gray-600 hover:text-gray-900 transition-colors">จดจำฉันในครั้งต่อไป</span>
                     </label>
 
-                    <Link
+                    <a
                         href={route('password.request')}
                         className="text-sm text-indigo-600 hover:text-indigo-900 hover:underline transition-colors focus:outline-none focus:underline"
                     >
                         ลืมรหัสผ่าน?
-                    </Link>
+                    </a>
                 </div>
 
                 <div>

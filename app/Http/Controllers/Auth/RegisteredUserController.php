@@ -6,25 +6,26 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
     /**
      * Display the registration view.
      */
-    public function create(): \Inertia\Response
+    public function create(): Response
     {
         $companies = Company::with('departments')->where('is_active', true)->orderBy('name')->get();
 
-        return \Inertia\Inertia::render('Auth/Register', [
-            'companies' => $companies
+        return Inertia::render('Auth/Register', [
+            'companies' => $companies,
         ]);
     }
 
@@ -33,7 +34,7 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -84,6 +85,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return Inertia::location(route('dashboard', absolute: false));
     }
 }

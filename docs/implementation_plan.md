@@ -181,3 +181,18 @@
 - [x] **Import/Export Data (CSV):** พัฒนาระบบนำเข้าและส่งออกข้อมูล (Export) รูปแบบไฟล์ Excel/CSV แบบมี BOM (เพื่อป้องกันภาษาไทยเพี้ยน) สำหรับตารางผู้ใช้ทั่วไป ทีมไอที และบริษัท พร้อมอัปเดตระบบตรวจสอบและแจ้งเตือนข้อผิดพลาดเป็นรายแถว
 - [x] **การเริ่มจับเวลา (SLA Timing):** ปรับเงื่อนไขระบบให้เริ่มนับเวลา SLA (4 ชั่วโมงตามประเภทบริษัท) ทันทีตั้งแต่ User กดยืนยันการแจ้งซ่อม หรือแจ้งผ่าน LINE OA (แทนการนับจากตอน Helpdesk แจกจ่ายงาน)
 - [x] **Dashboard สำหรับ SLA (SLA Monitoring):** เพิ่มหน้ากะจกวิเคราะห์ข้อมูล (KPI Card) และปุ่ม Filter ค้นหาเคสที่ "เกินกำหนด SLA (Breached SLA)" สำหรับผู้ดูแลระบบ เพื่อดูประวัติเคสที่แก้ไขเสร็จช้ากว่าเวลาที่กำหนด
+
+## Phase 9: Frontend Migration to React & Inertia (🚧 กำลังดำเนินการ)
+- [x] **Infrastructure & Architecture:**
+  - [x] ติดตั้ง Inertia.js, React, Tailwind CSS และ Vite
+  - [x] ตั้งค่าระบบ Hybrid ให้รองรับการทำงานร่วมกันระหว่าง Blade Views เก่า และ React Components ใหม่
+  - [x] ติดตั้งและกำหนดค่า Ziggy เพื่อใช้งาน Route ของ Laravel ในฝั่ง React
+- [x] **Authentication Flow:**
+  - [x] ไมเกรตหน้า Login และ Register ให้เป็น React Components เต็มรูปแบบ
+  - [x] สร้าง `GuestLayout.jsx` สำหรับหน้า Auth พร้อม UI แบบ Glassmorphism
+  - [x] จัดการปัญหา Redirect กลับไปยังหน้า Dashboard (Blade) ด้วย `Inertia::location()`
+- [ ] **Dashboard & User Management (แผนงานถัดไป):**
+  - [ ] ไมเกรตหน้า Dashboard ของทุก Role ให้เป็น React Components
+  - [ ] ไมเกรตหน้าระบบการจัดการผู้ใช้งาน (Users) และบริษัท (Companies)
+- [ ] **Core Ticketing System (แผนงานถัดไป):**
+  - [ ] ไมเกรตฟอร์มการแจ้งซ่อม และหน้ารายละเอียดเคส (Show Ticket) ไปใช้ React
