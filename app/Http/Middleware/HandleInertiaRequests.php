@@ -41,7 +41,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'ziggy' => fn () => [
-                ...(new \Tightenco\Ziggy\Ziggy)->toArray(),
+                ...(new \Tighten\Ziggy\Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
         ];
