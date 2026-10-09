@@ -10,10 +10,7 @@ export default function GuestLayout({ children, isRegister }) {
             <div className="relative z-10 w-full sm:max-w-md mt-6 px-8 py-10 glassmorphism shadow-2xl overflow-hidden sm:rounded-2xl">
                 <div className="flex justify-center mb-6">
                     <Link href="/">
-                        {/* We use a simple placeholder logo or SVG here since x-application-logo was used */}
-                        <div className="h-24 w-auto flex items-center justify-center text-4xl font-bold text-indigo-600 drop-shadow-md">
-                            IT
-                        </div>
+                        <img src="/images/polymate-logo.png" alt="Polymate Logo" className="h-24 w-auto object-contain drop-shadow-md" />
                     </Link>
                 </div>
                 
