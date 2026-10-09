@@ -15,4 +15,8 @@
   - [x] ติดตั้งและกำหนดค่า Vite, React, Inertia, และ Ziggy ให้ทำงานร่วมกับ Blade เดิมได้ (Hybrid Mode)
   - [x] ไมเกรตระบบ Authentication (Login, Register) เป็น React Components
   - [x] แก้ไขปัญหา Redirect ระหว่าง React SPA กับ Blade Dashboard ด้วย `Inertia::location()`
+- [x] สร้างระบบจัดการวันหยุดนักขัตฤกษ์ (Holidays Management) 
+  - [x] ดึงข้อมูลวันหยุดจาก Google Calendar API
+  - [x] รองรับการเพิ่มวันหยุดแบบ Manual (Custom Holidays)
+  - [x] UI ปฏิทินแสดงผลและบันทึกวันหยุดแบบ Bulk
 - **All current tasks are completed.**

@@ -130,6 +130,15 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
+
+    HOLIDAYS {
+        bigint id PK
+        date date "วันที่หยุด"
+        string name "ชื่อวันหยุด"
+        boolean is_active "เปิดใช้งาน"
+        timestamp created_at
+        timestamp updated_at
+    }
     
     COMPANIES ||--o{ DEPARTMENTS : "มีแผนกย่อย"
     DEPARTMENTS ||--o{ USERS : "สังกัดแผนก"
