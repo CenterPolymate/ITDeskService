@@ -4,7 +4,7 @@ import { Head, useForm, router } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import InputLabel from '@/Components/InputLabel';
 
-export default function Index({ auth, holidays, suggestedHolidays, fetchYear }) {
+export default function Index({ holidays, suggestedHolidays, fetchYear }) {
     const { data, setData, post, processing } = useForm({
         holidays: []
     });
@@ -169,7 +169,6 @@ export default function Index({ auth, holidays, suggestedHolidays, fetchYear }) 
 
     return (
         <AuthenticatedLayout
-            user={auth.user}
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">ตั้งค่าวันหยุดนักขัตฤกษ์</h2>}
         >
             <Head title="ตั้งค่าวันหยุดนักขัตฤกษ์" />
