@@ -80,10 +80,10 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
         for (let month = 0; month < 12; month++) {
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
+
             const weeks = [];
             let currentWeek = [];
-            
+
             // Padding start
             for (let i = 0; i < firstDay; i++) {
                 currentWeek.push(null);
@@ -121,18 +121,20 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                                 <div key={wIndex} className="grid grid-cols-7 gap-1 mb-1">
                                     {week.map((day, dIndex) => {
                                         if (!day) return <div key={dIndex} className="h-8 w-8"></div>;
-                                        
+
                                         const dateStr = formatDate(year, monthIndex, day);
-                                        
+
                                         // Check existing in DB
                                         const existing = holidays?.find(h => {
-                                            const dbDate = h?.date?.split('T')[0]?.split(' ')[0];
+                                            if (!h?.date) return false;
+                                            const d = new Date(h.date);
+                                            const dbDate = formatDate(d.getFullYear(), d.getMonth(), d.getDate());
                                             return dbDate === dateStr;
                                         });
 
                                         // Check suggested
                                         const suggested = suggestedHolidays?.find(h => h?.date === dateStr);
-                                        
+
                                         // Check if user selected the suggested one
                                         const isSelected = selectedSuggested.some(h => h.date === dateStr);
 
@@ -164,8 +166,8 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                                         }
 
                                         return (
-                                            <div 
-                                                key={dIndex} 
+                                            <div
+                                                key={dIndex}
                                                 className={`h-8 w-8 mx-auto flex flex-col justify-center items-center rounded-full transition-colors ${bgColor} ${cursor}`}
                                                 title={tooltip}
                                                 onClick={onClick}
@@ -196,22 +198,22 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
 
             <div className="py-8">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-                    
+
                     <div className="bg-white p-6 rounded-lg shadow-sm">
                         <div className="flex flex-col md:flex-row justify-between items-center mb-6 border-b pb-4">
                             <div>
                                 <h3 className="text-lg font-bold text-gray-900">ปฏิทินวันหยุด (ปี {selectedYear})</h3>
                                 <p className="text-sm text-gray-500 mt-1">
-                                    <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span> สีแดง = วันหยุดในระบบ | 
+                                    <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span> สีแดง = วันหยุดในระบบ |
                                     <span className="inline-block w-2 h-2 bg-yellow-400 rounded-full mx-1"></span> สีเหลือง = ข้อมูลแนะนำ (คลิกเพื่อเลือก/ยกเลิกการเลือก)
                                 </p>
                             </div>
-                            
+
                             <form onSubmit={fetchCalendar} className="flex gap-2 items-end mt-4 md:mt-0">
                                 <div>
                                     <InputLabel htmlFor="fetchYear" value="ปี ค.ศ." />
-                                    <select 
-                                        id="fetchYear" 
+                                    <select
+                                        id="fetchYear"
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                         value={selectedYear}
                                         onChange={(e) => setSelectedYear(e.target.value)}
@@ -227,7 +229,7 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                         </div>
 
                         {renderCalendar()}
-                        
+
                         {selectedSuggested.length > 0 && (
                             <div className="mt-8 bg-indigo-50 p-6 rounded-lg border border-indigo-100 flex flex-col md:flex-row justify-between items-center">
                                 <div>
@@ -299,7 +301,7 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                                                     {holiday?.name}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button 
+                                                    <button
                                                         onClick={() => {
                                                             if (confirm('คุณแน่ใจหรือไม่ที่จะลบวันหยุดนี้?')) {
                                                                 router.delete(route('holidays.destroy', holiday.id));
@@ -319,7 +321,7 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                             <p className="text-gray-500 text-sm italic">ยังไม่มีข้อมูลวันหยุดในระบบ</p>
                         )}
                     </div>
-                    
+
                 </div>
             </div>
         </>
