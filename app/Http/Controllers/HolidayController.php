@@ -18,7 +18,7 @@ class HolidayController extends Controller
     public function index(Request $request)
     {
         $this->authorizeAdministrator();
-        $holidays = Holiday::orderBy('date', 'desc')->get();
+        $holidays = Holiday::orderBy('date', 'asc')->get();
         
         $suggestedHolidays = [];
         if ($request->has('fetch_year')) {
