@@ -109,7 +109,7 @@ export default function Index({ auth, holidays, suggestedHolidays, fetchYear }) 
                                         
                                         // Check existing in DB
                                         const existing = holidays.find(h => {
-                                            const dbDate = new Date(h.date).toISOString().split('T')[0];
+                                            const dbDate = h.date.split('T')[0].split(' ')[0];
                                             return dbDate === dateStr;
                                         });
 

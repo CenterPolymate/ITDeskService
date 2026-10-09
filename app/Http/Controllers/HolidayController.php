@@ -27,9 +27,9 @@ class HolidayController extends Controller
             
             // Filter out holidays that already exist in the database
             $existingDates = $holidays->pluck('date')->map(fn($d) => $d->format('Y-m-d'))->toArray();
-            $suggestedHolidays = array_filter($suggestedHolidays, function($h) use ($existingDates) {
+            $suggestedHolidays = array_values(array_filter($suggestedHolidays, function($h) use ($existingDates) {
                 return !in_array($h['date'], $existingDates);
-            });
+            }));
         }
 
         return Inertia::render('Holidays/Index', [
