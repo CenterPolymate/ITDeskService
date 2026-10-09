@@ -61,6 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('companies/departments/{department}', [CompanyController::class, 'updateDepartment'])->name('companies.departments.update');
     Route::delete('companies/departments/{department}', [CompanyController::class, 'destroyDepartment'])->name('companies.departments.destroy');
 
+    Route::post('holidays/bulk', [HolidayController::class, 'storeBulk'])->name('holidays.storeBulk');
     Route::resource('holidays', HolidayController::class)->only(['index', 'store', 'destroy']);
 
     Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
