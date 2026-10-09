@@ -19,4 +19,5 @@
   - [x] ดึงข้อมูลวันหยุดจาก Google Calendar API
   - [x] รองรับการเพิ่มวันหยุดแบบ Manual (Custom Holidays)
   - [x] UI ปฏิทินแสดงผลและบันทึกวันหยุดแบบ Bulk
+  - [x] แก้ไขบั๊กการแสดงผลปฏิทินวันหยุด (Timezone Conversion) ที่ทำให้จุดสีแดงไม่ตรงกับวันที่ในตาราง
 - **All current tasks are completed.**
