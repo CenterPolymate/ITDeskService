@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import InputLabel from '@/Components/InputLabel';
+import TextInput from '@/Components/TextInput';
+import InputError from '@/Components/InputError';
 
 export default function Index({ holidays, suggestedHolidays, fetchYear }) {
     const { data, setData, post, processing } = useForm({
@@ -11,6 +13,11 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
 
     const [selectedYear, setSelectedYear] = useState(fetchYear || new Date().getFullYear());
     const [selectedSuggested, setSelectedSuggested] = useState([]);
+
+    const manualForm = useForm({
+        name: '',
+        date: ''
+    });
 
     const fetchCalendar = (e) => {
         e.preventDefault();
@@ -36,6 +43,16 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
             onSuccess: () => {
                 setSelectedSuggested([]);
                 // Reload without fetch_year to just show DB
+                router.get(route('holidays.index'));
+            }
+        });
+    };
+
+    const submitManual = (e) => {
+        e.preventDefault();
+        manualForm.post(route('holidays.store'), {
+            onSuccess: () => {
+                manualForm.reset();
                 router.get(route('holidays.index'));
             }
         });
@@ -224,6 +241,40 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                                 </form>
                             </div>
                         )}
+                    </div>
+
+                    <div className="bg-white p-6 rounded-lg shadow-sm">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">เพิ่มวันหยุดแบบกำหนดเอง (Manual)</h3>
+                        <form onSubmit={submitManual} className="flex flex-col md:flex-row gap-4 items-end">
+                            <div className="w-full md:w-1/3">
+                                <InputLabel htmlFor="manualDate" value="วันที่" />
+                                <TextInput
+                                    id="manualDate"
+                                    type="date"
+                                    className="mt-1 block w-full"
+                                    value={manualForm.data.date}
+                                    onChange={(e) => manualForm.setData('date', e.target.value)}
+                                    required
+                                />
+                                <InputError message={manualForm.errors.date} className="mt-2" />
+                            </div>
+                            <div className="w-full md:w-1/2">
+                                <InputLabel htmlFor="manualName" value="ชื่อวันหยุด" />
+                                <TextInput
+                                    id="manualName"
+                                    type="text"
+                                    className="mt-1 block w-full"
+                                    value={manualForm.data.name}
+                                    onChange={(e) => manualForm.setData('name', e.target.value)}
+                                    required
+                                    placeholder="เช่น วันหยุดพิเศษบริษัท"
+                                />
+                                <InputError message={manualForm.errors.name} className="mt-2" />
+                            </div>
+                            <div>
+                                <PrimaryButton disabled={manualForm.processing}>บันทึก</PrimaryButton>
+                            </div>
+                        </form>
                     </div>
 
                     <div className="bg-white p-6 rounded-lg shadow-sm">
