@@ -108,13 +108,13 @@ export default function Index({ auth, holidays, suggestedHolidays, fetchYear }) 
                                         const dateStr = formatDate(year, monthIndex, day);
                                         
                                         // Check existing in DB
-                                        const existing = holidays.find(h => {
-                                            const dbDate = h.date.split('T')[0].split(' ')[0];
+                                        const existing = holidays?.find(h => {
+                                            const dbDate = h?.date?.split('T')[0]?.split(' ')[0];
                                             return dbDate === dateStr;
                                         });
 
                                         // Check suggested
-                                        const suggested = suggestedHolidays.find(h => h.date === dateStr);
+                                        const suggested = suggestedHolidays?.find(h => h?.date === dateStr);
                                         
                                         // Check if user selected the suggested one
                                         const isSelected = selectedSuggested.some(h => h.date === dateStr);
@@ -225,7 +225,7 @@ export default function Index({ auth, holidays, suggestedHolidays, fetchYear }) 
 
                     <div className="bg-white p-6 rounded-lg shadow-sm">
                         <h3 className="text-lg font-bold text-gray-900 mb-4">รายการวันหยุดในระบบทั้งหมด</h3>
-                        {holidays.length > 0 ? (
+                        {holidays && holidays.length > 0 ? (
                             <div className="overflow-x-auto rounded-lg border border-gray-200">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
@@ -236,13 +236,13 @@ export default function Index({ auth, holidays, suggestedHolidays, fetchYear }) 
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {holidays.map(holiday => (
+                                        {holidays?.map(holiday => (
                                             <tr key={holiday.id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {new Date(holiday.date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                                    {holiday?.date ? new Date(holiday.date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {holiday.name}
+                                                    {holiday?.name}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <button 
