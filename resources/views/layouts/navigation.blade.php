@@ -21,7 +21,7 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    @if(in_array(Auth::user()->role, ['manager', 'administrator']))
+                    @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
                         <div class="hidden sm:flex sm:items-center sm:ms-6">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
@@ -39,7 +39,7 @@
                                     <x-dropdown-link :href="route('users.index')">
                                         {{ __('ทีม IT') }}
                                     </x-dropdown-link>
-                                    @if(Auth::user()->role === 'administrator')
+                                    @if(Auth::user()?->role === 'administrator')
                                         <x-dropdown-link :href="route('normal_users.index')">
                                             {{ __('ผู้ใช้งานทั่วไป') }}
                                         </x-dropdown-link>
@@ -49,7 +49,7 @@
                         </div>
                     @endif
 
-                    @if(Auth::user()->role === 'administrator')
+                    @if(Auth::user()?->role === 'administrator')
                         <div class="hidden sm:flex sm:items-center sm:ms-6">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
@@ -100,8 +100,8 @@
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                             <div class="flex items-center gap-2">
-                                <span>{{ Auth::user()->name }}</span>
-                                <span class="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">{{ Auth::user()->role }}</span>
+                                <span>{{ Auth::user()?->name }}</span>
+                                <span class="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">{{ Auth::user()?->role }}</span>
                             </div>
 
                             <div class="ms-1">
@@ -150,19 +150,19 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
 
-            @if(in_array(Auth::user()->role, ['manager', 'administrator']))
+            @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
                 <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">จัดการผู้ใช้งาน</div>
                 <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')" class="pl-8">
                     {{ __('ทีม IT') }}
                 </x-responsive-nav-link>
-                @if(Auth::user()->role === 'administrator')
+                @if(Auth::user()?->role === 'administrator')
                     <x-responsive-nav-link :href="route('normal_users.index')" :active="request()->routeIs('normal_users.*')" class="pl-8">
                         {{ __('ผู้ใช้งานทั่วไป') }}
                     </x-responsive-nav-link>
                 @endif
             @endif
 
-            @if(Auth::user()->role === 'administrator')
+            @if(Auth::user()?->role === 'administrator')
                 <div class="px-4 py-2 mt-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">ตั้งค่าระบบ (Admin)</div>
                 <x-responsive-nav-link :href="route('companies.index')" :active="request()->routeIs('companies.*')" class="pl-8">
                     {{ __('จัดการรายชื่อบริษัท') }}
@@ -189,8 +189,8 @@
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                <div class="font-medium text-base text-gray-800">{{ Auth::user()?->name }}</div>
+                <div class="font-medium text-sm text-gray-500">{{ Auth::user()?->email }}</div>
             </div>
 
             <div class="mt-3 space-y-1">
