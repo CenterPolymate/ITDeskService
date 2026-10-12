@@ -6,6 +6,9 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'ITDeskService') }}</title>
+        <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+        <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+        <link rel="apple-touch-icon" href="{{ asset('images/favicon.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
