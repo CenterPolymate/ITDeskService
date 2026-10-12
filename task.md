@@ -26,5 +26,5 @@
 - [x] ปรับปรุงระบบ Impersonation: ไม่บันทึกเวลาเข้าใช้งานล่าสุด (`last_login_at`) ของ User และ Admin เมื่อเข้าหรือออกจากโหมดจำลองสิทธิ์
 - [x] ปรับแต่ง Branding และ Tab เว็บไซต์:
   - [x] เปลี่ยนชื่อแท็บและชื่อแอปเริ่มต้นจาก "Laravel" เป็น "ITDeskService"
-  - [x] อัปเดตไอคอนประจำเว็บไซต์ (Favicon) ด้วยสัญลักษณ์ลูกบาศก์ Polymate IT Solutions
+  - [x] อัปเดตไอคอนประจำเว็บไซต์ (Favicon และ Mobile App Icon) ด้วยภาพ `Icon polymate logo.png` ความละเอียดสูงที่ผู้ใช้อัปโหลดเข้ามา
 - **All current tasks are completed.**
