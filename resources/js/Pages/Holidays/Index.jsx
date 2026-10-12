@@ -11,7 +11,9 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
         holidays: []
     });
 
-    const [selectedYear, setSelectedYear] = useState(fetchYear || new Date().getFullYear());
+    const currentYear = new Date().getFullYear();
+    const [selectedYear, setSelectedYear] = useState(fetchYear || currentYear);
+    const [tableYear, setTableYear] = useState(currentYear.toString());
     const [selectedSuggested, setSelectedSuggested] = useState([]);
 
     const manualForm = useForm({
@@ -280,83 +282,138 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                     </div>
 
                     <div className="bg-white p-6 rounded-lg shadow-sm">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4">รายการวันหยุดในระบบทั้งหมด</h3>
-                        {holidays && holidays.length > 0 ? (
-                            <div className="overflow-x-auto rounded-lg border border-gray-200">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">วันที่</th>
-                                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ชื่อวันหยุด</th>
-                                            <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">สถานะ</th>
-                                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">จัดการ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {holidays.map(holiday => {
-                                            const today = new Date();
-                                            today.setHours(0, 0, 0, 0);
-                                            const hDate = holiday?.date ? new Date(holiday.date) : null;
-                                            if (hDate) {
-                                                hDate.setHours(0, 0, 0, 0);
-                                            }
-                                            const isPast = hDate && hDate < today;
-
-                                            return (
-                                                <tr key={holiday.id} className={`transition-colors ${isPast ? 'bg-gray-50/40 hover:bg-gray-50' : 'hover:bg-blue-50/20'}`}>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                        {holiday?.date ? new Date(holiday.date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                                                        {holiday?.name}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
-                                                        {isPast ? (
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200/60">
-                                                                <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                                                                ผ่านมาแล้ว
-                                                            </span>
-                                                        ) : (
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                                                กำลังจะถึง
-                                                            </span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                        {isPast ? (
-                                                            <div className="flex items-center justify-end gap-1 text-gray-400" title="วันหยุดที่ผ่านมาแล้วไม่สามารถลบได้">
-                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                                </svg>
-                                                                <span className="text-xs">ล็อก</span>
-                                                            </div>
-                                                        ) : (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    if (confirm(`คุณแน่ใจหรือไม่ที่จะลบวันหยุด "${holiday?.name}"?`)) {
-                                                                        router.delete(route('holidays.destroy', holiday.id));
-                                                                    }
-                                                                }}
-                                                                className="inline-flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors px-2 py-1 rounded hover:bg-red-50"
-                                                            >
-                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                </svg>
-                                                                ลบ
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900">รายการวันหยุดในระบบ</h3>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                    แสดงเฉพาะวันหยุดประจำปี {tableYear === 'all' ? 'ทั้งหมด' : parseInt(tableYear) + 543} ({tableYear === 'all' ? 'All' : tableYear})
+                                </p>
                             </div>
-                        ) : (
-                            <p className="text-gray-500 text-sm italic">ยังไม่มีข้อมูลวันหยุดในระบบ</p>
-                        )}
+
+                            {/* Year Filter Controls */}
+                            <div className="flex items-center gap-2">
+                                <label htmlFor="tableYearFilter" className="text-xs font-semibold text-gray-600 whitespace-nowrap">
+                                    เลือกปี:
+                                </label>
+                                <select
+                                    id="tableYearFilter"
+                                    value={tableYear}
+                                    onChange={(e) => setTableYear(e.target.value)}
+                                    className="text-sm rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-1.5 pl-3 pr-8"
+                                >
+                                    {/* Generate available years list */}
+                                    {(() => {
+                                        const yearSet = new Set([currentYear, currentYear - 1, currentYear + 1]);
+                                        (holidays || []).forEach(h => {
+                                            if (h?.date) {
+                                                const y = new Date(h.date).getFullYear();
+                                                if (!isNaN(y)) yearSet.add(y);
+                                            }
+                                        });
+                                        const sortedYears = Array.from(yearSet).sort((a, b) => b - a);
+
+                                        return (
+                                            <>
+                                                {sortedYears.map(yr => (
+                                                    <option key={yr} value={yr.toString()}>
+                                                        ปี {yr + 543} ({yr}) {yr === currentYear ? '— ปีปัจจุบัน' : ''}
+                                                    </option>
+                                                ))}
+                                                <option value="all">แสดงทั้งหมดทุกปี</option>
+                                            </>
+                                        );
+                                    })()}
+                                </select>
+                            </div>
+                        </div>
+
+                        {(() => {
+                            const filteredHolidays = (holidays || []).filter(h => {
+                                if (tableYear === 'all') return true;
+                                if (!h?.date) return false;
+                                const y = new Date(h.date).getFullYear();
+                                return y.toString() === tableYear;
+                            });
+
+                            return filteredHolidays.length > 0 ? (
+                                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">วันที่</th>
+                                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ชื่อวันหยุด</th>
+                                                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">สถานะ</th>
+                                                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {filteredHolidays.map(holiday => {
+                                                const today = new Date();
+                                                today.setHours(0, 0, 0, 0);
+                                                const hDate = holiday?.date ? new Date(holiday.date) : null;
+                                                if (hDate) {
+                                                    hDate.setHours(0, 0, 0, 0);
+                                                }
+                                                const isPast = hDate && hDate < today;
+
+                                                return (
+                                                    <tr key={holiday.id} className={`transition-colors ${isPast ? 'bg-gray-50/40 hover:bg-gray-50' : 'hover:bg-blue-50/20'}`}>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                            {holiday?.date ? new Date(holiday.date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                                                            {holiday?.name}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
+                                                            {isPast ? (
+                                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200/60">
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                                                    ผ่านมาแล้ว
+                                                                </span>
+                                                            ) : (
+                                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                                    กำลังจะถึง
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                            {isPast ? (
+                                                                <div className="flex items-center justify-end gap-1 text-gray-400" title="วันหยุดที่ผ่านมาแล้วไม่สามารถลบได้">
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                                    </svg>
+                                                                    <span className="text-xs">ล็อก</span>
+                                                                </div>
+                                                            ) : (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        if (confirm(`คุณแน่ใจหรือไม่ที่จะลบวันหยุด "${holiday?.name}"?`)) {
+                                                                            router.delete(route('holidays.destroy', holiday.id));
+                                                                        }
+                                                                    }}
+                                                                    className="inline-flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors px-2 py-1 rounded hover:bg-red-50"
+                                                                >
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                    </svg>
+                                                                    ลบ
+                                                                </button>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <p className="text-gray-500 text-sm italic py-4">
+                                    ไม่มีข้อมูลวันหยุดสำหรับปี {tableYear === 'all' ? 'ที่เลือก' : parseInt(tableYear) + 543} ({tableYear})
+                                </p>
+                            );
+                        })()}
                     </div>
 
                 </div>
