@@ -202,3 +202,10 @@
   - [x] ฟังก์ชันดึงวันหยุดอัตโนมัติจาก Google Calendar API
   - [x] ฟังก์ชันเพิ่มวันหยุดแบบ Manual เองได้
   - [x] แก้ไขบั๊กการแสดงผลปฏิทินวันหยุด (Timezone Conversion)
+  - [x] ป้องกันการลบวันหยุดในอดีต (Past Holidays Protection) ทั้ง Frontend และ Backend
+  - [x] เพิ่มระบบตัวกรองปี (Year Filter) ในตารางวันหยุด โดยตั้งค่าเริ่มต้นให้แสดงเฉพาะวันหยุดของปีปัจจุบัน
+- [x] **ระบบความปลอดภัยและการระบุตัวตน (Authentication & Impersonation):**
+  - [x] ปรับปรุงระบบ Impersonation: ไม่บันทึกเวลา `last_login_at` เมื่อ Admin สลับสิทธิ์เป็นผู้ใช้ หรือตอนออกจากโหมดจำลองสิทธิ์
+- [x] **System Branding:**
+  - [x] กำหนดชื่อเว็บไซต์เป็น `ITDeskService` ทั่วทั้งระบบ
+  - [x] อัปเดตไอคอนประจำเว็บไซต์ (Favicon) ด้วยสัญลักษณ์ลูกบาศก์ Polymate IT Solutions
