@@ -116,6 +116,11 @@ class HolidayController extends Controller
     public function destroy(Holiday $holiday)
     {
         $this->authorizeAdministrator();
+
+        if ($holiday->date->lt(now()->startOfDay())) {
+            return redirect()->route('holidays.index')->with('error', 'ไม่สามารถลบวันหยุดที่ผ่านมาแล้วได้');
+        }
+
         $holiday->delete();
 
         return redirect()->route('holidays.index')->with('success', 'ลบวันหยุดนักขัตฤกษ์สำเร็จ');

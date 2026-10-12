@@ -292,28 +292,54 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {holidays?.map(holiday => (
-                                            <tr key={holiday.id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {holiday?.date ? new Date(holiday.date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {holiday?.name}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button
-                                                        onClick={() => {
-                                                            if (confirm('คุณแน่ใจหรือไม่ที่จะลบวันหยุดนี้?')) {
-                                                                router.delete(route('holidays.destroy', holiday.id));
-                                                            }
-                                                        }}
-                                                        className="text-red-600 hover:text-red-900 transition-colors"
-                                                    >
-                                                        ลบ
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {holidays.map(holiday => {
+                                            const today = new Date();
+                                            today.setHours(0, 0, 0, 0);
+                                            const hDate = holiday?.date ? new Date(holiday.date) : null;
+                                            if (hDate) {
+                                                hDate.setHours(0, 0, 0, 0);
+                                            }
+                                            const isPast = hDate && hDate < today;
+
+                                            return (
+                                                <tr key={holiday.id} className="hover:bg-gray-50 transition-colors">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        <div className="flex items-center gap-2">
+                                                            <span>
+                                                                {holiday?.date ? new Date(holiday.date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
+                                                            </span>
+                                                            {isPast && (
+                                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                                                                    ผ่านไปแล้ว
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        {holiday?.name}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                        {isPast ? (
+                                                            <span className="text-gray-400 text-xs italic select-none" title="ไม่สามารถลบวันหยุดที่ผ่านมาแล้วได้">
+                                                                ไม่สามารถลบได้
+                                                            </span>
+                                                        ) : (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    if (confirm(`คุณแน่ใจหรือไม่ที่จะลบวันหยุด "${holiday?.name}"?`)) {
+                                                                        router.delete(route('holidays.destroy', holiday.id));
+                                                                    }
+                                                                }}
+                                                                className="text-red-600 hover:text-red-900 transition-colors font-medium"
+                                                            >
+                                                                ลบ
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
