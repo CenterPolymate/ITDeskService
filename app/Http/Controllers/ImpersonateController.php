@@ -29,8 +29,9 @@ class ImpersonateController extends Controller
             abort(403);
         }
 
-        $adminId = session()->pull('impersonated_by');
+        $adminId = session()->get('impersonated_by');
         Auth::loginUsingId($adminId);
+        session()->forget('impersonated_by');
 
         return redirect()->route('dashboard')->with('success', 'กลับสู่บัญชีผู้ดูแลระบบสำเร็จ');
     }
