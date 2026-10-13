@@ -142,6 +142,14 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
+
+    SETTINGS {
+        bigint id PK
+        string key "คีย์การตั้งค่า (Unique) เช่น smtp_host, smtp_port, smtp_username, smtp_password, smtp_encryption, audit_log_retention_years"
+        text value "ค่าการตั้งค่า"
+        timestamp created_at
+        timestamp updated_at
+    }
     
     COMPANIES ||--o{ DEPARTMENTS : "มีแผนกย่อย"
     DEPARTMENTS ||--o{ USERS : "สังกัดแผนก"

@@ -216,6 +216,12 @@
   - [x] เพิ่มระบบตัวกรองปี (Year Filter) ในตารางวันหยุด โดยตั้งค่าเริ่มต้นให้แสดงเฉพาะวันหยุดของปีปัจจุบัน
 - [x] **ระบบความปลอดภัยและการระบุตัวตน (Authentication & Impersonation):**
   - [x] ปรับปรุงระบบ Impersonation: ไม่บันทึกเวลา `last_login_at` เมื่อ Admin สลับสิทธิ์เป็นผู้ใช้ หรือตอนออกจากโหมดจำลองสิทธิ์
+  - [x] แก้ไขปัญหาหน้าต่างซ้อน/ลอย (Modal Iframe Overlay) เมื่อกด Login As ข้ามระหว่างหน้า React และ Blade โดยปรับใช้ `Inertia::location()` ทั้งตอนสลับสิทธิ์และออกจากโหมดจำลองสิทธิ์
+- [x] **ระบบสำรองข้อมูลและเขตเวลา (Backup & Timezone Stabilization):**
+  - [x] แก้ไขข้อผิดพลาด SMTP 550 ("From address must match authenticated address") จาก Spatie Backup โดยปิด Notifications ตอนกดสำรองข้อมูลผ่านหน้าเว็บ (`--disable-notifications`)
+  - [x] ปิด Notification Channel เป็นว่างหากไม่มีการระบุ `BACKUP_NOTIFICATION_EMAIL` ใน `.env` และผูก sender address ให้ตรงกับ SMTP authentication
+  - [x] แก้ไขปัญหา Timezone ในตารางประวัติการสำรองข้อมูล (Backup History) จาก UTC เป็น `Asia/Bangkok` โดยอ่านจากชื่อไฟล์ และแสดงผลรูปแบบวันที่ภาษาไทย (`d F Y H:i:s`)
+  - [x] เพิ่มชุดทดสอบอัตโนมัติ `BackupTest.php` ผ่านครบ 100%
 - [x] **System Branding:**
   - [x] กำหนดชื่อเว็บไซต์เป็น `ITDeskService` ทั่วทั้งระบบ
   - [x] อัปเดตไอคอนประจำเว็บไซต์ (Favicon) ด้วยสัญลักษณ์ลูกบาศก์ Polymate IT Solutions

@@ -53,5 +53,18 @@
   - [x] หน้ารายการผู้ใช้ทีม IT (`Users/Index.jsx`): ป้าย Badge บทบาท, กรองสถานะ, จัดการผู้ใช้ตามสิทธิ์, และ Export CSV
   - [x] หน้าเพิ่มผู้ใช้ทีม IT (`Users/Create.jsx`): เลือกตำแหน่ง IT ทั้งหมด (helpdesk, hardware, network, software, manager, admin) และแผนก Dynamic
   - [x] หน้าแก้ไขผู้ใช้ทีม IT (`Users/Edit.jsx`): ล็อกไม่ให้แก้ไขชื่อของ Administrator สูงสุด, ปุ่มส่งลิงก์รีเซ็ตรหัสผ่าน
-  - [x] เพิ่มชุดทดสอบอัตโนมัติ `UserManagementTest.php` ผ่านครบ 5/5
+  - [x] แก้ไขข้อผิดพลาดระบบสำรองข้อมูล (Backup) และการแสดงผล Timezone:
+  - [x] แก้ไขข้อผิดพลาด SMTP 550 ("From address must match authenticated address") จาก Spatie Backup notifications โดยส่ง flag `--disable-notifications` เมื่อกดสำรองข้อมูลผ่าน Web Controller
+  - [x] ซิงค์ `backup.notifications.mail.from.address` กับ SMTP Settings ในฐานข้อมูล และปิด notifications เมื่อไม่มีการกำหนด `BACKUP_NOTIFICATION_EMAIL` ใน `.env`
+  - [x] แก้ไขปัญหา Timezone ในตารางประวัติ Backup ให้แปลงเป็น `Asia/Bangkok` โดยอ่านเวลาจากชื่อไฟล์ และแสดงผลรูปแบบวันที่ภาษาไทย (`d F Y H:i:s`)
+  - [x] เพิ่มชุดทดสอบอัตโนมัติ `BackupTest.php` ผ่านครบ 5/5
+- [x] ไมเกรตหน้า Dashboard ของ User ทั่วไป (`Dashboard/UserDashboard.jsx`) สู่ React + Inertia.js:
+  - [x] พัฒนา React Component พร้อมการ์ด KPI สรุปสถานะ 4 ใบแบบคลิกกรองได้
+  - [x] แบนเนอร์ Waiting for Acceptance แจ้งเตือนเมื่อมีเคสรอการยืนยันรับงาน
+  - [x] รองรับ Mobile Cards View (`md:hidden`) และ Desktop Table View (`hidden md:block`)
+  - [x] ระบบ Live Auto-polling ด้วย `router.reload` ทุก 15 วินาที
+  - [x] เพิ่ม `$appends` ใน `HelpdeskCase.php` สำหรับส่งข้อมูล Label และสีสถานะไปยัง Frontend
+  - [x] เพิ่มชุดทดสอบอัตโนมัติ `UserDashboardTest.php` ผ่านครบ 2/2
+- [x] แก้ไขปัญหาหน้าต่างซ้อน/ลอย (Modal Overlay) เมื่อกดสลับสิทธิ์ Login As:
+  - [x] ปรับปรุง `ImpersonateController` ให้ใช้ `Inertia::location()` ทำ Full Browser Navigation ข้ามระหว่าง React และ Blade ทั้งตอนจำลองสิทธิ์และออกจากโหมดจำลองสิทธิ์
 - **All current tasks are completed.**
