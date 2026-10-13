@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class ImpersonateController extends Controller
 {
@@ -20,7 +21,9 @@ class ImpersonateController extends Controller
         session()->put('impersonated_by', Auth::id());
         Auth::login($user);
 
-        return redirect()->route('dashboard')->with('success', 'เข้าสู่ระบบในฐานะ '.$user->name.' สำเร็จ');
+        session()->flash('success', 'เข้าสู่ระบบในฐานะ '.$user->name.' สำเร็จ');
+
+        return Inertia::location(route('dashboard'));
     }
 
     public function leave()
@@ -33,6 +36,8 @@ class ImpersonateController extends Controller
         Auth::loginUsingId($adminId);
         session()->forget('impersonated_by');
 
-        return redirect()->route('dashboard')->with('success', 'กลับสู่บัญชีผู้ดูแลระบบสำเร็จ');
+        session()->flash('success', 'กลับสู่บัญชีผู้ดูแลระบบสำเร็จ');
+
+        return Inertia::location(route('dashboard'));
     }
 }

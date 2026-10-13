@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, router, usePage } from '@inertiajs/react';
 
 export default function UserDashboard({ cases, stats, filters = {} }) {
     const { auth, flash } = usePage().props;
@@ -91,7 +90,7 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
     };
 
     return (
-        <AuthenticatedLayout>
+        <>
             <Head title="แดชบอร์ดผู้ใช้งาน - ประวัติการแจ้งซ่อม" />
 
             <div className="py-4 sm:py-6">
@@ -496,6 +495,6 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
 
                 </div>
             </div>
-        </AuthenticatedLayout>
+        </>
     );
 }
