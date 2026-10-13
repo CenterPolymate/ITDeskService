@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
@@ -121,9 +122,16 @@ class DashboardController extends Controller
             }
 
             // ดึงเฉพาะเคสของ User คนนั้นๆ
-            $cases = $query->orderBy('created_at', 'desc')->paginate(10);
+            $cases = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
 
-            return view('dashboard-user', compact('cases', 'stats'));
+            return Inertia::render('Dashboard/UserDashboard', [
+                'cases' => $cases,
+                'stats' => $stats,
+                'filters' => [
+                    'status' => $request->input('status', 'all'),
+                    'search' => $request->input('search', ''),
+                ],
+            ]);
         }
 
         // 2. Data Scope for IT Staff (Helpdesk, Team, Manager)

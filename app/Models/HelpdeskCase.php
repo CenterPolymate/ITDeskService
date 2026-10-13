@@ -26,6 +26,15 @@ class HelpdeskCase extends Model
         'pcar_closed_at' => 'datetime',
     ];
 
+    protected $appends = [
+        'status_label',
+        'task2_status_label',
+        'task2_status_color',
+        'priority_label',
+        'assigned_team_label',
+        'is_overdue',
+    ];
+
     public function attachments()
     {
         return $this->morphMany(Attachment::class, 'attachable');

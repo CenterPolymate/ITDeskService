@@ -12,14 +12,17 @@ export default function AuthenticatedLayout({ header, children }) {
         useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="border-b border-gray-100 bg-white">
+        <div className="min-h-screen bg-gray-100 pb-12">
+            <nav className="border-b border-gray-100 bg-white sticky top-0 z-50 shadow-sm">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
-                            <div className="flex shrink-0 items-center">
-                                <a href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
+                    <div className="flex h-16 justify-between items-center">
+                        <div className="flex items-center">
+                            <div className="flex shrink-0 items-center gap-3">
+                                <a href={route('dashboard')} className="flex items-center gap-2">
+                                    <img src="/images/polymate-logo.png" alt="Polymate Logo" className="h-8 w-auto" />
+                                    <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600 hidden sm:block">
+                                        ITDeskService
+                                    </span>
                                 </a>
                             </div>
 
@@ -33,7 +36,13 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
 
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
+                        <div className="hidden sm:ms-6 sm:flex sm:items-center gap-4">
+                            {usePage().props.today_thai && (
+                                <div className="text-sm font-medium text-gray-500 border-r border-gray-200 pr-4">
+                                    {usePage().props.today_thai}
+                                </div>
+                            )}
+
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>
@@ -184,6 +193,27 @@ export default function AuthenticatedLayout({ header, children }) {
             )}
 
             <main>{children}</main>
+
+            {usePage().props.auth.impersonated_by && (
+                <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 bg-slate-900/95 backdrop-blur-md px-4 py-2.5 rounded-full shadow-2xl border border-slate-700 w-max max-w-[90vw]">
+                    <div className="flex items-center gap-2 truncate">
+                        <span className="relative flex h-2 w-2 shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span className="text-xs font-medium text-slate-200 truncate">จำลอง: <span className="text-white font-bold">{user.name}</span></span>
+                    </div>
+                    <div className="w-px h-4 bg-slate-700 shrink-0"></div>
+                    <button
+                        type="button"
+                        onClick={() => router.post(route('impersonate.leave'))}
+                        className="text-rose-400 hover:text-rose-300 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        ออก
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

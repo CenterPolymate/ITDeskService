@@ -40,7 +40,9 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                'impersonated_by' => fn () => $request->session()->has('impersonated_by'),
             ],
+            'today_thai' => now()->locale('th')->translatedFormat('d F Y'),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
