@@ -7,6 +7,9 @@ erDiagram
     COMPANIES {
         bigint id PK
         string name "ชื่อบริษัท (Unique)"
+        string short_name "ชื่อย่อบริษัท (Nullable)"
+        string sla_type "ประเภท SLA: 8x5 หรือ 24x7"
+        boolean is_active "สถานะเปิดใช้งาน (True = ใช้งานได้, False = ระงับ)"
         json email_domains "โดเมนอีเมลที่อนุญาต (Nullable)"
         timestamp created_at
         timestamp updated_at

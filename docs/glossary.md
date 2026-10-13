@@ -70,3 +70,6 @@
 - **Manual Restore:** การกู้คืนข้อมูลจากไฟล์ Backup (.zip) โดยแอดมินจะต้องทำการแตกไฟล์และนำไป Import กลับด้วยตัวเอง (ผ่าน phpMyAdmin และ File Manager) เพื่อความปลอดภัยและความเสถียรของเซิร์ฟเวอร์
 - **Holidays Management:** ระบบการตั้งค่าวันหยุดนักขัตฤกษ์สำหรับใช้ประกอบการคำนวณระยะเวลา SLA และเวลาทำการขององค์กร โดยมีนโยบายป้องกันการลบวันหยุดในอดีต (Past Holidays Protection) เพื่อไม่ให้กระทบต่อผลการคำนวณ SLA ย้อนหลัง
 - **Favicon & Branding:** ไอคอนและชื่อประจำเว็บไซต์ที่ปรากฏบนแท็บของ Web Browser โดยระบบใช้ชื่อ `ITDeskService` และใช้สัญลักษณ์ลูกบาศก์ Polymate IT Solutions เป็นไอคอน
+- **React & Inertia.js (Hybrid Architecture):** การพัฒนาสถาปัตยกรรมส่วนหน้า (Frontend) โดยย้ายจาก Blade Views เดิมไปเป็น React Components ร่วมกับ Inertia.js เพื่อมอบประสบการณ์แบบ Single Page Application (SPA) ที่รวดเร็ว ลื่นไหล โดยยังคงใช้ Laravel Routing และ Backend เดิมได้อย่างกลมกลืน
+- **SMTP Test Connection:** ฟังก์ชันการทดสอบการเชื่อมต่อเซิร์ฟเวอร์ส่งอีเมลแบบ Real-time บนหน้าจอการตั้งค่าระบบ (Settings) ช่วยให้ Administrator ส่งอีเมลทดสอบจริงไปยังอีเมลปลายทางเพื่อตรวจยืนยันความถูกต้องของ Host, Port, Username, Password และ Encryption ก่อนบันทึกการตั้งค่าใช้งานจริง
+- **Dynamic Company-Department Mapping:** ระบบเชื่อมโยงและกรองตัวเลือกแผนก (Department) ตามบริษัท (Company) ที่ผู้ใช้งานเลือกแบบเรียลไทม์ ป้องกันปัญหาการเลือกแผนกข้ามบริษัทที่ไม่สอดคล้องกัน

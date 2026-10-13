@@ -198,7 +198,11 @@
   - [x] จัดการปัญหา Redirect กลับไปยังหน้า Dashboard (Blade) ด้วย `Inertia::location()`
 - [ ] **Dashboard & User Management (แผนงานถัดไป):**
   - [ ] ไมเกรตหน้า Dashboard ของทุก Role ให้เป็น React Components
-  - [x] ไมเกรตหน้าระบบการจัดการผู้ใช้งาน (Users) และบริษัท (Companies)
+  - [x] ไมเกรตหน้าระบบการจัดการผู้ใช้งาน (Users) และบริษัท (Companies):
+    - [x] ไมเกรตหน้ารายการ, เพิ่ม, แก้ไขบริษัทและแผนก (`Companies/Index.jsx`, `Create.jsx`, `Edit.jsx`) พร้อม Modal นำเข้า CSV และ Map แผนกที่ยังไม่ได้ผูกกับบริษัท
+    - [x] ไมเกรตหน้ารายการ, เพิ่ม, แก้ไขผู้ใช้ทั่วไป (`NormalUsers/Index.jsx`, `Create.jsx`, `Edit.jsx`) พร้อมค้นหา, กรองสถานะ Active/รอการยืนยัน/Inactive, Sortable columns, Pagination, นำเข้า CSV, Impersonation และ Smart Delete
+    - [x] ไมเกรตหน้ารายการ, เพิ่ม, แก้ไขผู้ใช้ทีม IT (`Users/Index.jsx`, `Create.jsx`, `Edit.jsx`) พร้อม Role Badges, Force Reset Password, และการป้องกันไม่ให้แก้ชื่อ Admin สูงสุด
+    - [x] สร้างชุดทดสอบอัตโนมัติรองรับ Inertia (`CompanyManagementTest`, `NormalUserManagementTest`, `UserManagementTest`) ผ่านครบ 100%
 - [ ] **Core Ticketing System (แผนงานถัดไป):**
   - [ ] ไมเกรตฟอร์มการแจ้งซ่อม และหน้ารายละเอียดเคส (Show Ticket) ไปใช้ React
 - [x] **ระบบตั้งค่าวันหยุดนักขัตฤกษ์ (Holidays Management):**
