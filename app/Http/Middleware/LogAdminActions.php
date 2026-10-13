@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\AuditLog;
+use App\Models\Company;
 use App\Models\User;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
@@ -56,10 +57,17 @@ class LogAdminActions
         if ($shouldLog && ($response->isSuccessful() || $response->isRedirection())) {
             // ตรวจสอบกรณีเปลี่ยนสถานะเป็น Inactive แทนการลบถาวร (Smart Delete)
             $isDeactivate = $request->attributes->get('audit_action') === 'DEACTIVATE';
-            if (! $isDeactivate && $method === 'DELETE' && $targetModel instanceof User) {
-                $freshUser = User::find($targetModel->getKey());
-                if ($freshUser && ! $freshUser->is_active) {
-                    $isDeactivate = true;
+            if (! $isDeactivate && $method === 'DELETE') {
+                if ($targetModel instanceof User) {
+                    $freshUser = User::find($targetModel->getKey());
+                    if ($freshUser && ! $freshUser->is_active) {
+                        $isDeactivate = true;
+                    }
+                } elseif ($targetModel instanceof Company) {
+                    $freshCompany = Company::find($targetModel->getKey());
+                    if ($freshCompany && ! $freshCompany->is_active) {
+                        $isDeactivate = true;
+                    }
                 }
             }
 

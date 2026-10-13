@@ -105,10 +105,19 @@
                             
                             <div class="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
                                 <a href="{{ route('companies.edit', $company->id) }}" class="flex-1 text-center text-xs text-indigo-700 font-medium hover:text-indigo-900 transition-colors px-2 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-100">แก้ไข</a>
-                                <form action="{{ route('companies.destroy', $company->id) }}" method="POST" class="flex-1 m-0 p-0" onsubmit="return confirm('ยืนยันการระงับการใช้งานบริษัทนี้?');">
+                                <form action="{{ route('companies.toggle_status', $company->id) }}" method="POST" class="flex-1 m-0 p-0">
+                                    @csrf
+                                    @method('PATCH')
+                                    @if($company->is_active)
+                                        <button type="submit" class="w-full text-center text-xs text-amber-700 font-medium hover:text-amber-900 transition-colors px-2 py-2 bg-amber-50 hover:bg-amber-100 rounded-lg border border-amber-200">ระงับ</button>
+                                    @else
+                                        <button type="submit" class="w-full text-center text-xs text-emerald-700 font-medium hover:text-emerald-900 transition-colors px-2 py-2 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200">เปิดใช้งาน</button>
+                                    @endif
+                                </form>
+                                <form action="{{ route('companies.destroy', $company->id) }}" method="POST" class="flex-1 m-0 p-0" onsubmit="return confirm('ยืนยันการลบบริษัทนี้?\n(หากไม่มีข้อมูลเชื่อมโยงระบบจะลบถาวร หรือระงับการใช้งานหากมีข้อมูลแล้ว)');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="w-full text-center text-xs text-red-700 font-medium hover:text-red-900 transition-colors px-2 py-2 bg-red-50 hover:bg-red-100 rounded-lg border border-red-100">ระงับ</button>
+                                    <button type="submit" class="w-full text-center text-xs text-red-700 font-medium hover:text-red-900 transition-colors px-2 py-2 bg-red-50 hover:bg-red-100 rounded-lg border border-red-100">ลบ</button>
                                 </form>
                             </div>
                         </div>
@@ -151,12 +160,21 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">
-                                        <div class="flex items-center justify-end gap-3">
-                                            <a href="{{ route('companies.edit', $company->id) }}" class="text-indigo-600 hover:text-indigo-900 transition-colors px-2 py-1 bg-indigo-50 hover:bg-indigo-100 rounded-md">แก้ไข</a>
-                                            <form action="{{ route('companies.destroy', $company->id) }}" method="POST" class="inline m-0 p-0" onsubmit="return confirm('ยืนยันการระงับการใช้งานบริษัทนี้?');">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a href="{{ route('companies.edit', $company->id) }}" class="text-indigo-600 hover:text-indigo-900 transition-colors px-2 py-1 bg-indigo-50 hover:bg-indigo-100 rounded-md border border-indigo-100">แก้ไข</a>
+                                            <form action="{{ route('companies.toggle_status', $company->id) }}" method="POST" class="inline m-0 p-0">
+                                                @csrf
+                                                @method('PATCH')
+                                                @if($company->is_active)
+                                                    <button type="submit" class="text-amber-700 hover:text-amber-900 transition-colors px-2 py-1 bg-amber-50 hover:bg-amber-100 rounded-md border border-amber-200">ระงับ</button>
+                                                @else
+                                                    <button type="submit" class="text-emerald-700 hover:text-emerald-900 transition-colors px-2 py-1 bg-emerald-50 hover:bg-emerald-100 rounded-md border border-emerald-200">เปิดใช้งาน</button>
+                                                @endif
+                                            </form>
+                                            <form action="{{ route('companies.destroy', $company->id) }}" method="POST" class="inline m-0 p-0" onsubmit="return confirm('ยืนยันการลบบริษัทนี้?\n(หากไม่มีข้อมูลเชื่อมโยงระบบจะลบถาวร หรือระงับการใช้งานหากมีข้อมูลแล้ว)');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900 transition-colors px-2 py-1 bg-red-50 hover:bg-red-100 rounded-md">ระงับ</button>
+                                                <button type="submit" class="text-red-600 hover:text-red-900 transition-colors px-2 py-1 bg-red-50 hover:bg-red-100 rounded-md border border-red-100">ลบ</button>
                                             </form>
                                         </div>
                                     </td>

@@ -112,9 +112,11 @@ class CompanyController extends Controller
             'sla_type' => $request->sla_type,
         ]);
 
-        // Update related SLAs if the name changed
+        // Update related SLAs, Users, and HelpdeskCases if the name changed
         if ($oldName !== $newName) {
             Sla::where('company', $oldName)->update(['company' => $newName]);
+            User::where('company', $oldName)->update(['company' => $newName]);
+            HelpdeskCase::where('company', $oldName)->update(['company' => $newName]);
         }
 
         return redirect()->route('companies.index')->with('success', 'อัปเดตบริษัทสำเร็จ');
@@ -124,9 +126,30 @@ class CompanyController extends Controller
     {
         $this->authorizeAdministrator();
 
-        $company->update(['is_active' => false]);
+        if (! $company->hasHistory()) {
+            Sla::where('company', $company->name)->delete();
+            $company->departments()->delete();
+            $company->delete();
 
-        return redirect()->route('companies.index')->with('success', 'ระงับการใช้งานบริษัทสำเร็จ');
+            return redirect()->route('companies.index')->with('success', 'ลบบริษัทถาวรเรียบร้อยแล้ว (เนื่องจากยังไม่มีข้อมูลผู้ใช้งานหรือใบงานในระบบ)');
+        }
+
+        $company->update(['is_active' => false]);
+        request()->attributes->set('audit_action', 'DEACTIVATE');
+        request()->attributes->set('audit_note', 'เปลี่ยนสถานะเป็น Inactive แทนการลบถาวร เนื่องจากมีประวัติผู้ใช้งานหรือใบงานในระบบ');
+
+        return redirect()->route('companies.index')->with('success', 'ระงับการใช้งานบริษัทเรียบร้อยแล้ว (ไม่สามารถลบถาวรได้เนื่องจากมีข้อมูลผู้ใช้งานหรือใบงานในระบบ)');
+    }
+
+    public function toggleStatus(Company $company)
+    {
+        $this->authorizeAdministrator();
+
+        $company->update(['is_active' => ! $company->is_active]);
+
+        $statusText = $company->is_active ? 'เปิดใช้งาน' : 'ระงับการใช้งาน';
+
+        return redirect()->route('companies.index')->with('success', "{$statusText}บริษัท {$company->name} เรียบร้อยแล้ว");
     }
 
     public function storeDepartment(Request $request, Company $company)

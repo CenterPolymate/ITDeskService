@@ -56,6 +56,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('companies/import', [CompanyController::class, 'import'])->name('companies.import');
     Route::get('companies/export', [CompanyController::class, 'export'])->name('companies.export');
     Route::resource('companies', CompanyController::class)->except(['show']);
+    Route::patch('companies/{company}/toggle-status', [CompanyController::class, 'toggleStatus'])->name('companies.toggle_status');
     Route::post('companies/{company}/departments', [CompanyController::class, 'storeDepartment'])->name('companies.departments.store');
     Route::post('companies/{company}/departments/map', [CompanyController::class, 'mapDepartment'])->name('companies.departments.map');
     Route::put('companies/departments/{department}', [CompanyController::class, 'updateDepartment'])->name('companies.departments.update');
