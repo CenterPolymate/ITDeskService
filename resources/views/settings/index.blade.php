@@ -48,22 +48,12 @@
                             </div>
                         </div>
 
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-2 mt-8 mb-4 gap-2">
-                            <div>
-                                <div class="flex items-center gap-2.5 flex-wrap">
-                                    <h3 class="text-lg font-medium text-gray-900">Email (SMTP) Settings</h3>
-                                    <span id="smtp_status_badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"></span>
-                                </div>
-                                <p class="text-xs text-gray-500">การตั้งค่าเซิร์ฟเวอร์ส่งอีเมลสำหรับการแจ้งเตือนและการยืนยันตัวตน (Email Verification)</p>
+                        <div class="border-b pb-2 mt-8 mb-4">
+                            <div class="flex items-center gap-2.5 flex-wrap">
+                                <h3 class="text-lg font-medium text-gray-900">Email (SMTP) Settings</h3>
+                                <span id="smtp_status_badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"></span>
                             </div>
-                            <button type="button" 
-                                    onclick="openTestEmailModal()" 
-                                    class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-xs font-semibold rounded-md shadow-sm transition duration-150 ease-in-out cursor-pointer">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                </svg>
-                                <span>ตรวจสอบการตั้งค่า (Test Connection)</span>
-                            </button>
+                            <p class="text-xs text-gray-500 mt-1">การตั้งค่าเซิร์ฟเวอร์ส่งอีเมลสำหรับการแจ้งเตือนและการยืนยันตัวตน (Email Verification)</p>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -89,8 +79,15 @@
                             </div>
                             
                             <div>
-                                <x-input-label for="smtp_encryption" :value="__('Encryption (tls, ssl)')" />
-                                <x-text-input id="smtp_encryption" class="block mt-1 w-full" type="text" name="smtp_encryption" :value="old('smtp_encryption', $settings['smtp_encryption']->value ?? 'tls')" placeholder="tls หรือ ssl (พอร์ต 465 มักใช้ ssl)" />
+                                <x-input-label for="smtp_encryption" :value="__('การเข้ารหัสความปลอดภัย (Encryption)')" />
+                                @php
+                                    $currentEncryption = strtolower(old('smtp_encryption', $settings['smtp_encryption']->value ?? 'ssl'));
+                                @endphp
+                                <select id="smtp_encryption" name="smtp_encryption" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                    <option value="ssl" {{ $currentEncryption === 'ssl' ? 'selected' : '' }}>SSL (แนะนำสำหรับพอร์ต 465)</option>
+                                    <option value="tls" {{ $currentEncryption === 'tls' ? 'selected' : '' }}>TLS / STARTTLS (แนะนำสำหรับพอร์ต 587)</option>
+                                    <option value="none" {{ $currentEncryption === 'none' ? 'selected' : '' }}>None (ไม่เข้ารหัส)</option>
+                                </select>
                             </div>
                             
                             <div class="rounded-lg bg-gray-50 border border-gray-200 p-3 text-xs text-gray-600 flex flex-col justify-center">
@@ -320,15 +317,33 @@
         smtpInputs.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
-                el.addEventListener('input', () => {
-                    isSmtpVerified = false;
-                    lastTestResult = null;
-                    const tokenEl = document.getElementById('smtp_verified_token');
-                    if (tokenEl) tokenEl.value = '';
-                    updateSmtpUiStatus();
+                ['input', 'change'].forEach(evt => {
+                    el.addEventListener(evt, () => {
+                        isSmtpVerified = false;
+                        lastTestResult = null;
+                        const tokenEl = document.getElementById('smtp_verified_token');
+                        if (tokenEl) tokenEl.value = '';
+                        updateSmtpUiStatus();
+                    });
                 });
             }
         });
+
+        // สลับค่า Encryption อัตโนมัติเมื่อพิมพ์หรือเปลี่ยนพอร์ต 465 หรือ 587
+        const portInput = document.getElementById('smtp_port');
+        const encSelect = document.getElementById('smtp_encryption');
+        if (portInput && encSelect) {
+            portInput.addEventListener('change', () => {
+                const p = portInput.value.trim();
+                if (p === '465' && encSelect.value !== 'ssl') {
+                    encSelect.value = 'ssl';
+                    encSelect.dispatchEvent(new Event('change'));
+                } else if (p === '587' && encSelect.value !== 'tls') {
+                    encSelect.value = 'tls';
+                    encSelect.dispatchEvent(new Event('change'));
+                }
+            });
+        }
 
         // ป้องกันการกดบันทึกการตั้งค่าถ้า SMTP ยังไม่ผ่านการตรวจสอบ
         const settingsForm = document.getElementById('settingsForm');
