@@ -8,6 +8,7 @@ use App\Models\HelpdeskCase;
 use App\Models\Sla;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class CompanyController extends Controller
 {
@@ -23,14 +24,16 @@ class CompanyController extends Controller
         $this->authorizeAdministrator();
         $companies = Company::orderBy('name')->get();
 
-        return view('companies.index', compact('companies'));
+        return Inertia::render('Companies/Index', [
+            'companies' => $companies,
+        ]);
     }
 
     public function create()
     {
         $this->authorizeAdministrator();
 
-        return view('companies.create');
+        return Inertia::render('Companies/Create');
     }
 
     public function store(Request $request)
@@ -80,14 +83,18 @@ class CompanyController extends Controller
     {
         $this->authorizeAdministrator();
 
-        $mappedDepartments = $company->departments()->pluck('name')->toArray();
+        $company->load('departments');
+        $mappedDepartments = $company->departments->pluck('name')->toArray();
         $unmappedDepartments = User::where('company', $company->name)
             ->whereNotNull('department')
             ->whereNotIn('department', $mappedDepartments)
             ->distinct()
             ->pluck('department');
 
-        return view('companies.edit', compact('company', 'unmappedDepartments'));
+        return Inertia::render('Companies/Edit', [
+            'company' => $company,
+            'unmappedDepartments' => $unmappedDepartments,
+        ]);
     }
 
     public function update(Request $request, Company $company)

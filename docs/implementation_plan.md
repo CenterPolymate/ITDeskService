@@ -198,7 +198,7 @@
   - [x] จัดการปัญหา Redirect กลับไปยังหน้า Dashboard (Blade) ด้วย `Inertia::location()`
 - [ ] **Dashboard & User Management (แผนงานถัดไป):**
   - [ ] ไมเกรตหน้า Dashboard ของทุก Role ให้เป็น React Components
-  - [ ] ไมเกรตหน้าระบบการจัดการผู้ใช้งาน (Users) และบริษัท (Companies)
+  - [x] ไมเกรตหน้าระบบการจัดการผู้ใช้งาน (Users) และบริษัท (Companies)
 - [ ] **Core Ticketing System (แผนงานถัดไป):**
   - [ ] ไมเกรตฟอร์มการแจ้งซ่อม และหน้ารายละเอียดเคส (Show Ticket) ไปใช้ React
 - [x] **ระบบตั้งค่าวันหยุดนักขัตฤกษ์ (Holidays Management):**

@@ -45,7 +45,7 @@ class HelpdeskDashboardTest extends TestCase
      */
     public function test_new_case_can_be_created(): void
     {
-        $user = User::factory()->create(['role' => 'user', 'department' => 'IT']);
+        $user = User::factory()->create(['name' => 'สมชาย มั่นคง', 'role' => 'user', 'department' => 'IT']);
         $this->actingAs($user);
 
         $payload = [
@@ -57,6 +57,7 @@ class HelpdeskDashboardTest extends TestCase
             'requester_email' => 'somchai@company.co.th',
             'department' => 'ฝ่ายการตลาด',
             'location' => 'อาคาร 2 ชั้น 3',
+            'is_machine_stopped' => false,
             'description' => 'VPN ฟ้อง Authentication Failed เมื่อเชื่อมต่อจากที่บ้าน',
         ];
 

@@ -39,4 +39,19 @@
   - [x] จัดการส่งอีเมลทดสอบด้วย `TestSmtpMail` และแสดงการแจ้งเตือนผลลัพธ์ (Success / Error ละเอียด)
   - [x] นำการตั้งค่า SMTP จากฐานข้อมูลไปใช้ใน `AppServiceProvider` สำหรับการส่งอีเมลจริงของระบบ
   - [x] เพิ่มชุดการทดสอบอัตโนมัติ `SmtpSettingTest.php` ครอบคลุมสิทธิ์ Administrator
+- [x] ไมเกรตระบบจัดการบริษัท (Companies) และแผนก (Departments) เป็น React Components:
+  - [x] หน้ารายการบริษัท (`Companies/Index.jsx`): ค้นหา, กรองสถานะ, Modal นำเข้า CSV, ลิงก์ส่งออก CSV, ตารางเดสก์ท็อป และ Card view บนมือถือ
+  - [x] หน้าเพิ่มบริษัท (`Companies/Create.jsx`): สลับเปิดใช้งาน, เลือก SLA Type, ตรวจสอบข้อผิดพลาดฟอร์ม
+  - [x] หน้าแก้ไขบริษัทและจัดการแผนก (`Companies/Edit.jsx`): แก้ไขชื่อ/ชื่อย่อ, เพิ่ม/แก้ไข/ลบแผนก, และ Modal จัดการแผนกที่ยังไม่ได้ผูกกับบริษัท
+  - [x] เพิ่มชุดทดสอบอัตโนมัติ `CompanyManagementTest.php` ผ่านครบ 4/4
+- [x] ไมเกรตระบบจัดการผู้ใช้งานทั่วไป (Normal Users) เป็น React Components:
+  - [x] หน้ารายการผู้ใช้ทั่วไป (`NormalUsers/Index.jsx`): ค้นหา, กรองสถานะ (Active, รอการยืนยันอีเมล, Inactive), เรียงลำดับคอลัมน์, แบ่งหน้า, Modal นำเข้า CSV, ปุ่มสลับสิทธิ์ Login As, และปุ่ม Smart Delete
+  - [x] หน้าเพิ่มผู้ใช้ทั่วไป (`NormalUsers/Create.jsx`): ดึงรายชื่อบริษัทและกรองแผนกแบบ Dynamic, แจ้งเตือนกรณีไม่มีแผนก
+  - [x] หน้าแก้ไขผู้ใช้ทั่วไป (`NormalUsers/Edit.jsx`): ปุ่มส่งลิงก์รีเซ็ตรหัสผ่าน, เปลี่ยนบทบาท, และสลับสถานะ Active
+  - [x] เพิ่มชุดทดสอบอัตโนมัติ `NormalUserManagementTest.php` ผ่านครบ 6/6
+- [x] ไมเกรตระบบจัดการผู้ใช้งานทีม IT (IT Users) เป็น React Components:
+  - [x] หน้ารายการผู้ใช้ทีม IT (`Users/Index.jsx`): ป้าย Badge บทบาท, กรองสถานะ, จัดการผู้ใช้ตามสิทธิ์, และ Export CSV
+  - [x] หน้าเพิ่มผู้ใช้ทีม IT (`Users/Create.jsx`): เลือกตำแหน่ง IT ทั้งหมด (helpdesk, hardware, network, software, manager, admin) และแผนก Dynamic
+  - [x] หน้าแก้ไขผู้ใช้ทีม IT (`Users/Edit.jsx`): ล็อกไม่ให้แก้ไขชื่อของ Administrator สูงสุด, ปุ่มส่งลิงก์รีเซ็ตรหัสผ่าน
+  - [x] เพิ่มชุดทดสอบอัตโนมัติ `UserManagementTest.php` ผ่านครบ 5/5
 - **All current tasks are completed.**

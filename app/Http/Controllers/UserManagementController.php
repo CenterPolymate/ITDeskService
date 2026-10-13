@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class UserManagementController extends Controller
 {
@@ -19,7 +21,7 @@ class UserManagementController extends Controller
         }
     }
 
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $this->authorizeAdminOrManager();
 
@@ -56,15 +58,25 @@ class UserManagementController extends Controller
 
         $users = $query->orderBy($sort, $direction)->paginate(10)->appends($request->query());
 
-        return view('users.index', compact('users'));
+        return Inertia::render('Users/Index', [
+            'users' => $users,
+            'filters' => [
+                'search' => $request->search,
+                'status_filter' => $request->status_filter,
+                'sort' => $sort,
+                'direction' => $direction,
+            ],
+        ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         $this->authorizeAdminOrManager();
         $companies = Company::with('departments')->where('is_active', true)->orderBy('name')->get();
 
-        return view('users.create', compact('companies'));
+        return Inertia::render('Users/Create', [
+            'companies' => $companies,
+        ]);
     }
 
     public function store(Request $request)
@@ -95,12 +107,15 @@ class UserManagementController extends Controller
         return redirect()->route('users.index')->with('success', 'สร้างบัญชีผู้ใช้งาน IT เรียบร้อยแล้ว');
     }
 
-    public function edit(User $user)
+    public function edit(User $user): Response
     {
         $this->authorizeAdminOrManager();
         $companies = Company::with('departments')->where('is_active', true)->orderBy('name')->get();
 
-        return view('users.edit', compact('user', 'companies'));
+        return Inertia::render('Users/Edit', [
+            'user' => $user,
+            'companies' => $companies,
+        ]);
     }
 
     public function update(Request $request, User $user)

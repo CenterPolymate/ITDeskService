@@ -8,6 +8,7 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class EmailVerificationTest extends TestCase
@@ -151,6 +152,10 @@ class EmailVerificationTest extends TestCase
         $response = $this->actingAs($admin)->get(route('normal_users.index'));
 
         $response->assertStatus(200);
-        $response->assertSee('รอการยืนยันอีเมล');
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('NormalUsers/Index')
+            ->has('users.data', 1)
+            ->where('users.data.0.email_verified_at', null)
+        );
     }
 }

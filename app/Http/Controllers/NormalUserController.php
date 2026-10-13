@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class NormalUserController extends Controller
 {
@@ -20,7 +22,7 @@ class NormalUserController extends Controller
         }
     }
 
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $this->authorizeAdministrator();
 
@@ -57,15 +59,25 @@ class NormalUserController extends Controller
 
         $users = $query->orderBy($sort, $direction)->paginate(10)->appends($request->query());
 
-        return view('normal_users.index', compact('users'));
+        return Inertia::render('NormalUsers/Index', [
+            'users' => $users,
+            'filters' => [
+                'search' => $request->search,
+                'status_filter' => $request->status_filter,
+                'sort' => $sort,
+                'direction' => $direction,
+            ],
+        ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         $this->authorizeAdministrator();
         $companies = Company::with('departments')->where('is_active', true)->orderBy('name')->get();
 
-        return view('normal_users.create', compact('companies'));
+        return Inertia::render('NormalUsers/Create', [
+            'companies' => $companies,
+        ]);
     }
 
     public function store(Request $request)
@@ -95,7 +107,7 @@ class NormalUserController extends Controller
         return redirect()->route('normal_users.index')->with('success', 'สร้างบัญชีผู้ใช้งานทั่วไปเรียบร้อยแล้ว');
     }
 
-    public function edit(User $normal_user)
+    public function edit(User $normal_user): Response
     {
         $this->authorizeAdministrator();
         if ($normal_user->role !== 'user') {
@@ -104,7 +116,10 @@ class NormalUserController extends Controller
 
         $companies = Company::with('departments')->where('is_active', true)->orderBy('name')->get();
 
-        return view('normal_users.edit', compact('normal_user', 'companies'));
+        return Inertia::render('NormalUsers/Edit', [
+            'normal_user' => $normal_user,
+            'companies' => $companies,
+        ]);
     }
 
     public function update(Request $request, User $normal_user)
