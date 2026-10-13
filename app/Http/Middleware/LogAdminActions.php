@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\AuditLog;
+use App\Models\User;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -28,6 +29,7 @@ class LogAdminActions
         $routeName = null;
         $targetId = null;
         $oldValues = null;
+        $targetModel = null;
 
         if ($shouldLog) {
             $routeName = $request->route() ? $request->route()->getName() : $request->path();
@@ -36,6 +38,7 @@ class LogAdminActions
                 $ids = [];
                 foreach ($params as $param) {
                     if ($param instanceof Model) {
+                        $targetModel = $param;
                         $ids[] = $param->getKey();
                         if ($method !== 'POST') {
                             $oldValues = $param->getAttributes();
@@ -51,6 +54,33 @@ class LogAdminActions
         $response = $next($request);
 
         if ($shouldLog && ($response->isSuccessful() || $response->isRedirection())) {
+            // ตรวจสอบกรณีเปลี่ยนสถานะเป็น Inactive แทนการลบถาวร (Smart Delete)
+            $isDeactivate = $request->attributes->get('audit_action') === 'DEACTIVATE';
+            if (! $isDeactivate && $method === 'DELETE' && $targetModel instanceof User) {
+                $freshUser = User::find($targetModel->getKey());
+                if ($freshUser && ! $freshUser->is_active) {
+                    $isDeactivate = true;
+                }
+            }
+
+            if ($isDeactivate) {
+                AuditLog::create([
+                    'user_id' => $adminId,
+                    'action' => 'DEACTIVATE '.$routeName,
+                    'target_type' => $routeName,
+                    'target_id' => $targetId,
+                    'changes' => [
+                        'is_active' => 0,
+                        'action_note' => $request->attributes->get('audit_note', 'เปลี่ยนสถานะเป็น Inactive แทนการลบถาวร เนื่องจากมีประวัติเชื่อมโยงกับใบงาน'),
+                    ],
+                    'old_values' => [
+                        'is_active' => $oldValues['is_active'] ?? 1,
+                    ],
+                ]);
+
+                return $response;
+            }
+
             $changes = $request->except(['password', 'password_confirmation', '_token', '_method']);
 
             // ไฟล์อัปโหลดแปลงเป็น JSON ไม่ได้ ให้บันทึกเป็นชื่อไฟล์แทน

@@ -77,6 +77,8 @@ class AuditLogController extends Controller
                     'hours' => 'จำนวนชั่วโมง',
                     'sla_type' => 'ประเภท SLA',
                     'date' => 'วันที่',
+                    'action_note' => 'หมายเหตุ',
+                    'reason' => 'เหตุผล',
                 ];
 
                 foreach ($logs as $log) {
@@ -85,6 +87,8 @@ class AuditLogController extends Controller
                         $actionText = 'คืนสิทธิ์การใช้งาน (Leave Impersonation)';
                     } elseif (str_contains($log->action, 'impersonate')) {
                         $actionText = 'จำลองสิทธิ์ (Impersonate)';
+                    } elseif (str_contains($log->action, 'DEACTIVATE') || str_contains($log->action, 'deactivated')) {
+                        $actionText = 'เปลี่ยนสถานะเป็น Inactive';
                     } elseif (str_contains($log->action, 'POST') || $log->action === 'created') {
                         $actionText = 'เพิ่มข้อมูล';
                     } elseif (str_contains($log->action, 'PUT') || str_contains($log->action, 'PATCH') || $log->action === 'updated') {

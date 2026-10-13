@@ -59,6 +59,7 @@
                             <option value="POST" {{ request('action_filter') == 'POST' ? 'selected' : '' }}>เพิ่มข้อมูล</option>
                             <option value="PUT" {{ request('action_filter') == 'PUT' ? 'selected' : '' }}>แก้ไขข้อมูล</option>
                             <option value="DELETE" {{ request('action_filter') == 'DELETE' ? 'selected' : '' }}>ลบข้อมูล</option>
+                            <option value="DEACTIVATE" {{ request('action_filter') == 'DEACTIVATE' ? 'selected' : '' }}>เปลี่ยนสถานะเป็น Inactive</option>
                         </select>
                     </div>
                     <div class="flex gap-2 w-full md:w-auto">
@@ -94,6 +95,9 @@
                                     } elseif (str_contains($log->action, 'impersonate')) {
                                         $actionText = 'จำลองสิทธิ์';
                                         $badgeClass = 'bg-purple-50 text-purple-700 ring-purple-600/20';
+                                    } elseif (str_contains($log->action, 'DEACTIVATE') || str_contains($log->action, 'deactivate')) {
+                                        $actionText = 'เปลี่ยนสถานะเป็น Inactive';
+                                        $badgeClass = 'bg-amber-50 text-amber-700 ring-amber-600/20';
                                     } elseif (str_contains($log->action, 'POST') || $log->action === 'created') {
                                         $actionText = 'เพิ่มข้อมูล';
                                         $badgeClass = 'bg-emerald-50 text-emerald-700 ring-emerald-600/20';
@@ -181,6 +185,8 @@
                                                         'hours' => 'จำนวนชั่วโมง',
                                                         'sla_type' => 'ประเภท SLA',
                                                         'date' => 'วันที่',
+                                                        'action_note' => 'หมายเหตุ',
+                                                        'reason' => 'เหตุผล',
                                                     ];
                                                 @endphp
                                                 <div class="grid grid-cols-1 gap-2">
@@ -267,6 +273,9 @@
                                                 } elseif (str_contains($log->action, 'impersonate')) {
                                                     $actionText = 'จำลองสิทธิ์';
                                                     $badgeClass = 'bg-purple-50 text-purple-700 ring-purple-600/20';
+                                                } elseif (str_contains($log->action, 'DEACTIVATE') || str_contains($log->action, 'deactivate')) {
+                                                    $actionText = 'เปลี่ยนสถานะเป็น Inactive';
+                                                    $badgeClass = 'bg-amber-50 text-amber-700 ring-amber-600/20';
                                                 } elseif (str_contains($log->action, 'POST') || $log->action === 'created') {
                                                     $actionText = 'เพิ่มข้อมูล';
                                                     $badgeClass = 'bg-emerald-50 text-emerald-700 ring-emerald-600/20';
@@ -335,6 +344,8 @@
                                                         'hours' => 'จำนวนชั่วโมง',
                                                         'sla_type' => 'ประเภท SLA',
                                                         'date' => 'วันที่',
+                                                        'action_note' => 'หมายเหตุ',
+                                                        'reason' => 'เหตุผล',
                                                     ];
                                                 @endphp
                                                 <div class="grid grid-cols-1 gap-2">

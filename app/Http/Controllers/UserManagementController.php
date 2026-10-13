@@ -154,6 +154,8 @@ class UserManagementController extends Controller
         }
 
         $user->update(['is_active' => false]);
+        request()->attributes->set('audit_action', 'DEACTIVATE');
+        request()->attributes->set('audit_note', 'เปลี่ยนสถานะเป็น Inactive แทนการลบถาวร เนื่องจากมีประวัติเชื่อมโยงกับใบงาน');
 
         return redirect()->route('users.index')->with('success', 'ระงับบัญชีผู้ใช้งานเรียบร้อยแล้ว (ไม่สามารถลบถาวรได้เนื่องจากมีประวัติเชื่อมโยงกับใบงาน)');
     }
