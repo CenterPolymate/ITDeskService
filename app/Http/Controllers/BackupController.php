@@ -44,11 +44,29 @@ class BackupController extends Controller
                     $type = $disk->size($file) > 5 * 1024 * 1024 ? 'เต็มระบบ' : 'เฉพาะฐานข้อมูล';
                 }
 
+                // ดึงวันเวลาจากชื่อไฟล์ (เช่น FULL_2026-10-13-14-56-47.zip) หรือ fallback ไปที่เวลาแก้ไขไฟล์ใน Asia/Bangkok
+                $timestamp = null;
+                if (preg_match('/(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})/', $fileName, $matches)) {
+                    try {
+                        $timestamp = Carbon::createFromFormat(
+                            'Y-m-d-H-i-s',
+                            "{$matches[1]}-{$matches[2]}-{$matches[3]}-{$matches[4]}-{$matches[5]}-{$matches[6]}",
+                            config('app.timezone', 'Asia/Bangkok')
+                        );
+                    } catch (\Throwable $e) {
+                        $timestamp = null;
+                    }
+                }
+
+                if (! $timestamp) {
+                    $timestamp = Carbon::createFromTimestamp($disk->lastModified($file), config('app.timezone', 'Asia/Bangkok'));
+                }
+
                 $backups[] = [
                     'file_path' => $file,
                     'file_name' => $fileName,
                     'file_size' => $this->humanFilesize($disk->size($file)),
-                    'last_modified' => Carbon::createFromTimestamp($disk->lastModified($file))->translatedFormat('d F Y H:i:s'),
+                    'last_modified' => $timestamp->locale('th')->translatedFormat('d F Y H:i:s'),
                     'type' => $type,
                 ];
             }
@@ -75,10 +93,15 @@ class BackupController extends Controller
         try {
             if ($request->type === 'db_only') {
                 config(['backup.backup.destination.filename_prefix' => 'DB_']);
-                Artisan::call('backup:run', ['--only-db' => true]);
+                Artisan::call('backup:run', [
+                    '--only-db' => true,
+                    '--disable-notifications' => true,
+                ]);
             } else {
                 config(['backup.backup.destination.filename_prefix' => 'FULL_']);
-                Artisan::call('backup:run');
+                Artisan::call('backup:run', [
+                    '--disable-notifications' => true,
+                ]);
             }
 
             $output = Artisan::output();

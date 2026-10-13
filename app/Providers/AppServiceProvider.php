@@ -66,9 +66,17 @@ class AppServiceProvider extends ServiceProvider
 
                     $fromAddress = ! empty($smtpFromAddress) ? $smtpFromAddress : $smtpUsername;
                     if (! empty($fromAddress)) {
-                        config(['mail.from.address' => $fromAddress]);
+                        config([
+                            'mail.from.address' => $fromAddress,
+                            'backup.notifications.mail.from.address' => $fromAddress,
+                        ]);
                     }
                 }
+            }
+
+            // หากไม่มีการระบุ BACKUP_NOTIFICATION_EMAIL ให้ปิด notification ทั้งหมดเพื่อป้องกัน SMTP Error
+            if (empty(env('BACKUP_NOTIFICATION_EMAIL'))) {
+                config(['backup.notifications.notifications' => []]);
             }
         } catch (\Throwable $e) {
             // ป้องกันข้อผิดพลาดระหว่างรันคำสั่ง CLI หรือ Migration
