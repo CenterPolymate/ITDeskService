@@ -106,4 +106,51 @@ class EmailVerificationTest extends TestCase
         $this->assertNotNull($createdUser);
         $this->assertTrue($createdUser->hasVerifiedEmail());
     }
+
+    public function test_unverified_user_logging_in_does_not_update_last_login_at(): void
+    {
+        $user = User::factory()->unverified()->create([
+            'password' => bcrypt('password123'),
+            'last_login_at' => null,
+        ]);
+
+        $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password123',
+        ]);
+
+        $this->assertNull($user->fresh()->last_login_at, 'Unverified user should not have last_login_at updated on login');
+    }
+
+    public function test_verifying_email_updates_last_login_at(): void
+    {
+        $user = User::factory()->unverified()->create([
+            'last_login_at' => null,
+        ]);
+
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            ['id' => $user->id, 'hash' => sha1($user->email)]
+        );
+
+        $this->actingAs($user)->get($verificationUrl);
+
+        $this->assertTrue($user->fresh()->hasVerifiedEmail());
+        $this->assertNotNull($user->fresh()->last_login_at, 'User should have last_login_at set after verifying email');
+    }
+
+    public function test_unverified_user_displays_pending_verification_badge_on_user_list(): void
+    {
+        $admin = User::factory()->create(['role' => 'administrator']);
+        $unverifiedUser = User::factory()->unverified()->create([
+            'role' => 'user',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('normal_users.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('รอการยืนยันอีเมล');
+    }
 }

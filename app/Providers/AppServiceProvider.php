@@ -31,7 +31,8 @@ class AppServiceProvider extends ServiceProvider
                     return;
                 }
 
-                if ($event->user) {
+                // บันทึก last_login_at เฉพาะผู้ใช้งานที่ยืนยันอีเมลแล้วเท่านั้น
+                if ($event->user && $event->user->hasVerifiedEmail()) {
                     $event->user->update(['last_login_at' => now()]);
                 }
             }

@@ -34,7 +34,13 @@ class UserManagementController extends Controller
         }
 
         if ($request->has('status_filter') && $request->status_filter !== '') {
-            $query->where('is_active', $request->status_filter);
+            if ($request->status_filter === 'unverified') {
+                $query->where('is_active', true)->whereNull('email_verified_at');
+            } elseif ($request->status_filter === '1') {
+                $query->where('is_active', true)->whereNotNull('email_verified_at');
+            } elseif ($request->status_filter === '0') {
+                $query->where('is_active', false);
+            }
         }
 
         $sort = $request->get('sort', 'created_at');
@@ -215,7 +221,7 @@ class UserManagementController extends Controller
                     $user->role,
                     $user->company,
                     $user->department ?? '-',
-                    $user->is_active ? 'Active' : 'Inactive',
+                    ! $user->is_active ? 'Inactive' : (! $user->hasVerifiedEmail() ? 'รอการยืนยันอีเมล' : 'Active'),
                     $user->last_login_at ? $user->last_login_at->format('Y-m-d H:i:s') : 'ไม่เคยเข้าใช้งาน',
                 ]);
             }

@@ -37,6 +37,7 @@
                         <select name="status_filter" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-auto text-sm">
                             <option value="">สถานะทั้งหมด</option>
                             <option value="1" {{ request('status_filter') === '1' ? 'selected' : '' }}>ใช้งาน (Active)</option>
+                            <option value="unverified" {{ request('status_filter') === 'unverified' ? 'selected' : '' }}>รอการยืนยันอีเมล</option>
                             <option value="0" {{ request('status_filter') === '0' ? 'selected' : '' }}>ระงับการใช้งาน (Inactive)</option>
                         </select>
                         <button type="submit" class="inline-flex justify-center items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 w-full md:w-auto">ค้นหา</button>
@@ -52,10 +53,12 @@
                                     <span class="px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full {{ $user->is_active ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-500' }} shadow-sm">
                                         {{ $user->role }}
                                     </span>
-                                    @if($user->is_active)
-                                        <span class="px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full bg-green-100 text-green-800 shadow-sm">Active</span>
-                                    @else
+                                    @if(!$user->is_active)
                                         <span class="px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full bg-red-100 text-red-800 shadow-sm">Inactive</span>
+                                    @elseif(!$user->hasVerifiedEmail())
+                                        <span class="px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full bg-amber-100 text-amber-800 shadow-sm">รอการยืนยันอีเมล</span>
+                                    @else
+                                        <span class="px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full bg-green-100 text-green-800 shadow-sm">Active</span>
                                     @endif
                                 </div>
                             </div>
@@ -130,10 +133,12 @@
                                     <td class="px-4 py-2 text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->company }}</td>
                                     <td class="px-4 py-2 text-sm {{ $user->is_active ? 'text-gray-500' : 'text-gray-400' }}">{{ $user->department ?: '-' }}</td>
                                     <td class="px-4 py-2 whitespace-nowrap">
-                                        @if($user->is_active)
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
-                                        @else
+                                        @if(!$user->is_active)
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                                        @elseif(!$user->hasVerifiedEmail())
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">รอการยืนยันอีเมล</span>
+                                        @else
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
                                         @endif
                                         <div class="text-[11px] text-gray-400 mt-1 whitespace-nowrap">
                                             @if($user->last_login_at)
