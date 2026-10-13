@@ -94,6 +94,27 @@
                             </div>
                         </div>
 
+                        <!-- แถบปุ่มตรวจสอบการตั้งค่า SMTP ใต้ช่องกรอกข้อมูล -->
+                        <div class="mt-4 p-4 bg-amber-50/80 border border-amber-200 rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-sm font-bold text-amber-900">ต้องการทดสอบการเชื่อมต่อเซิร์ฟเวอร์ส่งอีเมล?</span>
+                                </div>
+                                <p class="text-xs text-amber-700 mt-1">สามารถกดทดสอบได้ทันทีก่อนบันทึก โดยระบบจะส่งอีเมลทดสอบจริงไปยังอีเมลที่คุณระบุ</p>
+                            </div>
+                            <button type="button" 
+                                    onclick="openTestEmailModal()" 
+                                    class="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs font-bold rounded-lg shadow-sm transition duration-150 ease-in-out cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>ตรวจสอบการตั้งค่า (Test Connection)</span>
+                            </button>
+                        </div>
+
                         <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mt-8 mb-4">ระบบดูแลรักษากลาง (Maintenance)</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
