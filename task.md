@@ -32,4 +32,11 @@
   - [x] ซ่อนเมนูนำทาง (Navigation Bar) สำหรับผู้ใช้ที่ยังไม่ยืนยันอีเมล
   - [x] กำหนดข้อยกเว้น: ให้บัญชีที่สร้างโดย Administrator/Manager (ทีม IT, ผู้ใช้ทั่วไป และ CSV Import) ผ่านการยืนยันทันที (`email_verified_at = now()`)
   - [x] เพิ่มชุดการทดสอบอัตโนมัติ `EmailVerificationTest.php` ครอบคลุมทั้งกรณีผู้ใช้ทั่วไปและข้อยกเว้นของ Admin
+- [x] เพิ่มฟังก์ชันตรวจสอบการตั้งค่า Email (SMTP Test Connection):
+  - [x] เพิ่มปุ่ม "ตรวจสอบการตั้งค่า (Test Connection)" บนการ์ด Email (SMTP) Settings
+  - [x] สร้าง Modal ทดสอบการส่งอีเมล พร้อมสรุปค่า Host, Port, Encryption และระบุอีเมลปลายทาง
+  - [x] ดึงค่าที่ผู้ใช้กรอกอยู่ในหน้าจอไปทดสอบทันทีโดยไม่ต้องกดบันทึกก่อน
+  - [x] จัดการส่งอีเมลทดสอบด้วย `TestSmtpMail` และแสดงการแจ้งเตือนผลลัพธ์ (Success / Error ละเอียด)
+  - [x] นำการตั้งค่า SMTP จากฐานข้อมูลไปใช้ใน `AppServiceProvider` สำหรับการส่งอีเมลจริงของระบบ
+  - [x] เพิ่มชุดการทดสอบอัตโนมัติ `SmtpSettingTest.php` ครอบคลุมสิทธิ์ Administrator
 - **All current tasks are completed.**

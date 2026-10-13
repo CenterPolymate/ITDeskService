@@ -66,6 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::post('settings/test-email', [SettingController::class, 'testEmail'])->name('settings.test_email');
 
     Route::get('audit_logs', [AuditLogController::class, 'index'])->name('audit_logs.index');
 
