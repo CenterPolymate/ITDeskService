@@ -83,6 +83,7 @@ class NormalUserController extends Controller
             'company' => $request->company,
             'department' => $request->department,
             'phone' => $request->phone,
+            'email_verified_at' => now(),
         ]);
 
         return redirect()->route('normal_users.index')->with('success', 'สร้างบัญชีผู้ใช้งานทั่วไปเรียบร้อยแล้ว');
@@ -244,6 +245,7 @@ class NormalUserController extends Controller
                 'phone' => $phone,
                 'role' => 'user',
                 'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
             ]);
             $createdCount++;
         }

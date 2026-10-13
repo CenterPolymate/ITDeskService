@@ -83,6 +83,7 @@ class UserManagementController extends Controller
             'company' => $request->company,
             'department' => $request->department,
             'phone' => $request->phone,
+            'email_verified_at' => now(),
         ]);
 
         return redirect()->route('users.index')->with('success', 'สร้างบัญชีผู้ใช้งาน IT เรียบร้อยแล้ว');

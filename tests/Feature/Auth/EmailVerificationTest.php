@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\Company;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -54,5 +55,55 @@ class EmailVerificationTest extends TestCase
         $this->actingAs($user)->get($verificationUrl);
 
         $this->assertFalse($user->fresh()->hasVerifiedEmail());
+    }
+
+    public function test_unverified_user_cannot_access_dashboard_and_is_redirected(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response->assertRedirect(route('verification.notice'));
+    }
+
+    public function test_admin_created_it_user_is_automatically_verified(): void
+    {
+        $admin = User::factory()->create(['role' => 'administrator']);
+        Company::create(['name' => 'Polymate Corp', 'is_active' => true]);
+
+        $response = $this->actingAs($admin)->post(route('users.store'), [
+            'name' => 'New IT Tech',
+            'email' => 'tech@polymate.co.th',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'role' => 'helpdesk',
+            'company' => 'Polymate Corp',
+            'department' => 'IT',
+        ]);
+
+        $response->assertRedirect(route('users.index'));
+        $createdUser = User::where('email', 'tech@polymate.co.th')->first();
+        $this->assertNotNull($createdUser);
+        $this->assertTrue($createdUser->hasVerifiedEmail());
+    }
+
+    public function test_admin_created_normal_user_is_automatically_verified(): void
+    {
+        $admin = User::factory()->create(['role' => 'administrator']);
+        Company::create(['name' => 'Polymate Corp', 'is_active' => true]);
+
+        $response = $this->actingAs($admin)->post(route('normal_users.store'), [
+            'name' => 'New User',
+            'email' => 'normal@polymate.co.th',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'company' => 'Polymate Corp',
+            'department' => 'HR',
+        ]);
+
+        $response->assertRedirect(route('normal_users.index'));
+        $createdUser = User::where('email', 'normal@polymate.co.th')->first();
+        $this->assertNotNull($createdUser);
+        $this->assertTrue($createdUser->hasVerifiedEmail());
     }
 }

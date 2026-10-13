@@ -23,14 +23,18 @@
     </head>
     <body class="font-sans antialiased bg-gray-100 text-gray-900">
         @auth
-            <div class="min-h-screen bg-gray-100 pb-12">
-                @include('layouts.navigation')
+            @if(Auth::user()->hasVerifiedEmail())
+                <div class="min-h-screen bg-gray-100 pb-12">
+                    @include('layouts.navigation')
 
-                <!-- Page Content -->
-                <main>
-                    @inertia
-                </main>
-            </div>
+                    <!-- Page Content -->
+                    <main>
+                        @inertia
+                    </main>
+                </div>
+            @else
+                @inertia
+            @endif
 
             @if(session()->has('impersonated_by'))
                 <div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 bg-slate-900/95 backdrop-blur-md px-4 py-2.5 rounded-full shadow-2xl border border-slate-700 w-max max-w-[90vw]">

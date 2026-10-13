@@ -26,5 +26,10 @@
 - [x] ปรับปรุงระบบ Impersonation: ไม่บันทึกเวลาเข้าใช้งานล่าสุด (`last_login_at`) ของ User และ Admin เมื่อเข้าหรือออกจากโหมดจำลองสิทธิ์
 - [x] ปรับแต่ง Branding และ Tab เว็บไซต์:
   - [x] เปลี่ยนชื่อแท็บและชื่อแอปเริ่มต้นจาก "Laravel" เป็น "ITDeskService"
-  - [x] อัปเดตไอคอนประจำเว็บไซต์ (Favicon และ Mobile App Icon) ด้วยภาพ `Icon polymate logo.png` ความละเอียดสูงที่ผู้ใช้อัปโหลดเข้ามา
+- [x] เปิดใช้งานระบบยืนยันตัวตนทางอีเมล (Email Verification):
+  - [x] กำหนดให้ `User` model ใช้งาน `MustVerifyEmail` และเพิ่ม `email_verified_at` ใน Fillable
+  - [x] ตกแต่งหน้าจอแจ้งเตือนยืนยันอีเมล (Inertia & Blade `VerifyEmail`) เป็นภาษาไทย พร้อมปุ่มขอรับอีเมลใหม่และออกจากระบบ
+  - [x] ซ่อนเมนูนำทาง (Navigation Bar) สำหรับผู้ใช้ที่ยังไม่ยืนยันอีเมล
+  - [x] กำหนดข้อยกเว้น: ให้บัญชีที่สร้างโดย Administrator/Manager (ทีม IT, ผู้ใช้ทั่วไป และ CSV Import) ผ่านการยืนยันทันที (`email_verified_at = now()`)
+  - [x] เพิ่มชุดการทดสอบอัตโนมัติ `EmailVerificationTest.php` ครอบคลุมทั้งกรณีผู้ใช้ทั่วไปและข้อยกเว้นของ Admin
 - **All current tasks are completed.**
