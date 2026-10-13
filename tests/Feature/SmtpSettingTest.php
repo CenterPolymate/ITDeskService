@@ -23,7 +23,6 @@ class SmtpSettingTest extends TestCase
             'smtp_username' => 'admin@polymate.co.th',
             'smtp_password' => 'secret123',
             'smtp_encryption' => 'ssl',
-            'smtp_from_address' => 'admin@polymate.co.th',
             'test_email' => 'admin@polymate.co.th',
         ]);
 
@@ -33,6 +32,29 @@ class SmtpSettingTest extends TestCase
         Mail::assertSentCount(1);
     }
 
+    public function test_updating_smtp_username_automatically_syncs_smtp_from_address(): void
+    {
+        $admin = User::factory()->create(['role' => 'administrator']);
+
+        $response = $this->actingAs($admin)->post(route('settings.update'), [
+            'smtp_host' => 'mailpro-02.zth.netdesignhost.com',
+            'smtp_port' => '465',
+            'smtp_username' => 'sender@polymate.co.th',
+            'smtp_password' => 'secret123',
+            'smtp_encryption' => 'ssl',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('settings', [
+            'key' => 'smtp_username',
+            'value' => 'sender@polymate.co.th',
+        ]);
+        $this->assertDatabaseHas('settings', [
+            'key' => 'smtp_from_address',
+            'value' => 'sender@polymate.co.th',
+        ]);
+    }
+
     public function test_non_administrator_cannot_test_smtp_settings(): void
     {
         $user = User::factory()->create(['role' => 'user']);
@@ -40,7 +62,7 @@ class SmtpSettingTest extends TestCase
         $response = $this->actingAs($user)->post(route('settings.test_email'), [
             'smtp_host' => 'mailpro-02.zth.netdesignhost.com',
             'smtp_port' => '465',
-            'smtp_from_address' => 'admin@polymate.co.th',
+            'smtp_username' => 'admin@polymate.co.th',
         ]);
 
         $response->assertStatus(403);

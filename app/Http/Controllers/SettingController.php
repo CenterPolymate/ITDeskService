@@ -37,6 +37,14 @@ class SettingController extends Controller
             );
         }
 
+        // ยุบรวม smtp_username และ smtp_from_address เป็นค่าเดียวกัน
+        if ($request->filled('smtp_username')) {
+            Setting::updateOrCreate(
+                ['key' => 'smtp_from_address'],
+                ['value' => $request->smtp_username]
+            );
+        }
+
         return redirect()->back()->with('success', 'บันทึกการตั้งค่าระบบเรียบร้อยแล้ว');
     }
 
@@ -48,10 +56,10 @@ class SettingController extends Controller
             'test_email' => ['nullable', 'email'],
             'smtp_host' => ['required', 'string'],
             'smtp_port' => ['required', 'numeric'],
-            'smtp_username' => ['nullable', 'string'],
+            'smtp_username' => ['required', 'string'],
             'smtp_password' => ['nullable', 'string'],
             'smtp_encryption' => ['nullable', 'string'],
-            'smtp_from_address' => ['required', 'email'],
+            'smtp_from_address' => ['nullable', 'string'],
         ]);
 
         $targetEmail = $request->input('test_email') ?: $request->user()->email;
@@ -70,7 +78,7 @@ class SettingController extends Controller
             $encryption = null;
         }
 
-        $fromAddress = trim((string) $request->input('smtp_from_address'));
+        $fromAddress = trim((string) ($request->input('smtp_from_address') ?: $username));
 
         Config::set('mail.default', 'smtp');
         Config::set('mail.mailers.smtp.transport', 'smtp');

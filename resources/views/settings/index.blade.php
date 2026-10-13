@@ -74,12 +74,13 @@
                             </div>
 
                             <div>
-                                <x-input-label for="smtp_username" :value="__('SMTP Username')" />
-                                <x-text-input id="smtp_username" class="block mt-1 w-full" type="text" name="smtp_username" :value="old('smtp_username', $settings['smtp_username']->value ?? '')" placeholder="เช่น admin@polymate.co.th" />
+                                <x-input-label for="smtp_username" :value="__('อีเมลผู้ส่ง (Sender Email / SMTP Username)')" />
+                                <x-text-input id="smtp_username" class="block mt-1 w-full" type="text" name="smtp_username" :value="old('smtp_username', $settings['smtp_username']->value ?? $settings['smtp_from_address']->value ?? '')" placeholder="เช่น admin@polymate.co.th" />
+                                <p class="mt-1 text-xs text-gray-500">ระบบจะใช้อีเมลนี้เป็นทั้งบัญชีล็อกอินส่งเมล (Username) และที่อยู่อีเมลผู้ส่ง (From Address) โดยอัตโนมัติ</p>
                             </div>
 
                             <div>
-                                <x-input-label for="smtp_password" :value="__('SMTP Password')" />
+                                <x-input-label for="smtp_password" :value="__('รหัสผ่าน (SMTP Password)')" />
                                 <x-text-input id="smtp_password" class="block mt-1 w-full" type="password" name="smtp_password" :value="old('smtp_password', $settings['smtp_password']->value ?? '')" />
                             </div>
                             
@@ -88,9 +89,15 @@
                                 <x-text-input id="smtp_encryption" class="block mt-1 w-full" type="text" name="smtp_encryption" :value="old('smtp_encryption', $settings['smtp_encryption']->value ?? 'tls')" placeholder="tls หรือ ssl (พอร์ต 465 มักใช้ ssl)" />
                             </div>
                             
-                            <div>
-                                <x-input-label for="smtp_from_address" :value="__('From Address')" />
-                                <x-text-input id="smtp_from_address" class="block mt-1 w-full" type="text" name="smtp_from_address" :value="old('smtp_from_address', $settings['smtp_from_address']->value ?? 'hello@example.com')" placeholder="เช่น admin@polymate.co.th" />
+                            <div class="rounded-lg bg-gray-50 border border-gray-200 p-3 text-xs text-gray-600 flex flex-col justify-center">
+                                <span class="font-semibold text-gray-700 mb-1 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    คำแนะนำการตั้งค่าพอร์ตและการเข้ารหัส:
+                                </span>
+                                <ul class="list-disc list-inside space-y-0.5 text-gray-500 text-[11px]">
+                                    <li><strong>พอร์ต 465:</strong> ใช้ Encryption แบบ <code class="text-indigo-600 font-mono">ssl</code> (แนะนำสำหรับ Mail Server โฮสติ้ง)</li>
+                                    <li><strong>พอร์ต 587:</strong> ใช้ Encryption แบบ <code class="text-indigo-600 font-mono">tls</code></li>
+                                </ul>
                             </div>
                         </div>
 
@@ -185,7 +192,7 @@
                                 <div class="flex justify-between"><span class="text-gray-400">Host:</span> <span id="summary_host" class="font-mono text-gray-800 font-semibold truncate max-w-[200px]">-</span></div>
                                 <div class="flex justify-between"><span class="text-gray-400">Port:</span> <span id="summary_port" class="font-mono text-gray-800 font-semibold">-</span></div>
                                 <div class="flex justify-between"><span class="text-gray-400">Encryption:</span> <span id="summary_encryption" class="font-mono text-gray-800 font-semibold">-</span></div>
-                                <div class="flex justify-between"><span class="text-gray-400">From Address:</span> <span id="summary_from" class="font-mono text-gray-800 font-semibold truncate max-w-[200px]">-</span></div>
+                                <div class="flex justify-between"><span class="text-gray-400">อีเมลผู้ส่ง:</span> <span id="summary_sender" class="font-mono text-gray-800 font-semibold truncate max-w-[200px]">-</span></div>
                             </div>
                         </div>
                     </div>
@@ -210,29 +217,33 @@
         function openTestEmailModal() {
             const host = document.getElementById('smtp_host')?.value || '';
             const port = document.getElementById('smtp_port')?.value || '';
-            const username = document.getElementById('smtp_username')?.value || '';
+            const senderEmail = document.getElementById('smtp_username')?.value || '';
             const password = document.getElementById('smtp_password')?.value || '';
             const encryption = document.getElementById('smtp_encryption')?.value || '';
-            const fromAddress = document.getElementById('smtp_from_address')?.value || '';
 
             if (!host) {
                 alert('กรุณากรอก SMTP Host ก่อนทดสอบ');
                 return;
             }
 
+            if (!senderEmail) {
+                alert('กรุณากรอกอีเมลผู้ส่ง (Sender Email / SMTP Username) ก่อนทดสอบ');
+                return;
+            }
+
             // Sync hidden inputs in test modal
             document.getElementById('test_smtp_host').value = host;
             document.getElementById('test_smtp_port').value = port;
-            document.getElementById('test_smtp_username').value = username;
+            document.getElementById('test_smtp_username').value = senderEmail;
             document.getElementById('test_smtp_password').value = password;
             document.getElementById('test_smtp_encryption').value = encryption;
-            document.getElementById('test_smtp_from_address').value = fromAddress;
+            document.getElementById('test_smtp_from_address').value = senderEmail;
 
             // Update summary
             document.getElementById('summary_host').textContent = host || '-';
             document.getElementById('summary_port').textContent = port || '-';
             document.getElementById('summary_encryption').textContent = encryption || 'None';
-            document.getElementById('summary_from').textContent = fromAddress || '-';
+            document.getElementById('summary_sender').textContent = senderEmail || '-';
 
             document.getElementById('testEmailModal').classList.remove('hidden');
         }

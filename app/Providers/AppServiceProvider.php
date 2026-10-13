@@ -63,8 +63,9 @@ class AppServiceProvider extends ServiceProvider
                         'mail.mailers.smtp.password' => $smtpPassword,
                     ]);
 
-                    if (! empty($smtpFromAddress)) {
-                        config(['mail.from.address' => $smtpFromAddress]);
+                    $fromAddress = ! empty($smtpFromAddress) ? $smtpFromAddress : $smtpUsername;
+                    if (! empty($fromAddress)) {
+                        config(['mail.from.address' => $fromAddress]);
                     }
                 }
             }
