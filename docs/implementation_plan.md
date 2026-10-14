@@ -187,7 +187,7 @@
 - [x] **การเริ่มจับเวลา (SLA Timing):** ปรับเงื่อนไขระบบให้เริ่มนับเวลา SLA (4 ชั่วโมงตามประเภทบริษัท) ทันทีตั้งแต่ User กดยืนยันการแจ้งซ่อม หรือแจ้งผ่าน LINE OA (แทนการนับจากตอน Helpdesk แจกจ่ายงาน)
 - [x] **Dashboard สำหรับ SLA (SLA Monitoring):** เพิ่มหน้ากะจกวิเคราะห์ข้อมูล (KPI Card) และปุ่ม Filter ค้นหาเคสที่ "เกินกำหนด SLA (Breached SLA)" สำหรับผู้ดูแลระบบ เพื่อดูประวัติเคสที่แก้ไขเสร็จช้ากว่าเวลาที่กำหนด
 
-## Phase 9: Frontend Migration to React & Inertia (🚧 กำลังดำเนินการ)
+## Phase 9: Frontend Migration to React & Inertia (✅ ดำเนินการแล้วเสร็จ)
 - [x] **Infrastructure & Architecture:**
   - [x] ติดตั้ง Inertia.js, React, Tailwind CSS และ Vite
   - [x] ตั้งค่าระบบ Hybrid ให้รองรับการทำงานร่วมกันระหว่าง Blade Views เก่า และ React Components ใหม่
@@ -215,6 +215,25 @@
   - [x] ไมเกรตหน้ารายละเอียดเคส (`Tickets/Show.jsx`) ครอบคลุม Triage, Timeline Task 1 & Task 2, Action Forms สำหรับทุก Role, CSAT Modal, Manager Review, Inline Edit, Cancellation, และ Real-time Comments ด้วย Live Auto-polling
   - [x] สร้างคอมโพเนนต์ Reusable Modal (`Components/Modal.jsx`)
   - [x] เพิ่มชุดทดสอบอัตโนมัติ `TicketManagementTest.php` ผ่านครบ 100% (88/88 tests ทั้งระบบ)
+- [x] **Remaining Auth Views Migration (กลุ่มที่ 4 - ✅ ดำเนินการแล้ว):**
+  - [x] ไมเกรตหน้า Forgot Password (`Auth/ForgotPassword.jsx`), Reset Password (`Auth/ResetPassword.jsx`), และ Confirm Password (`Auth/ConfirmPassword.jsx`) ให้เป็น React Components เต็มรูปแบบ
+- [x] **Codebase Cleanup & Legacy Removal (✅ ดำเนินการแล้ว):**
+  - [x] ลบไฟล์ Blade Views เก่าที่ไมเกรตแล้วทั้งหมด (กว่า 8,000 บรรทัด) เพื่อลดความซ้ำซ้อน
+  - [x] ลบไฟล์ Controller และ Components ที่ไม่ได้ใช้งาน
+
+## Phase 10: UI Stabilization, Thai Typography & Code Quality (✅ ดำเนินการแล้วเสร็จ)
+- [x] **ฟอร์มและการจัดระเบียบแนวระนาบ (Field Alignment):**
+  - [x] ปรับ Label Wrapper ใน `Tickets/Create.jsx` เป็นความสูงคงที่เท่ากัน (`h-5 mb-2`)
+  - [x] ย้ายคำแนะนำหมวดหมู่ปัญหาไปเป็น Helper text ด้านล่างเพื่อไม่ให้ดันความสูงของ Label
+  - [x] กำหนดขนาดความสูงของ Input & Select ให้เท่ากันเป๊ะ (`h-12 py-2.5 px-4 leading-normal`)
+- [x] **แถบนำทาง (Unified Navbar):**
+  - [x] ยกเลิกการใช้ `AuthenticatedLayout.jsx` ใน React เพื่อขจัดปัญหาแถบเมนูด้านบนแสดงซ้อนกัน 2 ชั้น
+  - [x] รวมศูนย์การแสดงผลที่ `layouts/navigation.blade.php` พร้อมจัดรูปแบบวันที่ภาษาไทยตามมาตรฐาน `d F Y`
+- [x] **ฟอนต์และการแสดงผลภาษาไทย (Thai Typography & Metrics):**
+  - [x] โหลด Google Fonts ภาษาไทย (`Prompt` และ `Noto Sans Thai`) ผ่าน Bunny Fonts
+  - [x] ปรับปรุงระยะบรรทัด (`leading-normal`) และเกลาข้อความ Placeholder ทุกหน้าจอเพื่อป้องกันปัญหาสระลอย/วรรณยุกต์และข้อความหลุดกรอบ
+- [x] **การแก้ไขข้อขัดแย้ง Tailwind CSS (0 Problems Gate):**
+  - [x] แก้ไขคลาสสีกรอบด้านบนใน `Tickets/Show.jsx` ให้เป็นแบบระบุทิศทาง (`border-t-{color}`) แก้ปัญหา `tailwindcss(cssConflict)` ทั้ง 14 จุดใน VS Code ให้เป็น 0 สำเร็จ
 - [x] **ระบบตั้งค่าวันหยุดนักขัตฤกษ์ (Holidays Management):**
   - [x] สร้าง CRUD สำหรับ `holidays`
   - [x] หน้า UI ปฏิทินแสดงผลโดยใช้ React + Inertia

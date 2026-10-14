@@ -589,7 +589,7 @@ export default function Show({ ticket }) {
 
                         {/* 2. Action Form for Assigned Team (Tier 2 Workflow) */}
                         {isAssignedTeam && ['assigned', 'analyzing', 'in_progress'].includes(ticket.status) && (
-                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-emerald-500 border-x border-b border-slate-200">
+                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-emerald-500 border-x border-b border-slate-200">
                                 <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                                     <span className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">⚙️</span>
                                     การดำเนินการของช่าง (Action)
@@ -719,7 +719,7 @@ export default function Show({ ticket }) {
 
                         {/* 3. Action Form for Acceptance (Requester / Helpdesk) */}
                         {ticket.status === 'resolved' && (isRequester || isHelpdesk) && (
-                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-amber-500 border-x border-b border-slate-200">
+                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-amber-500 border-x border-b border-slate-200">
                                 <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
                                     <span className="p-2 bg-amber-50 text-amber-600 rounded-xl">⭐</span>
                                     รับทราบการแก้ไข (Accept Resolution)
@@ -750,7 +750,7 @@ export default function Show({ ticket }) {
 
                         {/* 4. Action Form for Manager Review */}
                         {ticket.status === 'closed' && user.role === 'manager' && (
-                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-slate-800 border-x border-b border-slate-200">
+                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-slate-800 border-x border-b border-slate-200">
                                 <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
                                     <span className="p-2 bg-slate-100 text-slate-800 rounded-xl">🛡️</span>
                                     การตรวจสอบจากหัวหน้า (Manager Review)
@@ -828,7 +828,7 @@ export default function Show({ ticket }) {
 
                         {/* 5. Task 2: Preventive Action Form (For IT Staff) */}
                         {ticket.requires_preventive_measure === true && user.role !== 'user' && (
-                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-teal-500 border-x border-b border-slate-200">
+                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-teal-500 border-x border-b border-slate-200">
                                 <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                                     <span className="p-2 bg-teal-50 text-teal-600 rounded-xl">🛡️</span>
                                     Task 2: การป้องกันปัญหาไม่ให้เกิดซ้ำ (Preventive Action)
@@ -1045,7 +1045,7 @@ export default function Show({ ticket }) {
 
                         {/* Manager Close Preventive Measure */}
                         {ticket.preventive_measure === 'pending_review' && isManager && (
-                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-blue-500 border-x border-b border-slate-200">
+                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-blue-500 border-x border-b border-slate-200">
                                 <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
                                     <span className="p-2 bg-blue-50 text-blue-600 rounded-xl">🏁</span>
                                     ปิดมาตรการป้องกันปัญหา (Close Preventive Action)
@@ -1099,7 +1099,7 @@ export default function Show({ ticket }) {
 
                         {/* 7. CSAT Feedback Card */}
                         {ticket.rating && (
-                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-yellow-400 border-x border-b border-slate-200">
+                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-yellow-400 border-x border-b border-slate-200">
                                 <h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
                                     <span className="text-yellow-500">⭐</span> ผลการประเมินความพึงพอใจ (CSAT)
                                 </h3>
@@ -1262,7 +1262,7 @@ export default function Show({ ticket }) {
                     {/* RIGHT COLUMN: Triage & Timeline */}
                     <div className="space-y-6">
                         {/* 1. Triage / Assignment Card */}
-                        <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border-t-4 border-indigo-600 border-x border-b border-slate-200">
+                        <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border-t-4 border-t-indigo-600 border-x border-b border-slate-200">
                             <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                                 <span className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">📋</span>
                                 {canTriage ? 'ประเมินและจ่ายงาน (Triage)' : 'ข้อมูลการมอบหมาย (Assignment)'}

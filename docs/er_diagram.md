@@ -150,6 +150,38 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
+
+    CATEGORIES {
+        bigint id PK
+        string name "ชื่อหมวดหมู่ปัญหา (Unique)"
+        text description "คำอธิบายหมวดหมู่ (Nullable)"
+        boolean is_active "สถานะเปิดใช้งาน"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ATTACHMENTS {
+        bigint id PK
+        string attachable_type "Model ที่ผูกไฟล์แนบ"
+        bigint attachable_id "ID ข้อมูลที่ผูก"
+        string file_path "พาธจัดเก็บไฟล์"
+        string file_name "ชื่อไฟล์ดั้งเดิม"
+        string file_type "ประเภทไฟล์ MIME"
+        integer file_size "ขนาดไฟล์ (Bytes)"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    TICKET_PARTS {
+        bigint id PK
+        bigint helpdesk_case_id FK "ใบงานที่ใช้อะไหล่"
+        string part_name "ชื่อรายการอะไหล่ / อุปกรณ์"
+        integer quantity "จำนวนที่ใช้"
+        decimal unit_price "ราคาต่อหน่วย (Nullable)"
+        string note "หมายเหตุ"
+        timestamp created_at
+        timestamp updated_at
+    }
     
     COMPANIES ||--o{ DEPARTMENTS : "มีแผนกย่อย"
     DEPARTMENTS ||--o{ USERS : "สังกัดแผนก"

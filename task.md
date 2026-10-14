@@ -110,4 +110,15 @@
   - [x] เพิ่มชุดทดสอบอัตโนมัติ `TicketManagementTest.php` ผ่านครบ 6/6 (ครอบคลุม Create, Triage, RCA, Resolve, Accept CSAT, Comments)
   - [x] อัปเดตการตรวจสอบใน `HelpdeskDashboardTest.php` ให้รองรับ Inertia Component เต็มรูปแบบ
   - [x] รันชุดการทดสอบทั้งระบบผ่าน 100% ครบทั้ง 88/88 tests (439 assertions)
+- [x] ไมเกรตหน้า Auth ที่เหลือสู่ React + Inertia.js (กลุ่มที่ 4):
+  - [x] `Auth/ForgotPassword.jsx`
+  - [x] `Auth/ResetPassword.jsx`
+  - [x] `Auth/ConfirmPassword.jsx`
+- [x] เคลียร์โค้ดเบสและลบไฟล์ Legacy Blade Views เก่า (กว่า 8,000 บรรทัด) พร้อมลบ Controllers และ Components ที่ไม่ได้ใช้งาน
+- [x] ปรับปรุงและแก้ไขปัญหา UI ทั้งระบบ (Field Alignment, Navbar Duplication, Placeholder Truncation):
+  - [x] จัดระเบียบความสูง Label และ Input ในหน้า `Tickets/Create.jsx` ให้ตรงกันในแนวระนาบ (`h-12 py-2.5 px-4 leading-normal`)
+  - [x] แก้ไขเมนูด้านบนแสดงซ้อนกัน 2 ชั้น โดยลบ `<AuthenticatedLayout>` ซ้ำซ้อน และใช้ `navigation.blade.php` รวมศูนย์เพียงหนึ่งเดียว พร้อมวันที่ภาษาไทย `d F Y`
+  - [x] แก้ไขปัญหาสระภาษาไทยและข้อความ Placeholder หลุดกรอบ โดยเพิ่มฟอนต์ Prompt & Noto Sans Thai และเกลา Placeholder ทุกหน้าจอ
+- [x] แก้ไขคำเตือนในแท็บ Problems ของ VS Code (14 Problems) ให้เป็น 0:
+  - [x] แก้ไขปัญหา `tailwindcss(cssConflict)` 7 จุด (14 warnings) ใน `Tickets/Show.jsx` โดยเปลี่ยนคลาสสีขอบด้านบนเป็นแบบระบุทิศทาง `border-t-{color}`
 - **All current tasks are completed.**
