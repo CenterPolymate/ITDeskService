@@ -1,6 +1,5 @@
 import InputError from '@/Components/InputError';
 import Modal from '@/Components/Modal';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -250,50 +249,52 @@ export default function Show({ ticket }) {
     }
 
     return (
-        <AuthenticatedLayout
-            header={
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <h2 className="font-bold text-xl sm:text-2xl text-slate-800 leading-tight">
-                                ใบแจ้งซ่อม #{ticket.ticket_no}
-                            </h2>
-                            {ticket.pcar_no && (
-                                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800 border border-teal-200">
-                                    PCAR #{ticket.pcar_no}
-                                </span>
-                            )}
-                        </div>
-                        <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                            {ticket.company} • {ticket.department || 'ไม่ระบุแผนก'}
-                        </p>
-                    </div>
+        <>
+            <Head title={`ใบงาน #${ticket.ticket_no} - ITDeskService`} />
 
-                    <div className="flex items-center gap-3">
-                        {user.role !== 'user' && (
-                            <a
-                                href={route('tickets.print', ticket.id)}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-2 px-3.5 py-2 border border-slate-300 shadow-sm text-sm font-bold rounded-xl text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-400 transition"
+            <div className="bg-white border-b border-gray-200 shadow-sm">
+                <div className="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <div className="flex items-center gap-3">
+                                <h2 className="font-bold text-xl sm:text-2xl text-slate-800 leading-tight">
+                                    ใบแจ้งซ่อม #{ticket.ticket_no}
+                                </h2>
+                                {ticket.pcar_no && (
+                                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800 border border-teal-200">
+                                        PCAR #{ticket.pcar_no}
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                                {ticket.company} • {ticket.department || 'ไม่ระบุแผนก'}
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            {user.role !== 'user' && (
+                                <a
+                                    href={route('tickets.print', ticket.id)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-2 px-3.5 py-2 border border-slate-300 shadow-sm text-sm font-bold rounded-xl text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-400 transition"
+                                >
+                                    <svg className="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                    </svg>
+                                    พิมพ์ใบงาน (Print)
+                                </a>
+                            )}
+                            <Link
+                                href={route('dashboard')}
+                                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
                             >
-                                <svg className="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                                </svg>
-                                พิมพ์ใบงาน (Print)
-                            </a>
-                        )}
-                        <Link
-                            href={route('dashboard')}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
-                        >
-                            &larr; แดชบอร์ด
-                        </Link>
+                                &larr; แดชบอร์ด
+                            </Link>
+                        </div>
                     </div>
                 </div>
-            }
-        >
-            <Head title={`ใบงาน #${ticket.ticket_no}`} />
+            </div>
 
             <div className="py-6 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Flash Messages */}
@@ -1661,6 +1662,6 @@ export default function Show({ ticket }) {
                     </div>
                 </div>
             </Modal>
-        </AuthenticatedLayout>
+        </>
     );
 }

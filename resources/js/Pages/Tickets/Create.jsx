@@ -1,5 +1,4 @@
 import InputError from '@/Components/InputError';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -86,28 +85,30 @@ export default function Create({ categories = [] }) {
     };
 
     return (
-        <AuthenticatedLayout
-            header={
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-2xl text-indigo-600 shadow-sm cursor-default">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h2 className="font-black text-2xl sm:text-3xl bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-indigo-800 tracking-tight">
-                            เปิดใบแจ้งซ่อมใหม่
-                        </h2>
-                        <p className="text-sm sm:text-base text-slate-500 mt-1 font-medium">
-                            บอกเล่าปัญหาที่คุณเจอ ให้ทีม IT ช่วยดูแลและแก้ไขปัญหาให้คุณ
-                        </p>
+        <>
+            <Head title="เปิดใบแจ้งซ่อมใหม่ - ITDeskService" />
+
+            <div className="bg-white border-b border-gray-200 shadow-sm">
+                <div className="max-w-4xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-2xl text-indigo-600 shadow-sm cursor-default">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 className="font-black text-2xl sm:text-3xl bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-indigo-800 tracking-tight">
+                                เปิดใบแจ้งซ่อมใหม่
+                            </h2>
+                            <p className="text-sm sm:text-base text-slate-500 mt-1 font-medium">
+                                บอกเล่าปัญหาที่คุณเจอ ให้ทีม IT ช่วยดูแลและแก้ไขปัญหาให้คุณ
+                            </p>
+                        </div>
                     </div>
                 </div>
-            }
-        >
-            <Head title="เปิดใบแจ้งซ่อมใหม่" />
+            </div>
 
-            <div className="py-6 sm:py-10">
+            <div className="py-6 sm:py-10 bg-slate-50 min-h-screen">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <form onSubmit={submit} className="space-y-6 sm:space-y-8">
                         {/* Section 1: User Info */}
@@ -445,6 +446,6 @@ export default function Create({ categories = [] }) {
                     </form>
                 </div>
             </div>
-        </AuthenticatedLayout>
+        </>
     );
 }
