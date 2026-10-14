@@ -16,6 +16,12 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
 
     const [auditRetentionYears, setAuditRetentionYears] = useState(settings.audit_log_retention_years || '1');
 
+    // SLA Alert states
+    const [slaAlertEnabled, setSlaAlertEnabled] = useState(settings.sla_alert_enabled !== '0');
+    const [slaWarningThreshold, setSlaWarningThreshold] = useState(settings.sla_warning_threshold_minutes || '60');
+    const [runningSlaCheck, setRunningSlaCheck] = useState(false);
+    const [slaCheckFeedback, setSlaCheckFeedback] = useState(null);
+
     const [smtpVerifiedToken, setSmtpVerifiedToken] = useState(initialSmtpToken || '');
     const [isVerified, setIsVerified] = useState(savedVerified && Boolean(initialSmtpToken));
     const [lastTestResult, setLastTestResult] = useState(null);
@@ -108,6 +114,29 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
             setTestFeedback({ status: 'error', message: 'เกิดข้อผิดพลาด: ' + err.message });
         } finally {
             setTesting(false);
+        }
+    };
+
+    const handleRunSlaCheck = async () => {
+        setRunningSlaCheck(true);
+        setSlaCheckFeedback(null);
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const response = await fetch(route('settings.run_sla_check'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+            const data = await response.json();
+            setSlaCheckFeedback({ status: data.success ? 'success' : 'error', message: data.message, output: data.output });
+        } catch (err) {
+            setSlaCheckFeedback({ status: 'error', message: 'เกิดข้อผิดพลาดในการเชื่อมต่อเพื่อตรวจสอบ SLA' });
+        } finally {
+            setRunningSlaCheck(false);
         }
     };
 
@@ -431,6 +460,94 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
                                             <option value="99">เก็บถาวร (99 ปี)</option>
                                         </select>
                                         <p className="mt-1 text-xs text-gray-400">ระบบจะทำการลบประวัติที่เก่ากว่าจำนวนปีที่ตั้งค่าไว้อัตโนมัติทุกๆ วัน</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* SLA Overdue Warning Settings */}
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 mb-6 gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2.5 bg-orange-50 text-orange-600 rounded-xl">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-base font-bold text-gray-800">การแจ้งเตือนเคสใกล้หมดเวลา SLA (SLA Overdue Warning Alert)</h3>
+                                            <p className="text-xs text-gray-500 mt-0.5">ตั้งค่าระบบตรวจสอบและส่งการแจ้งเตือนอัตโนมัติไปยังทีมไอทีเมื่อเคสใกล้หมดเวลา SLA หรือเกินกำหนด</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleRunSlaCheck}
+                                        disabled={runningSlaCheck}
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-orange-50 border border-orange-200 rounded-xl text-xs font-bold text-orange-700 hover:bg-orange-100 transition disabled:opacity-50 shrink-0"
+                                    >
+                                        <svg className={`w-4 h-4 ${runningSlaCheck ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                        {runningSlaCheck ? 'กำลังตรวจสอบ...' : 'ตรวจสอบ SLA ทันที (Run Check)'}
+                                    </button>
+                                </div>
+
+                                {slaCheckFeedback && (
+                                    <div className={`mb-6 p-4 rounded-xl text-xs flex flex-col gap-2 ${
+                                        slaCheckFeedback.status === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'
+                                    }`}>
+                                        <div className="font-bold">{slaCheckFeedback.message}</div>
+                                        {slaCheckFeedback.output && (
+                                            <pre className="p-3 bg-gray-900 text-gray-100 rounded-lg font-mono text-[11px] overflow-x-auto whitespace-pre-wrap">
+                                                {slaCheckFeedback.output}
+                                            </pre>
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">สถานะระบบแจ้งเตือน SLA</label>
+                                        <div className="flex items-center gap-3 mt-1">
+                                            <input
+                                                type="hidden"
+                                                name="sla_alert_enabled"
+                                                value={slaAlertEnabled ? '1' : '0'}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setSlaAlertEnabled(!slaAlertEnabled)}
+                                                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                                    slaAlertEnabled ? 'bg-orange-600' : 'bg-gray-200'
+                                                }`}
+                                            >
+                                                <span
+                                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                                        slaAlertEnabled ? 'translate-x-5' : 'translate-x-0'
+                                                    }`}
+                                                />
+                                            </button>
+                                            <span className="text-sm font-semibold text-gray-700">
+                                                {slaAlertEnabled ? 'เปิดใช้งานการตรวจสอบและแจ้งเตือนอัตโนมัติ' : 'ปิดการแจ้งเตือนชั่วคราว'}
+                                            </span>
+                                        </div>
+                                        <p className="mt-2 text-xs text-gray-400">เมื่อเปิดใช้งาน ระบบจะตรวจสอบเคสที่ใกล้หมดเวลาและเคสที่เกินกำหนดผ่าน Scheduled Cron Job ทุก 1 นาที</p>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">ระยะเวลาแจ้งเตือนล่วงหน้า (Warning Threshold)</label>
+                                        <select
+                                            name="sla_warning_threshold_minutes"
+                                            value={slaWarningThreshold}
+                                            onChange={(e) => setSlaWarningThreshold(e.target.value)}
+                                            className="w-full rounded-xl border-gray-200 focus:border-indigo-400 focus:ring focus:ring-indigo-100 text-sm py-2.5 px-3.5 bg-gray-50/50"
+                                        >
+                                            <option value="15">15 นาที ก่อนถึงกำหนด SLA</option>
+                                            <option value="30">30 นาที ก่อนถึงกำหนด SLA</option>
+                                            <option value="45">45 นาที ก่อนถึงกำหนด SLA</option>
+                                            <option value="60">60 นาที (1 ชั่วโมง) ก่อนถึงกำหนด SLA (แนะนำ)</option>
+                                            <option value="120">120 นาที (2 ชั่วโมง) ก่อนถึงกำหนด SLA</option>
+                                        </select>
+                                        <p className="mt-1 text-xs text-gray-400">ระบบจะส่งการแจ้งเตือนไปยังช่างผู้รับผิดชอบ, ทีมเฉพาะทาง, Helpdesk และ Manager ตามระยะเวลาที่เลือก</p>
                                     </div>
                                 </div>
                             </div>

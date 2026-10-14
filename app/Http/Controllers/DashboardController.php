@@ -162,6 +162,13 @@ class DashboardController extends Controller
             })->count(),
             'preventive_completed' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where('preventive_measure', 'done')->count(),
             'urgent' => (clone $baseQuery)->where('priority', 'urgent')->whereNotIn('status', ['closed', 'cancelled'])->count(),
+            'sla_warning' => (clone $baseQuery)->whereNotIn('status', ['resolved', 'closed', 'cancelled'])
+                ->whereNotNull('sla_due_at')
+                ->where('sla_due_at', '>', now())
+                ->where('sla_due_at', '<=', now()->addMinutes(60))->count(),
+            'sla_overdue' => (clone $baseQuery)->whereNotIn('status', ['resolved', 'closed', 'cancelled'])
+                ->whereNotNull('sla_due_at')
+                ->where('sla_due_at', '<=', now())->count(),
             'breached' => (clone $baseQuery)->whereIn('status', ['resolved', 'closed'])
                 ->whereNotNull('sla_due_at')
                 ->whereColumn('resolved_at', '>', 'sla_due_at')->count(),

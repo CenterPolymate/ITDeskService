@@ -69,7 +69,14 @@
 - [x] **พัฒนาระบบคัดกรองและมอบหมายงาน (Triage & Assignment) สำหรับ Helpdesk:**
   - [x] ฟังก์ชันประเมินความเร่งด่วน (Priority: ทั่วไป, ปานกลาง, สูง, ด่วนที่สุด) ตามผลกระทบของปัญหา
   - [x] ฟังก์ชันส่งต่องาน (Escalate/Assign) ให้ทีมผู้เชี่ยวชาญเฉพาะด้าน (Hardware, Network, Software)
-- [ ] สร้างระบบตรวจสอบ SLA แยกตาม Tier เพื่อแจ้งเตือนเคสที่ใกล้หมดเวลาดำเนินการ (Overdue)
+- [x] **สร้างระบบตรวจสอบ SLA แยกตาม Tier เพื่อแจ้งเตือนเคสที่ใกล้หมดเวลาดำเนินการ (SLA Overdue Warning Alert):**
+  - สร้าง Artisan Command `php artisan sla:check-warnings` สำหรับตรวจสอบเคสที่ใกล้หมดเวลาและเคสที่เกินกำหนด พร้อมบันทึก `sla_warning_sent_at` และ `sla_breached_sent_at` ป้องกันการส่งแจ้งเตือนซ้ำ
+  - กำหนดเวลาการทำงานอัตโนมัติ (Scheduler) ทุก 1 นาที ผ่าน `routes/console.php`
+  - สร้าง Notification `SlaAlertNotification` ส่งแจ้งเตือนอัตโนมัติทาง Email, Database และ Log Line Notify
+  - เพิ่มแถบแจ้งเตือน SLA Warning & Overdue Banner พร้อมปุ่มกรองข้อมูลด่วนบนหน้า Dashboard ฝั่งช่าง/Helpdesk
+  - ปรับปรุงการแสดงผล SLA Visualizer บนหน้าแสดงรายละเอียดเคส (`Tickets/Show.jsx`) ให้รองรับสถานะ Warning (การ์ดสีส้ม/แอมเบอร์ เมื่อเหลือเวลาน้อยกว่า 1 ชั่วโมง)
+  - เพิ่มการ์ดตั้งค่า SLA Alert ในหน้า System Settings (`Settings/Index.jsx`) ให้ Admin ปรับระยะเวลาเตือนล่วงหน้า (15, 30, 45, 60, 120 นาที) และมีปุ่มกดทดสอบตรวจสอบทันที (`settings.run_sla_check`)
+  - เพิ่มชุดทดสอบอัตโนมัติ `SlaAlertTest.php` ผ่านครบ 7/7 (รวมทั้งระบบ 95/95 tests ผ่าน 100%)
 
 ## Phase 3.5: Ticket Cancellation & Dashboard Updates (✅ ดำเนินการแล้ว)
 - [x] เพิ่มระบบยกเลิกใบงาน (Cancel Ticket) เข้าสู่ Workflow

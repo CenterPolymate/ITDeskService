@@ -121,4 +121,14 @@
   - [x] แก้ไขปัญหาสระภาษาไทยและข้อความ Placeholder หลุดกรอบ โดยเพิ่มฟอนต์ Prompt & Noto Sans Thai และเกลา Placeholder ทุกหน้าจอ
 - [x] แก้ไขคำเตือนในแท็บ Problems ของ VS Code (14 Problems) ให้เป็น 0:
   - [x] แก้ไขปัญหา `tailwindcss(cssConflict)` 7 จุด (14 warnings) ใน `Tickets/Show.jsx` โดยเปลี่ยนคลาสสีขอบด้านบนเป็นแบบระบุทิศทาง `border-t-{color}`
+- [x] พัฒนาระบบตั้งเวลาแจ้งเตือนล่วงหน้าสำหรับเคสที่ใกล้หมดเวลา SLA (SLA Overdue Warning Alert):
+  - [x] สร้าง Database Migration เพิ่ม `sla_warning_sent_at` และ `sla_breached_sent_at` ใน `helpdesk_cases` ป้องกันการส่งแจ้งเตือนซ้ำ
+  - [x] เพิ่ม Scopes และ Accessors ใน `HelpdeskCase`: `is_near_overdue`, `is_overdue`, `nearOverdue()`, `activeOverdue()`
+  - [x] สร้าง Notification Class `SlaAlertNotification` รองรับทั้งประเภท `warning` และ `breached` ส่งผ่าน Email, Database และ Log Line Notify
+  - [x] สร้าง Artisan Command `php artisan sla:check-warnings` พร้อมตัวเลือก `--dry-run` และเชื่อมต่อกับ Scheduled Task ทุก 1 นาที ใน `routes/console.php`
+  - [x] เพิ่มตัวชี้วัดสถิติ `sla_warning` และ `sla_overdue` ใน `DashboardController` พร้อมรองรับตัวกรอง URL `?status=sla_warning` และ `?status=sla_overdue`
+  - [x] พัฒนา SLA Warning & Overdue Banner และป้ายสถานะแจ้งเตือนในตารางและมุมมองการ์ดบนมือถือใน `ItStaffDashboard.jsx`
+  - [x] ปรับปรุง SLA Visualizer บน `Tickets/Show.jsx` แสดงสถานะ Warning การ์ดสีส้ม/แอมเบอร์ เมื่อเหลือเวลาน้อยกว่า 1 ชั่วโมง
+  - [x] เพิ่มการ์ด SLA Overdue Warning Settings ใน `Settings/Index.jsx` รองรับเปิด/ปิดระบบ, ปรับเวลาเตือนล่วงหน้า (15-120 นาที) และปุ่มกดตรวจสอบ SLA ทันที
+  - [x] เพิ่มชุดทดสอบอัตโนมัติ `SlaAlertTest.php` ผ่านครบ 7/7 และรันชุดทดสอบทั้งระบบ 95/95 tests ผ่าน 100%
 - **All current tasks are completed.**

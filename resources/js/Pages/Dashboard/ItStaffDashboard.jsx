@@ -144,6 +144,55 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                         </div>
                     )}
 
+                    {/* SLA Warning / Overdue Banner */}
+                    {(Number(stats.sla_warning) > 0 || Number(stats.sla_overdue) > 0) && (
+                        <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between text-white overflow-hidden relative border border-orange-400">
+                            <div className="absolute right-0 top-0 w-48 h-48 bg-white opacity-10 rounded-full mix-blend-overlay filter blur-2xl translate-x-12 -translate-y-12 pointer-events-none" />
+                            <div className="absolute left-0 bottom-0 w-32 h-32 bg-yellow-300 opacity-20 rounded-full mix-blend-overlay filter blur-xl -translate-x-10 translate-y-10 pointer-events-none" />
+                            <div className="flex items-center gap-5 z-10 w-full sm:w-auto mb-4 sm:mb-0">
+                                <div className="bg-white/20 p-3 rounded-xl animate-pulse shrink-0">
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold tracking-wide">แจ้งเตือน SLA: พบใบงานที่ต้องเร่งดำเนินการ</h3>
+                                    <p className="text-orange-100 text-sm mt-1">
+                                        {Number(stats.sla_warning) > 0 && (
+                                            <span>
+                                                ใกล้หมดเวลา SLA (&lt; 1 ชม.): <span className="font-black text-lg px-1.5 py-0.5 bg-white/20 rounded mx-1">{Number(stats.sla_warning).toLocaleString()}</span> รายการ
+                                            </span>
+                                        )}
+                                        {Number(stats.sla_warning) > 0 && Number(stats.sla_overdue) > 0 && <span> | </span>}
+                                        {Number(stats.sla_overdue) > 0 && (
+                                            <span className="text-rose-100 font-bold">
+                                                เกินกำหนดเวลา SLA แล้ว: <span className="font-black text-lg px-1.5 py-0.5 bg-rose-900/50 rounded mx-1 text-white">{Number(stats.sla_overdue).toLocaleString()}</span> รายการ
+                                            </span>
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="z-10 w-full sm:w-auto flex flex-wrap gap-2 text-center shrink-0">
+                                {Number(stats.sla_warning) > 0 && (
+                                    <button
+                                        onClick={() => handleQuickFilter('sla_warning')}
+                                        className="flex-1 sm:flex-initial bg-white text-amber-800 font-bold py-2 px-4 rounded-xl shadow-md hover:bg-amber-50 hover:shadow-lg transform transition hover:-translate-y-0.5 cursor-pointer text-sm"
+                                    >
+                                        ดูเคสใกล้หมดเวลา
+                                    </button>
+                                )}
+                                {Number(stats.sla_overdue) > 0 && (
+                                    <button
+                                        onClick={() => handleQuickFilter('sla_overdue')}
+                                        className="flex-1 sm:flex-initial bg-rose-900 text-white font-bold py-2 px-4 rounded-xl shadow-md hover:bg-rose-950 hover:shadow-lg transform transition hover:-translate-y-0.5 cursor-pointer text-sm"
+                                    >
+                                        ดูเคสเกินกำหนด SLA
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Urgent Banner */}
                     {stats.urgent > 0 && (
                         <div className="bg-gradient-to-r from-red-600 to-red-500 rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between text-white overflow-hidden relative border border-red-400">
@@ -490,6 +539,8 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                                             className="w-full rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
                                         >
                                             <option value="all">ทุกสถานะ</option>
+                                            <option value="sla_warning">⏰ ใกล้หมดเวลา SLA (&lt; 1 ชม.)</option>
+                                            <option value="sla_overdue">⚠️ เกินกำหนดเวลา SLA แล้ว</option>
                                             <option value="not_closed">ยังไม่ปิดใบงาน</option>
                                             <option value="pending">รอดำเนินการ</option>
                                             <option value="active">กำลังทำ (Assigned/Analyzing/In Progress)</option>
@@ -579,6 +630,18 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                                             <span className="text-sm font-bold text-indigo-600">#{caseItem.ticket_no}</span>
                                             <div className="flex flex-col items-end gap-1">
                                                 {getStatusBadge(caseItem.status, caseItem.status_label)}
+                                                {caseItem.is_overdue && (
+                                                    <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 animate-pulse">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                                        เกิน SLA
+                                                    </span>
+                                                )}
+                                                {caseItem.is_near_overdue && !caseItem.is_overdue && (
+                                                    <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 animate-pulse">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                                        ใกล้หมด SLA
+                                                    </span>
+                                                )}
                                                 {caseItem.task2_status_label && (
                                                     <span className={`px-2 py-0.5 inline-flex text-[10px] leading-4 font-bold rounded-full shadow-sm ${caseItem.task2_status_color}`}>
                                                         {caseItem.task2_status_label}
@@ -681,6 +744,22 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
 
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     {getStatusBadge(caseItem.status, caseItem.status_label)}
+                                                    {caseItem.is_overdue && (
+                                                        <div className="mt-1">
+                                                            <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 animate-pulse">
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                                                เกิน SLA
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    {caseItem.is_near_overdue && !caseItem.is_overdue && (
+                                                        <div className="mt-1">
+                                                            <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 animate-pulse">
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                                                ใกล้หมด SLA
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                     {caseItem.task2_status_label && (
                                                         <div className="mt-1">
                                                             <span className={`px-2.5 py-0.5 inline-flex text-[10px] leading-4 font-bold rounded-full shadow-sm ${caseItem.task2_status_color}`}>

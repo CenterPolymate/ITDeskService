@@ -84,6 +84,7 @@ export default function Show({ ticket }) {
     // SLA Countdown
     const [timeLeft, setTimeLeft] = useState('--:--:--');
     const [isOverdue, setIsOverdue] = useState(false);
+    const [isWarning, setIsWarning] = useState(false);
 
     useEffect(() => {
         if (!ticket.sla_due_at || ['closed', 'cancelled'].includes(ticket.status)) return;
@@ -94,7 +95,9 @@ export default function Show({ ticket }) {
             const distance = dueTime - now;
 
             const overdue = distance < 0;
+            const warning = !overdue && distance <= 60 * 60 * 1000;
             setIsOverdue(overdue);
+            setIsWarning(warning);
 
             const absDistance = Math.abs(distance);
             const days = Math.floor(absDistance / (1000 * 60 * 60 * 24));
@@ -334,22 +337,50 @@ export default function Show({ ticket }) {
                 {/* SLA Visualizer */}
                 {ticket.sla_due_at && !['closed', 'cancelled'].includes(ticket.status) && (
                     <div className={`p-5 rounded-2xl shadow-sm mb-6 flex justify-between items-center border-l-4 transition-colors duration-500 ${
-                        isOverdue ? 'bg-rose-50 border-rose-500' : 'bg-indigo-50 border-indigo-500'
+                        isOverdue
+                            ? 'bg-rose-50 border-rose-500'
+                            : isWarning
+                            ? 'bg-amber-50 border-amber-500'
+                            : 'bg-indigo-50 border-indigo-500'
                     }`}>
                         <div>
-                            <h3 className={`text-sm font-bold ${isOverdue ? 'text-rose-800' : 'text-indigo-800'}`}>
-                                กำหนดส่งมอบงาน (SLA Due Date)
-                            </h3>
-                            <p className={`text-xs mt-1 ${isOverdue ? 'text-rose-600' : 'text-indigo-600'}`}>
+                            <div className="flex items-center gap-2">
+                                <h3 className={`text-sm font-bold ${
+                                    isOverdue ? 'text-rose-800' : isWarning ? 'text-amber-800' : 'text-indigo-800'
+                                }`}>
+                                    กำหนดส่งมอบงาน (SLA Due Date)
+                                </h3>
+                                {isWarning && !isOverdue && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-800 animate-pulse">
+                                        ใกล้หมดเวลา SLA (เหลือน้อยกว่า 1 ชม.)
+                                    </span>
+                                )}
+                                {isOverdue && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-200 text-rose-800 animate-pulse">
+                                        เกินกำหนดเวลา SLA แล้ว
+                                    </span>
+                                )}
+                            </div>
+                            <p className={`text-xs mt-1 ${
+                                isOverdue ? 'text-rose-600' : isWarning ? 'text-amber-700' : 'text-indigo-600'
+                            }`}>
                                 ภายใน: {formatThaiDateTime(ticket.sla_due_at)}
                             </p>
                         </div>
                         <div className="text-right">
-                            <span className={`text-2xl font-black font-mono tracking-wider ${isOverdue ? 'text-rose-700' : 'text-indigo-700'}`}>
+                            <span className={`text-2xl font-black font-mono tracking-wider ${
+                                isOverdue ? 'text-rose-700' : isWarning ? 'text-amber-700' : 'text-indigo-700'
+                            }`}>
                                 {timeLeft}
                             </span>
-                            <div className={`text-xs font-bold uppercase mt-0.5 ${isOverdue ? 'text-rose-600 animate-pulse' : 'text-indigo-600'}`}>
-                                {isOverdue ? 'Overdue (เกินกำหนด SLA)' : 'Remaining (เวลาที่เหลือ)'}
+                            <div className={`text-xs font-bold uppercase mt-0.5 ${
+                                isOverdue
+                                    ? 'text-rose-600 animate-pulse'
+                                    : isWarning
+                                    ? 'text-amber-700 font-extrabold animate-pulse'
+                                    : 'text-indigo-600'
+                            }`}>
+                                {isOverdue ? 'Overdue (เกินกำหนด SLA)' : isWarning ? 'Warning (ใกล้หมดเวลา)' : 'Remaining (เวลาที่เหลือ)'}
                             </div>
                         </div>
                     </div>

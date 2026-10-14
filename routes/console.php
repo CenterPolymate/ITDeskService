@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Schedule::command('audit:purge')->daily();
 Schedule::command('backup:run')->dailyAt('00:00');
 Schedule::command('backup:clean')->dailyAt('00:30');
+Schedule::command('sla:check-warnings')->everyMinute();

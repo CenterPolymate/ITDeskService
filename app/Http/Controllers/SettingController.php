@@ -7,6 +7,7 @@ use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
@@ -204,5 +205,23 @@ class SettingController extends Controller
 
             return redirect()->back()->with('error', 'การเชื่อมต่อ SMTP ล้มเหลว: '.$errorMessage);
         }
+    }
+
+    public function runSlaCheck(Request $request): JsonResponse|RedirectResponse
+    {
+        $this->authorizeAdministrator();
+
+        Artisan::call('sla:check-warnings');
+        $output = Artisan::output();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'ระบบดำเนินการตรวจสอบและส่งการแจ้งเตือน SLA เรียบร้อยแล้ว',
+                'output' => $output,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'ระบบดำเนินการตรวจสอบและส่งการแจ้งเตือน SLA เรียบร้อยแล้ว');
     }
 }

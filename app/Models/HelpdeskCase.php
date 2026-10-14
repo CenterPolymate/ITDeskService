@@ -14,6 +14,8 @@ class HelpdeskCase extends Model
 
     protected $casts = [
         'sla_due_at' => 'datetime',
+        'sla_warning_sent_at' => 'datetime',
+        'sla_breached_sent_at' => 'datetime',
         'assigned_at' => 'datetime',
         'analyzing_at' => 'datetime',
         'in_progress_at' => 'datetime',
@@ -33,6 +35,7 @@ class HelpdeskCase extends Model
         'priority_label',
         'assigned_team_label',
         'is_overdue',
+        'is_near_overdue',
     ];
 
     public function attachments()
@@ -82,6 +85,8 @@ class HelpdeskCase extends Model
         'preventive_measure_specific_due_date',
         'preventive_measure_systemic_due_date',
         'sla_due_at',
+        'sla_warning_sent_at',
+        'sla_breached_sent_at',
         'analyzing_at',
         'in_progress_at',
         'resolved_at',
@@ -116,6 +121,8 @@ class HelpdeskCase extends Model
     {
         return [
             'sla_due_at' => 'datetime',
+            'sla_warning_sent_at' => 'datetime',
+            'sla_breached_sent_at' => 'datetime',
             'assigned_at' => 'datetime',
             'analyzing_at' => 'datetime',
             'in_progress_at' => 'datetime',
@@ -264,6 +271,15 @@ class HelpdeskCase extends Model
                     $query->whereIn('status', ['resolved', 'closed'])
                         ->whereNotNull('sla_due_at')
                         ->whereColumn('resolved_at', '>', 'sla_due_at');
+                } elseif ($status === 'sla_warning') {
+                    $query->whereNotIn('status', ['resolved', 'closed', 'cancelled'])
+                        ->whereNotNull('sla_due_at')
+                        ->where('sla_due_at', '>', now())
+                        ->where('sla_due_at', '<=', now()->addMinutes(60));
+                } elseif ($status === 'sla_overdue') {
+                    $query->whereNotIn('status', ['resolved', 'closed', 'cancelled'])
+                        ->whereNotNull('sla_due_at')
+                        ->where('sla_due_at', '<=', now());
                 } elseif ($status === 'pending') {
                     $query->whereIn('status', ['pending', 'assigned']);
                 } elseif ($status === 'manager_review' || $status === 'task2_manager_review') {
@@ -423,6 +439,22 @@ class HelpdeskCase extends Model
     }
 
     /**
+     * Check if case is near overdue (within threshold, default 60 minutes).
+     */
+    public function getIsNearOverdueAttribute(): bool
+    {
+        if (in_array($this->status, ['resolved', 'closed', 'cancelled'], true)) {
+            return false;
+        }
+
+        if (! $this->sla_due_at) {
+            return false;
+        }
+
+        return $this->sla_due_at->isFuture() && $this->sla_due_at->lte(now()->addMinutes(60));
+    }
+
+    /**
      * Scope a query to only include breached SLA tickets (resolved_at > sla_due_at).
      */
     public function scopeBreached($query)
@@ -430,5 +462,26 @@ class HelpdeskCase extends Model
         return $query->whereNotNull('resolved_at')
             ->whereNotNull('sla_due_at')
             ->whereColumn('resolved_at', '>', 'sla_due_at');
+    }
+
+    /**
+     * Scope a query to active tickets near SLA breach (within threshold minutes).
+     */
+    public function scopeNearOverdue($query, int $thresholdMinutes = 60)
+    {
+        return $query->whereNotIn('status', ['resolved', 'closed', 'cancelled'])
+            ->whereNotNull('sla_due_at')
+            ->where('sla_due_at', '>', now())
+            ->where('sla_due_at', '<=', now()->addMinutes($thresholdMinutes));
+    }
+
+    /**
+     * Scope a query to active tickets currently overdue.
+     */
+    public function scopeActiveOverdue($query)
+    {
+        return $query->whereNotIn('status', ['resolved', 'closed', 'cancelled'])
+            ->whereNotNull('sla_due_at')
+            ->where('sla_due_at', '<=', now());
     }
 }

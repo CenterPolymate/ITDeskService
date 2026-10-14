@@ -67,6 +67,8 @@ erDiagram
         text preventive_measure_specific "มาตรการป้องกันเฉพาะกรณี"
         text preventive_measure_systemic "มาตรการป้องกันทั้งระบบ"
         timestamp sla_due_at "กำหนดเสร็จ SLA"
+        timestamp sla_warning_sent_at "เวลาที่ส่งแจ้งเตือน SLA Warning (Nullable)"
+        timestamp sla_breached_sent_at "เวลาที่ส่งแจ้งเตือน SLA Breached (Nullable)"
         timestamp assigned_at "เวลารับแจ้ง/มอบหมายงาน"
         timestamp analyzing_at "เวลาสืบสภาพ"
         timestamp in_progress_at "เวลาเริ่มแก้ไข"
