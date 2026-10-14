@@ -192,7 +192,7 @@ export default function Create({ categories = [] }) {
                                             type="text"
                                             value={data.machine_name}
                                             onChange={(e) => setData('machine_name', e.target.value)}
-                                            placeholder="เช่น PC-01, เครื่องพิมพ์"
+                                            placeholder="เช่น PC-01"
                                             className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
                                         />
                                     </div>
@@ -207,7 +207,7 @@ export default function Create({ categories = [] }) {
                                             type="text"
                                             value={data.machine_code}
                                             onChange={(e) => setData('machine_code', e.target.value)}
-                                            placeholder="เช่น MCH-01, IT-2024"
+                                            placeholder="เช่น MCH-01"
                                             className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
                                         />
                                     </div>

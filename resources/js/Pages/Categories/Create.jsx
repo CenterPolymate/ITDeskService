@@ -52,7 +52,7 @@ export default function Create() {
                                     onChange={(e) => setName(e.target.value)}
                                     required
                                     autoFocus
-                                    placeholder="เช่น ฮาร์ดแวร์, ซอฟต์แวร์, ระบบเครือข่าย"
+                                    placeholder="เช่น ฮาร์ดแวร์, ซอฟต์แวร์"
                                     className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm leading-normal"
                                 />
                                 {errors.name && <p className="mt-1 text-xs text-rose-600">{errors.name}</p>}

@@ -120,9 +120,9 @@ export default function Register({ companies }) {
                             <input 
                                 id="department" 
                                 type="text" 
-                                value={customDepartment}
+                                value={customDepartment} 
                                 onChange={(e) => setCustomDepartment(e.target.value)}
-                                placeholder="กรุณาระบุแผนกที่ท่านสังกัด" 
+                                placeholder="ระบุแผนกของคุณ" 
                                 className="block w-full pl-3 pr-24 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white/50 backdrop-blur-sm transition duration-200"
                                 required={true}
                                 disabled={!data.company}
@@ -152,7 +152,7 @@ export default function Register({ companies }) {
                             type="text" 
                             name="phone" 
                             value={data.phone} 
-                            placeholder="เช่น 081-234-5678 (ไม่บังคับ)" 
+                            placeholder="เช่น 081-234-5678" 
                             className="block w-full pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white/50 backdrop-blur-sm transition duration-200"
                             onChange={(e) => setData('phone', e.target.value)}
                         />

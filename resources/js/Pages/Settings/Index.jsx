@@ -253,7 +253,7 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
                                             type="text"
                                             value={smtpHost}
                                             onChange={handleSmtpChange(setSmtpHost)}
-                                            placeholder="เช่น mailpro-02.zth.netdesignhost.com"
+                                            placeholder="เช่น smtp.example.com"
                                             className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono leading-normal"
                                             required
                                         />
@@ -296,7 +296,7 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
                                             type="password"
                                             value={smtpPassword}
                                             onChange={handleSmtpChange(setSmtpPassword)}
-                                            placeholder="เว้นว่างไว้หากไม่ต้องการเปลี่ยนรหัสผ่านเดิม"
+                                            placeholder="เว้นว่างหากไม่ต้องการเปลี่ยน"
                                             className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm leading-normal"
                                         />
                                     </div>

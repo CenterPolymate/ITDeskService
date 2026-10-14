@@ -122,7 +122,7 @@ export default function Index({ companies }) {
                                     type="text"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="ค้นหาบริษัท, ชื่อย่อ, โดเมนอีเมล..."
+                                    placeholder="ค้นหาบริษัท, โดเมน..."
                                     className="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-1/3 text-sm leading-normal"
                                 />
                             </div>
