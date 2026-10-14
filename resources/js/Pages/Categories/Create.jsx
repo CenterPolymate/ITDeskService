@@ -53,7 +53,7 @@ export default function Create() {
                                     required
                                     autoFocus
                                     placeholder="เช่น ฮาร์ดแวร์, ซอฟต์แวร์, ระบบเครือข่าย"
-                                    className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                    className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm leading-normal"
                                 />
                                 {errors.name && <p className="mt-1 text-xs text-rose-600">{errors.name}</p>}
                             </div>
@@ -67,7 +67,7 @@ export default function Create() {
                                     onChange={(e) => setDescription(e.target.value)}
                                     rows={3}
                                     placeholder="คำอธิบายเพิ่มเติมเกี่ยวกับหมวดหมู่นี้"
-                                    className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                    className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm leading-relaxed"
                                 />
                                 {errors.description && (
                                     <p className="mt-1 text-xs text-rose-600">{errors.description}</p>

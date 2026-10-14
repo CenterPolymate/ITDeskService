@@ -170,12 +170,12 @@ export default function Index({ users, filters = {} }) {
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     placeholder="ค้นหาชื่อ หรืออีเมล..."
-                                    className="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-1/3 text-sm"
+                                    className="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-1/3 text-sm leading-normal"
                                 />
                                 <select
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-auto text-sm"
+                                    className="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-auto text-sm leading-normal"
                                 >
                                     <option value="">สถานะทั้งหมด</option>
                                     <option value="1">ใช้งาน (Active)</option>

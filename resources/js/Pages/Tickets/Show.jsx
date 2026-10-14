@@ -700,7 +700,7 @@ export default function Show({ ticket }) {
                                                 required
                                                 value={resolveData.resolution_notes}
                                                 onChange={(e) => setResolveData('resolution_notes', e.target.value)}
-                                                placeholder="ระบุรายละเอียดว่าแก้ไขปัญหาอย่างไร เปลี่ยนอุปกรณ์อะไร หรือตั้งค่าส่วนไหน..."
+                                                placeholder="ระบุวิธีแก้ไข เช่น เปลี่ยนอะไหล่ หรือตั้งค่าระบบ..."
                                                 className="w-full rounded-2xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 leading-relaxed"
                                             />
                                         </div>
@@ -888,7 +888,7 @@ export default function Show({ ticket }) {
                                                             updated[idx].detail = e.target.value;
                                                             setTask2Data('preventive_measure_specific', updated);
                                                         }}
-                                                        placeholder="ระบุวิธีป้องกันสำหรับเคสนี้โดยเฉพาะ..."
+                                                        placeholder="ระบุวิธีป้องกันสำหรับเคสนี้..."
                                                         className="w-full rounded-xl border-slate-200 text-sm focus:border-teal-500 focus:ring-teal-500"
                                                     />
                                                     <div className="flex justify-between items-center text-xs">
@@ -956,7 +956,7 @@ export default function Show({ ticket }) {
                                                             updated[idx].detail = e.target.value;
                                                             setTask2Data('preventive_measure_systemic', updated);
                                                         }}
-                                                        placeholder="ระบุวิธีป้องกันเพื่อไม่ให้ปัญหานี้เกิดซ้ำกับส่วนอื่นๆ ในระบบ..."
+                                                        placeholder="ระบุวิธีป้องกันไม่ให้ปัญหาเกิดซ้ำในระบบ..."
                                                         className="w-full rounded-xl border-slate-200 text-sm focus:border-teal-500 focus:ring-teal-500"
                                                     />
                                                     <div className="flex justify-between items-center text-xs">
@@ -1620,7 +1620,7 @@ export default function Show({ ticket }) {
                             required
                             value={cancelReason}
                             onChange={(e) => setCancelReason(e.target.value)}
-                            placeholder="ระบุเหตุผล เช่น แจ้งซ้ำ, ผู้ใช้แก้ปัญหาได้เองแล้ว..."
+                            placeholder="ระบุเหตุผล เช่น แจ้งซ้ำ หรือแก้ปัญหาได้เองแล้ว..."
                             className="w-full rounded-2xl border-slate-300 text-sm focus:border-rose-500 focus:ring-rose-500"
                         />
                     </div>

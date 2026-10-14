@@ -17,3 +17,15 @@
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
+
+/* Ensure Thai vowels and placeholders do not clip vertically */
+body, input, select, textarea, button {
+    font-family: 'Prompt', 'Noto Sans Thai', 'Figtree', sans-serif;
+}
+
+input::placeholder,
+textarea::placeholder {
+    font-family: 'Prompt', 'Noto Sans Thai', 'Figtree', sans-serif;
+    line-height: normal;
+    opacity: 0.65;
+}

@@ -144,7 +144,7 @@ export default function Create({ categories = [] }) {
                                             required
                                             pattern="^0[0-9]{1,2}-?[0-9]{3}-?[0-9]{4}$"
                                             placeholder="081-123-4567"
-                                            className="block w-full pl-12 py-3 bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400"
+                                            className="block w-full pl-12 h-12 py-2.5 bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
                                         />
                                     </div>
                                     <InputError message={errors.requester_phone} className="mt-2" />
@@ -163,46 +163,52 @@ export default function Create({ categories = [] }) {
                                 ข้อมูลอุปกรณ์ / เครื่องจักร
                             </h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 items-start">
                                 <div>
-                                    <label htmlFor="actual_user_name" className="block font-bold text-sm text-slate-700 mb-2">
-                                        แจ้งแทนผู้อื่น (ระบุชื่อผู้ใช้งานจริง)
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2 h-5">
+                                        <label htmlFor="actual_user_name" className="block font-bold text-sm text-slate-700">
+                                            แจ้งแทนผู้อื่น (ระบุชื่อผู้ใช้งานจริง)
+                                        </label>
+                                    </div>
                                     <input
                                         id="actual_user_name"
                                         type="text"
                                         value={data.actual_user_name}
                                         onChange={(e) => setData('actual_user_name', e.target.value)}
                                         placeholder="ปล่อยว่างหากแจ้งให้ตนเอง"
-                                        className="block w-full py-3 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400"
+                                        className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
                                     />
                                     <InputError message={errors.actual_user_name} className="mt-2" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label htmlFor="machine_name" className="block font-bold text-sm text-slate-700 mb-2">
-                                            ชื่ออุปกรณ์
-                                        </label>
+                                        <div className="flex items-center justify-between mb-2 h-5">
+                                            <label htmlFor="machine_name" className="block font-bold text-sm text-slate-700">
+                                                ชื่ออุปกรณ์
+                                            </label>
+                                        </div>
                                         <input
                                             id="machine_name"
                                             type="text"
                                             value={data.machine_name}
                                             onChange={(e) => setData('machine_name', e.target.value)}
                                             placeholder="เช่น PC-01, เครื่องพิมพ์"
-                                            className="block w-full py-3 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400"
+                                            className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="machine_code" className="block font-bold text-sm text-slate-700 mb-2">
-                                            รหัสอุปกรณ์ / ทรัพย์สิน
-                                        </label>
+                                        <div className="flex items-center justify-between mb-2 h-5">
+                                            <label htmlFor="machine_code" className="block font-bold text-sm text-slate-700">
+                                                รหัสทรัพย์สิน
+                                            </label>
+                                        </div>
                                         <input
                                             id="machine_code"
                                             type="text"
                                             value={data.machine_code}
                                             onChange={(e) => setData('machine_code', e.target.value)}
                                             placeholder="เช่น MCH-01, IT-2024"
-                                            className="block w-full py-3 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400"
+                                            className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
                                         />
                                     </div>
                                 </div>
@@ -277,30 +283,37 @@ export default function Create({ categories = [] }) {
                                 รายละเอียดปัญหา
                             </h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 items-start">
                                 <div>
-                                    <label htmlFor="category" className="block font-bold text-sm text-slate-700 mb-2">
-                                        หมวดหมู่ปัญหา <span className="text-slate-400 font-normal">(ไม่บังคับ - ระบบจะบันทึกเป็น "อื่นๆ" ให้อัตโนมัติ)</span>
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2 h-5">
+                                        <label htmlFor="category" className="block font-bold text-sm text-slate-700">
+                                            หมวดหมู่ปัญหา <span className="text-slate-400 font-normal text-xs">(ไม่บังคับ)</span>
+                                        </label>
+                                    </div>
                                     <select
                                         id="category"
                                         value={data.category}
                                         onChange={(e) => setData('category', e.target.value)}
-                                        className="block w-full py-3 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium text-slate-800"
+                                        className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium text-slate-800 leading-normal"
                                     >
-                                        <option value="">-- เลือกประเภทปัญหา (หรือเว้นว่างไว้) --</option>
+                                        <option value="">-- ไม่ระบุ (ระบบจะบันทึกเป็น "อื่นๆ" อัตโนมัติ) --</option>
                                         {categoryList.map((cat) => (
                                             <option key={cat.id || cat.name} value={cat.name}>
                                                 {cat.name}
                                             </option>
                                         ))}
                                     </select>
-                                    <InputError message={errors.category} className="mt-2" />
+                                    <p className="text-[11px] text-slate-400 mt-1.5">
+                                        หากไม่เลือก ระบบจะบันทึกเป็น "อื่นๆ" ให้อัตโนมัติ
+                                    </p>
+                                    <InputError message={errors.category} className="mt-1" />
                                 </div>
                                 <div>
-                                    <label htmlFor="location" className="block font-bold text-sm text-slate-700 mb-2">
-                                        สถานที่ / จุดเกิดปัญหา <span className="text-rose-500">*</span>
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2 h-5">
+                                        <label htmlFor="location" className="block font-bold text-sm text-slate-700">
+                                            สถานที่ / จุดเกิดปัญหา <span className="text-rose-500">*</span>
+                                        </label>
+                                    </div>
                                     <input
                                         id="location"
                                         type="text"
@@ -308,7 +321,7 @@ export default function Create({ categories = [] }) {
                                         onChange={(e) => setData('location', e.target.value)}
                                         required
                                         placeholder="ระบุอาคาร, ชั้น, แผนก หรือโซน"
-                                        className="block w-full py-3 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400"
+                                        className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
                                     />
                                     <InputError message={errors.location} className="mt-2" />
                                 </div>
@@ -330,8 +343,8 @@ export default function Create({ categories = [] }) {
                                     onChange={(e) => setData('title', e.target.value)}
                                     maxLength={100}
                                     required
-                                    placeholder="สรุปสั้นๆ ให้เรารู้ว่าเกิดอะไรขึ้น เช่น เปิดคอมไม่ติด, พิมพ์งานไม่ออก"
-                                    className="block w-full py-3 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400"
+                                    placeholder="ระบุปัญหาเบื้องต้น เช่น เปิดคอมไม่ติด, ต่อเน็ตไม่ได้"
+                                    className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
                                 />
                                 <InputError message={errors.title} className="mt-2" />
                             </div>
@@ -347,8 +360,8 @@ export default function Create({ categories = [] }) {
                                     required
                                     value={data.description}
                                     onChange={(e) => setData('description', e.target.value)}
-                                    placeholder="เล่ารายละเอียดเพิ่มเติม เช่น เกิดอะไรขึ้น เมื่อไหร่ ใครใช้งานอยู่ มีข้อความ Error อะไรปรากฏ..."
-                                    className="block w-full py-4 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 resize-none font-medium placeholder:text-slate-400 leading-relaxed"
+                                    placeholder="ระบุอาการที่พบ เช่น เกิดขึ้นตอนไหน ข้อความ Error และการใช้งานเบื้องต้น..."
+                                    className="block w-full p-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 resize-none font-medium placeholder:text-slate-400 leading-relaxed"
                                 />
                                 <InputError message={errors.description} className="mt-2" />
                             </div>

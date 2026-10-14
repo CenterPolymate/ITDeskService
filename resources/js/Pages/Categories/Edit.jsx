@@ -51,7 +51,7 @@ export default function Edit({ category }) {
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     required
-                                    className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                    className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm leading-normal"
                                 />
                                 {errors.name && <p className="mt-1 text-xs text-rose-600">{errors.name}</p>}
                             </div>
@@ -64,7 +64,7 @@ export default function Edit({ category }) {
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                     rows={3}
-                                    className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                    className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm leading-relaxed"
                                 />
                                 {errors.description && (
                                     <p className="mt-1 text-xs text-rose-600">{errors.description}</p>

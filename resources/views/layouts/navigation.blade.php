@@ -93,7 +93,7 @@
             <div class="hidden sm:flex sm:items-center sm:ms-6 gap-4">
                 <!-- Date -->
                 <div class="text-sm font-medium text-gray-500 border-r border-gray-200 pr-4">
-                    {{ now()->translatedFormat('d F Y') }}
+                    {{ now()->locale('th')->translatedFormat('d F Y') }}
                 </div>
 
                 <x-dropdown align="right" width="48">

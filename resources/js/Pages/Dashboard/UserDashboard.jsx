@@ -295,8 +295,8 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
                                             type="text"
                                             value={search}
                                             onChange={(e) => setSearch(e.target.value)}
-                                            placeholder="ค้นหาใบงาน (Ticket No, หัวข้อ...)"
-                                            className="w-full pl-10 pr-9 py-2 border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm"
+                                            placeholder="ค้นหาใบงาน, หัวข้อปัญหา..."
+                                            className="w-full pl-10 pr-9 py-2 border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm leading-normal"
                                         />
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                             <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

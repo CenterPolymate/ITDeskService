@@ -280,8 +280,8 @@ export default function Edit({ companies = [] }) {
                                     type="text"
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
-                                    placeholder="ระบุเบอร์โทรศัพท์ของคุณ (เช่น 0812345678)"
-                                    className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono"
+                                    placeholder="เช่น 081-234-5678"
+                                    className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                 />
                                 {errors.phone && <p className="mt-1 text-xs text-rose-600">{errors.phone}</p>}
                             </div>

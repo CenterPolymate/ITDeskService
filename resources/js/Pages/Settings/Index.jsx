@@ -254,7 +254,7 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
                                             value={smtpHost}
                                             onChange={handleSmtpChange(setSmtpHost)}
                                             placeholder="เช่น mailpro-02.zth.netdesignhost.com"
-                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono"
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono leading-normal"
                                             required
                                         />
                                     </div>
@@ -268,7 +268,7 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
                                             value={smtpPort}
                                             onChange={handlePortChange}
                                             placeholder="เช่น 465 หรือ 587"
-                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono"
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono leading-normal"
                                             required
                                         />
                                     </div>
@@ -282,7 +282,7 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
                                             value={smtpUsername}
                                             onChange={handleSmtpChange(setSmtpUsername)}
                                             placeholder="เช่น admin@polymate.co.th"
-                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono"
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono leading-normal"
                                             required
                                         />
                                         <p className="mt-1 text-xs text-gray-400">ระบบจะใช้อีเมลนี้เป็นทั้งบัญชีล็อกอินส่งเมล (Username) และอีเมลผู้ส่ง (From Address)</p>
@@ -297,7 +297,7 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
                                             value={smtpPassword}
                                             onChange={handleSmtpChange(setSmtpPassword)}
                                             placeholder="เว้นว่างไว้หากไม่ต้องการเปลี่ยนรหัสผ่านเดิม"
-                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm leading-normal"
                                         />
                                     </div>
 

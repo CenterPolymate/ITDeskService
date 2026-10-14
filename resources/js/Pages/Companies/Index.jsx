@@ -122,8 +122,8 @@ export default function Index({ companies }) {
                                     type="text"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="ค้นหาชื่อบริษัท, ชื่อย่อ หรือโดเมนอีเมล..."
-                                    className="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-1/3 text-sm"
+                                    placeholder="ค้นหาบริษัท, ชื่อย่อ, โดเมนอีเมล..."
+                                    className="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-1/3 text-sm leading-normal"
                                 />
                             </div>
 

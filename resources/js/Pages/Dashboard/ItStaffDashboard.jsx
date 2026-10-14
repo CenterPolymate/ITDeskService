@@ -543,7 +543,7 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                                             onBlur={() => setIsTyping(false)}
                                             onChange={(e) => handleFilterChange('search', e.target.value)}
                                             placeholder="ค้นหา Ticket, ผู้แจ้ง..."
-                                            className="w-full rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
+                                            className="w-full rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white leading-normal"
                                         />
                                     </div>
 
