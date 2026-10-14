@@ -67,4 +67,17 @@
   - [x] เพิ่มชุดทดสอบอัตโนมัติ `UserDashboardTest.php` ผ่านครบ 2/2
 - [x] แก้ไขปัญหาหน้าต่างซ้อน/ลอย (Modal Overlay) เมื่อกดสลับสิทธิ์ Login As:
   - [x] ปรับปรุง `ImpersonateController` ให้ใช้ `Inertia::location()` ทำ Full Browser Navigation ข้ามระหว่าง React และ Blade ทั้งตอนจำลองสิทธิ์และออกจากโหมดจำลองสิทธิ์
+- [x] ไมเกรตหน้า Dashboard ของ Superadmin (`Dashboard/SuperadminDashboard.jsx`) สู่ React + Inertia.js:
+  - [x] การ์ด KPI ติดตามจำนวนผู้ใช้ IT, ผู้ใช้ทั่วไป, บริษัท และสถานะไฟล์ Backup ล่าสุด
+  - [x] Donut Chart แสดงสัดส่วนปริมาณใบงานตามสถานะ (SVG Interactive Donut Chart พร้อม Tooltips และ Legend)
+  - [x] การ์ดสรุปอัตราการแก้ไขปัญหา (Resolution Rate) และเคสที่ซ่อมเสร็จเกิน SLA (Breached SLA)
+  - [x] ระบบ Live Auto-polling อัปเดตข้อมูลทุก 15 วินาที
+- [x] ไมเกรตหน้า Dashboard ของทีม IT (`Dashboard/ItStaffDashboard.jsx`) สู่ React + Inertia.js:
+  - [x] แบนเนอร์แจ้งเตือนเคสด่วนที่สุด (Urgent) และแบนเนอร์แจ้งเตือนงานรอหัวหน้าตรวจสอบ (Manager Review)
+  - [x] การ์ด KPI Task 1 (Ticketing) 7 ใบ พร้อมเปอร์เซ็นต์และการแยกประเภท Closed/Cancelled ที่คลิกกรองได้ทันที
+  - [x] การ์ด KPI Task 2 (Preventive Action) แยกตามสิทธิ์บทบาท (ซ่อนจาก Helpdesk)
+  - [x] แบบฟอร์ม Filter ครบวงจร (สถานะ, ความเร่งด่วน, ทีมที่รับผิดชอบ, ค้นหาคำสำคัญ)
+  - [x] รองรับ Mobile Cards View และ Desktop Table View พร้อมป้ายสถานะและทีม
+  - [x] ระบบ Pagination และ Live Auto-polling อัปเดตทุก 15 วินาที (หยุดชั่วคราวเมื่อกำลังพิมพ์ค้นหา)
+- [x] อัปเดตชุดทดสอบ `HelpdeskDashboardTest.php` ให้รองรับ Inertia Page Assertions ทั้ง IT Staff และ Superadmin ผ่าน 100% (71/71 tests ทั้งระบบ)
 - **All current tasks are completed.**

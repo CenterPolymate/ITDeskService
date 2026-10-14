@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\HelpdeskCase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class HelpdeskDashboardTest extends TestCase
@@ -35,9 +36,32 @@ class HelpdeskDashboardTest extends TestCase
         $response = $this->get(route('dashboard'));
 
         $response->assertStatus(200);
-        $response->assertSee('ITDeskService');
-        $response->assertSee('ITD-2026-999');
-        $response->assertSee('ทดสอบเคสแจ้งซ่อมจอภาพ');
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Dashboard/ItStaffDashboard')
+            ->has('cases.data', 1)
+            ->where('cases.data.0.ticket_no', 'ITD-2026-999')
+            ->where('cases.data.0.title', 'ทดสอบเคสแจ้งซ่อมจอภาพ')
+            ->has('stats')
+        );
+    }
+
+    /**
+     * Test that Administrator dashboard renders SuperadminDashboard component.
+     */
+    public function test_superadmin_dashboard_renders_successfully(): void
+    {
+        $admin = User::factory()->create(['role' => 'administrator']);
+        $this->actingAs($admin);
+
+        $response = $this->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Dashboard/SuperadminDashboard')
+            ->has('stats')
+            ->has('chartLabels')
+            ->has('chartData')
+        );
     }
 
     /**

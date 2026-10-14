@@ -196,9 +196,9 @@
   - [x] ไมเกรตหน้า Login และ Register ให้เป็น React Components เต็มรูปแบบ
   - [x] สร้าง `GuestLayout.jsx` สำหรับหน้า Auth พร้อม UI แบบ Glassmorphism
   - [x] จัดการปัญหา Redirect กลับไปยังหน้า Dashboard (Blade) ด้วย `Inertia::location()`
-- [ ] **Dashboard & User Management (กำลังดำเนินการ):**
+- [x] **Dashboard & User Management (✅ ดำเนินการแล้ว):**
   - [x] ไมเกรตหน้า Dashboard ของ User ทั่วไป (`Dashboard/UserDashboard.jsx`) สู่ React + Inertia.js พร้อม Live Auto-polling (15s), KPI Cards, การค้นหา/ตัวกรองสถานะ, Mobile Card View, และ Test Suite (`UserDashboardTest`) ผ่าน 100%
-  - [ ] ไมเกรตหน้า Dashboard ของทีม IT (Helpdesk/ช่าง/Manager) และ Superadmin ให้เป็น React Components
+  - [x] ไมเกรตหน้า Dashboard ของทีม IT (Helpdesk/ช่าง/Manager) (`Dashboard/ItStaffDashboard.jsx`) และ Superadmin (`Dashboard/SuperadminDashboard.jsx`) ให้เป็น React Components พร้อม Live Auto-polling, KPI Cards Task 1 & Task 2, Donut Chart, Filter ครบวงจร และ Test Suite (`HelpdeskDashboardTest`) ผ่าน 100%
   - [x] ไมเกรตหน้าระบบการจัดการผู้ใช้งาน (Users) และบริษัท (Companies):
     - [x] ไมเกรตหน้ารายการ, เพิ่ม, แก้ไขบริษัทและแผนก (`Companies/Index.jsx`, `Create.jsx`, `Edit.jsx`) พร้อม Modal นำเข้า CSV และ Map แผนกที่ยังไม่ได้ผูกกับบริษัท
     - [x] ไมเกรตหน้ารายการ, เพิ่ม, แก้ไขผู้ใช้ทั่วไป (`NormalUsers/Index.jsx`, `Create.jsx`, `Edit.jsx`) พร้อมค้นหา, กรองสถานะ Active/รอการยืนยัน/Inactive, Sortable columns, Pagination, นำเข้า CSV, Impersonation และ Smart Delete

@@ -82,7 +82,7 @@ class DashboardController extends Controller
                 // Ignore error if backup disk is missing or unreadable
             }
 
-            return view('dashboard-superadmin', compact('stats', 'chartLabels', 'chartData', 'latestBackup'));
+            return Inertia::render('Dashboard/SuperadminDashboard', compact('stats', 'chartLabels', 'chartData', 'latestBackup'));
         }
 
         // 1. Data Isolation for General Users
@@ -199,6 +199,10 @@ class DashboardController extends Controller
         $stats['percent_t2_pending'] = $t2_total > 0 ? round(($stats['task2_pending_review'] / $t2_total) * 100) : 0;
         $stats['percent_t2_completed'] = $t2_total > 0 ? round(($stats['task2_completed'] / $t2_total) * 100) : 0;
 
-        return view('dashboard-admin', compact('cases', 'stats'));
+        return Inertia::render('Dashboard/ItStaffDashboard', [
+            'cases' => $cases,
+            'stats' => $stats,
+            'filters' => $request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive']),
+        ]);
     }
 }
