@@ -208,7 +208,9 @@ erDiagram
 ```
 
 > **หมายเหตุ:** 
-> - **การติดตามผู้ปฏิบัติงาน:** ทุกขั้นตอนการเปลี่ยนสถานะ ระบบจะบันทึก ID ของผู้ใช้งานที่กดทำรายการไว้ (analyzing, in_progress, resolved, approved, closed, cancelled)
-> - **การจัดการบริษัท (Dynamic Companies):** ดึงข้อมูลรายชื่อบริษัทจากฐานข้อมูล แทนการฝังค่า (Hardcode)
-> - **การอนุมัติ (Approval):** Manager (Tier 3) ต้องเข้ามาตรวจสอบงานที่ Resolved แล้ว และเลือกว่าต้องการ Preventive Measure หรือไม่ ก่อนสถานะจะขยับเป็น Approved เพื่อให้ Helpdesk หรือ User ปิดใบงานต่อไป
-> - **External Systems (LINE OA & Email Server):** เป็นระบบภายนอกที่ไม่ได้เก็บข้อมูลเป็นตารางหลักในฐานข้อมูล แต่ระบบ ITDeskService จะเชื่อมต่อ (Integrate) ผ่าน API และ SMTP เพื่อใช้ในการแจ้งเตือน (Notification) และยืนยันตัวตน (Email Verification)
+> - **การติดตามผู้ปฏิบัติงาน:** ทุกขั้นตอนการเปลี่ยนสถานะ ระบบจะบันทึก ID ของผู้ใช้งานที่กดทำรายการไว้ (`assigned_by`, `analyzing_by`, `in_progress_by`, `resolved_by`, `approved_by`, `closed_by`, `cancelled_by`)
+> - **การส่งมอบงานและการหยุดนับเวลา SLA (Handover & SLA Pausing):** ช่างสามารถบันทึกข้อความการแก้ไขเฉพาะหน้า (`resolution_notes`) ได้ตลอดเวลาในระหว่างซ่อม (`in_progress`) และเมื่อส่งงานให้ผู้แจ้งแล้วจริง ๆ จึงกด Action "ส่งมอบงานให้ผู้แจ้ง" เพื่อเปลี่ยนสถานะเป็น `resolved` ("รอผู้แจ้งกดรับงาน") พร้อมหยุดนับเวลา SLA ทันที
+> - **การรับทราบผลงาน (Acceptance & CSAT):** ผู้แจ้งเป็นผู้กดรับงานและให้คะแนนความพึงพอใจ CSAT เพื่อเปลี่ยนสถานะเป็นปิดใบงาน (`closed`) ทันที (Helpdesk กดแทนได้เมื่อเวลาผ่านไปครบ 5 นาที)
+> - **การตรวจสอบย้อนหลัง (Manager Review):** หลังจากใบงานปิดแล้ว Manager (Tier 3) เข้ามาตรวจสอบเพื่อระบุว่าต้องการมาตรการป้องกันปัญหา (Preventive Measure - Task 2) หรือไม่
+> - **ระบบแจ้งเตือน SLA Overdue Warning Alert:** ตาราง `HELPDESK_CASES` มีฟิลด์ `sla_warning_sent_at` และ `sla_breached_sent_at` สำหรับบันทึกเวลาที่ส่งการแจ้งเตือนเคสใกล้หมดเวลา SLA และเคสเกินเวลา SLA ป้องกันการส่งซ้ำ
+> - **External Systems (LINE OA & Email Server):** เป็นระบบภายนอกที่ไม่ได้เก็บข้อมูลเป็นตารางหลักในฐานข้อมูล แต่ระบบ ITDeskService จะเชื่อมต่อผ่าน API และ SMTP เพื่อใช้ในการแจ้งเตือน (Notifications) และยืนยันตัวตน (Email Verification)
