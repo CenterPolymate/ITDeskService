@@ -130,5 +130,11 @@
   - [x] พัฒนา SLA Warning & Overdue Banner และป้ายสถานะแจ้งเตือนในตารางและมุมมองการ์ดบนมือถือใน `ItStaffDashboard.jsx`
   - [x] ปรับปรุง SLA Visualizer บน `Tickets/Show.jsx` แสดงสถานะ Warning การ์ดสีส้ม/แอมเบอร์ เมื่อเหลือเวลาน้อยกว่า 1 ชั่วโมง
   - [x] เพิ่มการ์ด SLA Overdue Warning Settings ใน `Settings/Index.jsx` รองรับเปิด/ปิดระบบ, ปรับเวลาเตือนล่วงหน้า (15-120 นาที) และปุ่มกดตรวจสอบ SLA ทันที
-  - [x] เพิ่มชุดทดสอบอัตโนมัติ `SlaAlertTest.php` ผ่านครบ 7/7 และรันชุดทดสอบทั้งระบบ 95/95 tests ผ่าน 100%
+  - [x] ปรับปรุงกระบวนการแก้ไขปัญหาและการส่งมอบงาน (Resolution Notes & Handover Action):
+  - [x] แยก "การบันทึกการแก้ไขปัญหาเฉพาะหน้า (Save Resolution Notes)" ออกจาก "การส่งมอบงานให้ผู้แจ้ง (Handover)"
+  - [x] เพิ่ม Action `save_notes` ใน `TicketController.php` ให้ช่างสามารถบันทึกวิธีแก้ไขได้ตลอดเวลาโดยสถานะยังคงเป็น `in_progress`
+  - [x] สร้าง Action ปุ่ม "🤝 ส่งมอบงานให้ผู้แจ้ง (รอผู้แจ้งกดรับงาน)" พร้อม Modal ยืนยันการส่งมอบงาน เพื่อเปลี่ยนสถานะเป็น `resolved` และหยุดนับเวลา SLA ทันที
+  - [x] กำหนดและปรับเปลี่ยนคำเรียกสถานะ `resolved` ทั่วทั้งระบบเป็น "รอผู้แจ้งกดรับงาน" (`HelpdeskCase.php`, `Show.jsx`, `ItStaffDashboard.jsx`, `UserDashboard.jsx`)
+  - [x] ปรับปรุง SLA Visualizer ให้หยุดนับเวลาถอยหลัง (Timer Stopped) เมื่ออยู่ในสถานะ `resolved`, `approved`, `closed` และแสดงผลสรุปว่าส่งมอบงานทันเวลา (SLA MET) หรือเกินเวลา (SLA BREACHED)
+  - [x] เพิ่มชุดทดสอบอัตโนมัติใน `TicketManagementTest.php` ผ่านครบ 8/8 และรันชุดทดสอบทั้งระบบ 97/97 tests ผ่าน 100%
 - **All current tasks are completed.**

@@ -87,7 +87,7 @@ export default function Show({ ticket }) {
     const [isWarning, setIsWarning] = useState(false);
 
     useEffect(() => {
-        if (!ticket.sla_due_at || ['closed', 'cancelled'].includes(ticket.status)) return;
+        if (!ticket.sla_due_at || ['resolved', 'approved', 'closed', 'cancelled'].includes(ticket.status)) return;
 
         const updateSla = () => {
             const dueTime = new Date(ticket.sla_due_at).getTime();
@@ -133,6 +133,8 @@ export default function Show({ ticket }) {
     // Modals & Edit Mode states
     const [editNotesMode, setEditNotesMode] = useState(false);
     const [showCsatModal, setShowCsatModal] = useState(false);
+    const [showHandoverModal, setShowHandoverModal] = useState(false);
+    const [isSavingNotes, setIsSavingNotes] = useState(false);
     const [csatRating, setCsatRating] = useState(5);
     const [csatHover, setCsatHover] = useState(0);
     const [csatFeedback, setCsatFeedback] = useState('');
@@ -184,8 +186,27 @@ export default function Show({ ticket }) {
     // In Progress Form
     const { data: resolveData, setData: setResolveData, put: putResolve, processing: resolveProcessing } = useForm({
         action: 'resolve',
-        resolution_notes: '',
+        resolution_notes: ticket.resolution_notes || '',
     });
+
+    const handleSaveNotes = () => {
+        if (!resolveData.resolution_notes || !resolveData.resolution_notes.trim()) {
+            alert('กรุณาระบุบันทึกการแก้ไขปัญหาเฉพาะหน้าก่อนบันทึก');
+            return;
+        }
+        setIsSavingNotes(true);
+        router.put(
+            route('tickets.updateStatus', ticket.id),
+            {
+                action: 'save_notes',
+                resolution_notes: resolveData.resolution_notes,
+            },
+            {
+                preserveScroll: true,
+                onFinish: () => setIsSavingNotes(false),
+            }
+        );
+    };
 
     // Manager Review Form
     const { data: managerData, setData: setManagerData, put: putManager, processing: managerProcessing } = useForm({
@@ -335,55 +356,97 @@ export default function Show({ ticket }) {
                 )}
 
                 {/* SLA Visualizer */}
-                {ticket.sla_due_at && !['closed', 'cancelled'].includes(ticket.status) && (
-                    <div className={`p-5 rounded-2xl shadow-sm mb-6 flex justify-between items-center border-l-4 transition-colors duration-500 ${
-                        isOverdue
-                            ? 'bg-rose-50 border-rose-500'
-                            : isWarning
-                            ? 'bg-amber-50 border-amber-500'
-                            : 'bg-indigo-50 border-indigo-500'
-                    }`}>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h3 className={`text-sm font-bold ${
-                                    isOverdue ? 'text-rose-800' : isWarning ? 'text-amber-800' : 'text-indigo-800'
+                {ticket.sla_due_at && (
+                    ['resolved', 'approved', 'closed'].includes(ticket.status) ? (
+                        ticket.resolved_at && (
+                            <div className={`p-5 rounded-2xl shadow-sm mb-6 flex justify-between items-center border-l-4 ${
+                                new Date(ticket.resolved_at) > new Date(ticket.sla_due_at)
+                                    ? 'bg-rose-50 border-rose-500 text-rose-800'
+                                    : 'bg-emerald-50 border-emerald-500 text-emerald-800'
+                            }`}>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-sm font-bold">
+                                            {new Date(ticket.resolved_at) > new Date(ticket.sla_due_at)
+                                                ? '⚠️ ส่งมอบงานเรียบร้อยแล้ว (เกินกำหนดเวลา SLA)'
+                                                : '✅ ส่งมอบงานเรียบร้อยแล้ว (ภายในกำหนดเวลา SLA)'}
+                                        </h3>
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                            new Date(ticket.resolved_at) > new Date(ticket.sla_due_at)
+                                                ? 'bg-rose-200 text-rose-800'
+                                                : 'bg-emerald-200 text-emerald-800'
+                                        }`}>
+                                            หยุดนับเวลา SLA แล้ว
+                                        </span>
+                                    </div>
+                                    <p className="text-xs mt-1 text-slate-600">
+                                        ส่งมอบงานเมื่อ: {formatThaiDateTime(ticket.resolved_at)} • กำหนด SLA: {formatThaiDateTime(ticket.sla_due_at)}
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <span className={`text-xl font-black tracking-wider ${
+                                        new Date(ticket.resolved_at) > new Date(ticket.sla_due_at)
+                                            ? 'text-rose-700'
+                                            : 'text-emerald-700'
+                                    }`}>
+                                        {new Date(ticket.resolved_at) > new Date(ticket.sla_due_at) ? 'SLA BREACHED' : 'SLA MET'}
+                                    </span>
+                                    <div className="text-[10px] font-bold text-slate-500 uppercase mt-0.5">
+                                        {new Date(ticket.resolved_at) > new Date(ticket.sla_due_at) ? 'เกินกำหนด SLA' : 'ตรงตาม SLA'}
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    ) : ticket.status !== 'cancelled' && (
+                        <div className={`p-5 rounded-2xl shadow-sm mb-6 flex justify-between items-center border-l-4 transition-colors duration-500 ${
+                            isOverdue
+                                ? 'bg-rose-50 border-rose-500'
+                                : isWarning
+                                ? 'bg-amber-50 border-amber-500'
+                                : 'bg-indigo-50 border-indigo-500'
+                        }`}>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h3 className={`text-sm font-bold ${
+                                        isOverdue ? 'text-rose-800' : isWarning ? 'text-amber-800' : 'text-indigo-800'
+                                    }`}>
+                                        กำหนดส่งมอบงาน (SLA Due Date)
+                                    </h3>
+                                    {isWarning && !isOverdue && (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-800 animate-pulse">
+                                            ใกล้หมดเวลา SLA (เหลือน้อยกว่า 1 ชม.)
+                                        </span>
+                                    )}
+                                    {isOverdue && (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-200 text-rose-800 animate-pulse">
+                                            เกินกำหนดเวลา SLA แล้ว
+                                        </span>
+                                    )}
+                                </div>
+                                <p className={`text-xs mt-1 ${
+                                    isOverdue ? 'text-rose-600' : isWarning ? 'text-amber-700' : 'text-indigo-600'
                                 }`}>
-                                    กำหนดส่งมอบงาน (SLA Due Date)
-                                </h3>
-                                {isWarning && !isOverdue && (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-800 animate-pulse">
-                                        ใกล้หมดเวลา SLA (เหลือน้อยกว่า 1 ชม.)
-                                    </span>
-                                )}
-                                {isOverdue && (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-200 text-rose-800 animate-pulse">
-                                        เกินกำหนดเวลา SLA แล้ว
-                                    </span>
-                                )}
+                                    ภายใน: {formatThaiDateTime(ticket.sla_due_at)}
+                                </p>
                             </div>
-                            <p className={`text-xs mt-1 ${
-                                isOverdue ? 'text-rose-600' : isWarning ? 'text-amber-700' : 'text-indigo-600'
-                            }`}>
-                                ภายใน: {formatThaiDateTime(ticket.sla_due_at)}
-                            </p>
-                        </div>
-                        <div className="text-right">
-                            <span className={`text-2xl font-black font-mono tracking-wider ${
-                                isOverdue ? 'text-rose-700' : isWarning ? 'text-amber-700' : 'text-indigo-700'
-                            }`}>
-                                {timeLeft}
-                            </span>
-                            <div className={`text-xs font-bold uppercase mt-0.5 ${
-                                isOverdue
-                                    ? 'text-rose-600 animate-pulse'
-                                    : isWarning
-                                    ? 'text-amber-700 font-extrabold animate-pulse'
-                                    : 'text-indigo-600'
-                            }`}>
-                                {isOverdue ? 'Overdue (เกินกำหนด SLA)' : isWarning ? 'Warning (ใกล้หมดเวลา)' : 'Remaining (เวลาที่เหลือ)'}
+                            <div className="text-right">
+                                <span className={`text-2xl font-black font-mono tracking-wider ${
+                                    isOverdue ? 'text-rose-700' : isWarning ? 'text-amber-700' : 'text-indigo-700'
+                                }`}>
+                                    {timeLeft}
+                                </span>
+                                <div className={`text-xs font-bold uppercase mt-0.5 ${
+                                    isOverdue
+                                        ? 'text-rose-600 animate-pulse'
+                                        : isWarning
+                                        ? 'text-amber-700 font-extrabold animate-pulse'
+                                        : 'text-indigo-600'
+                                }`}>
+                                    {isOverdue ? 'Overdue (เกินกำหนด SLA)' : isWarning ? 'Warning (ใกล้หมดเวลา)' : 'Remaining (เวลาที่เหลือ)'}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -713,42 +776,88 @@ export default function Show({ ticket }) {
                                     </form>
                                 )}
 
-                                {/* Step: in_progress -> resolve */}
+                                {/* Step: in_progress -> save_notes or handover */}
                                 {ticket.status === 'in_progress' && (
-                                    <form
-                                        onSubmit={(e) => {
-                                            e.preventDefault();
-                                            putResolve(route('tickets.updateStatus', ticket.id), { preserveScroll: true });
-                                        }}
-                                        className="space-y-4"
-                                    >
+                                    <div className="space-y-4">
                                         <div>
-                                            <label className="block font-bold text-slate-700 text-sm mb-2">
-                                                บันทึกการแก้ไขปัญหาเฉพาะหน้า (Resolution Notes) <span className="text-rose-500">*</span>
-                                            </label>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="block font-bold text-slate-700 text-sm">
+                                                    บันทึกการแก้ไขปัญหาเฉพาะหน้า (Resolution Notes) <span className="text-rose-500">*</span>
+                                                </label>
+                                                <span className="text-xs text-slate-400">
+                                                    สามารถบันทึกเก็บไว้ได้ระหว่างดำเนินงาน
+                                                </span>
+                                            </div>
                                             <textarea
                                                 rows={4}
                                                 required
                                                 value={resolveData.resolution_notes}
                                                 onChange={(e) => setResolveData('resolution_notes', e.target.value)}
-                                                placeholder="ระบุวิธีแก้ไข เช่น เปลี่ยนอะไหล่ หรือตั้งค่าระบบ..."
+                                                placeholder="ระบุวิธีแก้ไข เช่น เปลี่ยนอะไหล่, ซ่อมแซมสายสัญญาณ, หรือตั้งค่าระบบ..."
                                                 className="w-full rounded-2xl border-slate-300 text-sm focus:border-emerald-500 focus:ring-emerald-500 leading-relaxed"
                                             />
                                         </div>
 
-                                        <button
-                                            type="submit"
-                                            disabled={resolveProcessing}
-                                            className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-md transition disabled:opacity-50"
-                                        >
-                                            ✅ บันทึกและส่งมอบงานให้ผู้แจ้งตรวจสอบ
-                                        </button>
-                                    </form>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                                            <button
+                                                type="button"
+                                                disabled={isSavingNotes || resolveProcessing}
+                                                onClick={handleSaveNotes}
+                                                className="w-full py-3.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-2xl border border-slate-300 shadow-sm transition flex items-center justify-center gap-2 cursor-pointer text-sm disabled:opacity-50"
+                                            >
+                                                <span>💾</span> {isSavingNotes ? 'กำลังบันทึก...' : 'บันทึกข้อมูลการแก้ไข (กำลังดำเนินการ)'}
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                disabled={isSavingNotes || resolveProcessing}
+                                                onClick={() => {
+                                                    if (!resolveData.resolution_notes || !resolveData.resolution_notes.trim()) {
+                                                        alert('กรุณาระบุบันทึกการแก้ไขปัญหาเฉพาะหน้าก่อนดำเนินการส่งมอบงาน');
+                                                        return;
+                                                    }
+                                                    setShowHandoverModal(true);
+                                                }}
+                                                className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer text-sm disabled:opacity-50"
+                                            >
+                                                <span>🤝</span> ส่งมอบงานให้ผู้แจ้ง (รอผู้แจ้งกดรับงาน)
+                                            </button>
+                                        </div>
+
+                                        <p className="text-xs text-slate-500 text-center">
+                                            * กด <strong>"บันทึกข้อมูลการแก้ไข"</strong> เพื่อบันทึกโน้ตไว้โดยสถานะยังคงเป็นกำลังแก้ไข และเมื่อส่งงานให้ผู้แจ้งแล้วจริง ๆ ให้กด <strong>"ส่งมอบงานให้ผู้แจ้ง"</strong> เพื่อเปลี่ยนสถานะเป็นรอผู้แจ้งกดรับงานและหยุดนับเวลา SLA
+                                        </p>
+                                    </div>
                                 )}
                             </div>
                         )}
 
-                        {/* 3. Action Form for Acceptance (Requester / Helpdesk) */}
+                        {/* 3. Status Information when Resolved (Waiting for Requester) */}
+                        {ticket.status === 'resolved' && (
+                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-cyan-500 border-x border-b border-slate-200 space-y-4">
+                                <div className="flex items-start gap-3">
+                                    <div className="p-3 bg-cyan-50 text-cyan-700 rounded-2xl">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-slate-800">
+                                            สถานะใบงาน: รอผู้แจ้งกดรับงาน
+                                        </h3>
+                                        <p className="text-sm text-slate-600 mt-1">
+                                            ช่างได้ส่งมอบงานเรียบร้อยแล้วเมื่อ <strong className="text-slate-800">{formatThaiDateTime(ticket.resolved_at)}</strong>
+                                            {ticket.resolved_by && <span> โดย <strong className="text-slate-800">{ticket.resolved_by.name}</strong></span>}
+                                        </p>
+                                        <p className="text-xs text-cyan-700 font-semibold mt-2">
+                                            ⏱️ ระบบหยุดนับเวลา SLA เรียบร้อยแล้ว ขณะนี้รอผู้แจ้งตรวจสอบผลงานและกดยืนยันรับทราบการแก้ไข
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 4. Action Form for Acceptance (Requester / Helpdesk) */}
                         {ticket.status === 'resolved' && (isRequester || isHelpdesk) && (
                             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-amber-500 border-x border-b border-slate-200">
                                 <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
@@ -756,7 +865,7 @@ export default function Show({ ticket }) {
                                     รับทราบการแก้ไข (Accept Resolution)
                                 </h3>
                                 <p className="text-sm text-slate-600 mb-4">
-                                    การแก้ไขเสร็จสิ้นแล้ว กรุณากดยืนยันการรับทราบการแก้ไขเพื่อปิดใบงาน
+                                    การแก้ไขเสร็จสิ้นและส่งมอบงานแล้ว กรุณากดยืนยันการรับทราบการแก้ไขเพื่อประเมินความพึงพอใจและปิดใบงาน
                                 </p>
 
                                 <button
@@ -765,16 +874,15 @@ export default function Show({ ticket }) {
                                     onClick={() => setShowCsatModal(true)}
                                     className={`w-full py-3.5 px-4 font-bold rounded-2xl shadow transition text-center ${
                                         canAccept
-                                            ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                                            ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer'
                                             : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                                     }`}
                                 >
-                                    ✅ ยืนยันรับทราบและปิดใบงาน
-                                    {isHelpdesk && !isRequester && !canAccept && (
-                                        <span className="text-xs font-normal ml-2">
-                                            (Helpdesk กดแทนได้ในอีก {acceptTimerFormatted} นาที)
-                                        </span>
-                                    )}
+                                    {isRequester
+                                        ? '⭐ ยืนยันรับทราบการแก้ไข และให้คะแนนความพึงพอใจ'
+                                        : canAccept
+                                        ? '⭐ ยืนยันรับงานแทนผู้แจ้ง (เกิน 5 นาทีแล้ว)'
+                                        : `⏳ รอผู้แจ้งรับงาน (${acceptTimerFormatted} นาที ก่อน Helpdesk กดแทนได้)`}
                                 </button>
                             </div>
                         )}
@@ -1450,7 +1558,7 @@ export default function Show({ ticket }) {
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-slate-800">
-                                            {ticket.approved_at ? '4. ผู้แจ้งรับทราบการแก้ไข' : '4. รอผู้แจ้งรับงาน'}
+                                            {ticket.approved_at ? '4. ผู้แจ้งรับทราบการแก้ไข' : '4. รอผู้แจ้งกดรับงาน'}
                                         </p>
                                         {ticket.approved_at ? (
                                             <>
@@ -1689,6 +1797,73 @@ export default function Show({ ticket }) {
                             className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-sm shadow transition disabled:opacity-50"
                         >
                             ยืนยันยกเลิกใบงาน
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal 4: Handover Confirmation Modal */}
+            <Modal show={showHandoverModal} onClose={() => setShowHandoverModal(false)} maxWidth="lg">
+                <div className="p-6 sm:p-8 bg-white rounded-3xl">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-3 bg-emerald-100 text-emerald-700 rounded-2xl">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-slate-800">
+                                ยืนยันการส่งมอบงานให้ผู้แจ้ง
+                            </h3>
+                            <p className="text-xs text-slate-500">
+                                Ticket #{ticket.ticket_no} - {ticket.title}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 space-y-3 text-sm">
+                        <div>
+                            <span className="text-xs font-bold text-slate-500 block">สาเหตุของปัญหา (Root Cause):</span>
+                            <span className="text-slate-800">{ticket.root_cause_detail || '-'}</span>
+                        </div>
+                        <div className="pt-2 border-t border-slate-200">
+                            <span className="text-xs font-bold text-slate-500 block">บันทึกการแก้ไขปัญหาเฉพาะหน้า:</span>
+                            <span className="text-slate-800 whitespace-pre-wrap leading-relaxed">{resolveData.resolution_notes}</span>
+                        </div>
+                    </div>
+
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 mb-6 leading-relaxed space-y-1">
+                        <p className="font-bold flex items-center gap-1.5 text-sm text-amber-800">
+                            <span>⏱️</span> ระบบจะหยุดนับเวลา SLA ทันที
+                        </p>
+                        <p>
+                            • เมื่อกดยืนยัน ระบบจะเปลี่ยนสถานะเป็น <strong>"รอผู้แจ้งกดรับงาน"</strong> และบันทึกเวลาส่งมอบงาน
+                        </p>
+                        <p>
+                            • ผู้แจ้งจะได้รับการแจ้งเตือนเพื่อเข้ามาตรวจสอบผลงานและกดยืนยันรับทราบการแก้ไข (Accept Resolution) เพื่อปิดใบงานต่อไป
+                        </p>
+                    </div>
+
+                    <div className="flex justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setShowHandoverModal(false)}
+                            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition"
+                        >
+                            ยกเลิก
+                        </button>
+                        <button
+                            type="button"
+                            disabled={resolveProcessing}
+                            onClick={() => {
+                                putResolve(route('tickets.updateStatus', ticket.id), {
+                                    preserveScroll: true,
+                                    onSuccess: () => setShowHandoverModal(false),
+                                });
+                            }}
+                            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm shadow transition disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                        >
+                            {resolveProcessing ? 'กำลังส่งมอบ...' : '✅ ยืนยันส่งมอบงาน'}
                         </button>
                     </div>
                 </div>

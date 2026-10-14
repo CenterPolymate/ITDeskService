@@ -342,7 +342,7 @@ class HelpdeskCase extends Model
             'assigned' => 'มอบหมายแล้ว (รอรับงาน)',
             'analyzing' => 'กำลังสืบสภาพ และวิเคราะห์หาสาเหตุ',
             'in_progress' => 'กำลังดำเนินการแก้ไข',
-            'resolved' => 'รอผู้แจ้งรับงาน',
+            'resolved' => 'รอผู้แจ้งกดรับงาน',
             'approved' => 'รอหัวหน้าปิดใบงาน',
             'closed' => 'ปิดใบงาน',
             'cancelled' => 'ยกเลิกเคส',

@@ -211,4 +211,68 @@ class TicketManagementTest extends TestCase
             'message' => 'ช่างสะดวกเข้ามาดูช่วงบ่ายไหมครับ',
         ]);
     }
+
+    public function test_technician_can_save_resolution_notes_without_changing_in_progress_status(): void
+    {
+        $technician = User::factory()->create(['role' => 'team_hardware', 'email' => 'tech@example.com']);
+
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0103',
+            'title' => 'กำลังดำเนินการซ่อม',
+            'description' => 'เครื่องเปิดไม่ติด',
+            'category' => 'Hardware',
+            'priority' => 'medium',
+            'status' => 'in_progress',
+            'escalated_to_team' => 'Hardware',
+            'in_progress_at' => now(),
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-000-1111',
+            'location' => 'ชั้น 1',
+        ]);
+
+        $response = $this->actingAs($technician)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'save_notes',
+            'resolution_notes' => 'ถอดเช็คบอร์ดเบื้องต้น กำลังรออะไหล่ทดแทน',
+        ]);
+
+        $response->assertRedirect(route('tickets.show', $case->id));
+        $case->refresh();
+        $this->assertEquals('in_progress', $case->status);
+        $this->assertEquals('ถอดเช็คบอร์ดเบื้องต้น กำลังรออะไหล่ทดแทน', $case->resolution_notes);
+        $this->assertNull($case->resolved_at);
+    }
+
+    public function test_technician_can_handover_work_to_requester_transitioning_to_resolved(): void
+    {
+        $technician = User::factory()->create(['role' => 'team_hardware', 'email' => 'tech2@example.com']);
+
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0104',
+            'title' => 'เปลี่ยนชิ้นส่วนเสร็จแล้ว',
+            'description' => 'เครื่องเปิดไม่ติด',
+            'category' => 'Hardware',
+            'priority' => 'medium',
+            'status' => 'in_progress',
+            'escalated_to_team' => 'Hardware',
+            'in_progress_at' => now(),
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-000-1111',
+            'location' => 'ชั้น 1',
+        ]);
+
+        $response = $this->actingAs($technician)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'resolve',
+            'resolution_notes' => 'เปลี่ยน Power Supply ใหม่ และนำไปติดตั้งส่งมอบให้ผู้แจ้งแล้ว',
+        ]);
+
+        $response->assertRedirect(route('tickets.show', $case->id));
+        $case->refresh();
+        $this->assertEquals('resolved', $case->status);
+        $this->assertEquals('รอผู้แจ้งกดรับงาน', $case->status_label);
+        $this->assertNotNull($case->resolved_at);
+        $this->assertEquals($technician->id, $case->resolved_by);
+        $this->assertEquals('เปลี่ยน Power Supply ใหม่ และนำไปติดตั้งส่งมอบให้ผู้แจ้งแล้ว', $case->resolution_notes);
+    }
 }

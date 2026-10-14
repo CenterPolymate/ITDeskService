@@ -235,8 +235,8 @@ class TicketController extends Controller
         }
 
         $request->validate([
-            'action' => 'required|in:start_analyzing,start_progress,resolve,update_notes,update_analysis,accept_resolution,close,cancel,start_preventive_measure,preventive_action,close_preventive_measure',
-            'resolution_notes' => 'required_if:action,resolve|nullable|string',
+            'action' => 'required|in:start_analyzing,start_progress,save_notes,resolve,update_notes,update_analysis,accept_resolution,close,cancel,start_preventive_measure,preventive_action,close_preventive_measure',
+            'resolution_notes' => 'nullable|string',
             'analysis_notes' => 'nullable|array',
             'why_1' => 'nullable|string',
             'why_2' => 'nullable|string',
@@ -276,10 +276,21 @@ class TicketController extends Controller
             $ticket->update($updateData);
 
             return redirect()->route('tickets.show', $id)->with('success', $message);
+        } elseif ($request->action === 'save_notes') {
+            $ticket->update([
+                'resolution_notes' => $request->resolution_notes,
+            ]);
+
+            return redirect()->route('tickets.show', $id)->with('success', 'บันทึกข้อมูลการแก้ไขปัญหาเฉพาะหน้าเรียบร้อยแล้ว (สถานะยังคงเป็น: กำลังดำเนินการแก้ไข)');
         } elseif ($request->action === 'resolve') {
+            $resolutionNotes = $request->resolution_notes ?: $ticket->resolution_notes;
+            if (empty(trim((string) $resolutionNotes))) {
+                return back()->with('error', 'กรุณาระบุบันทึกการแก้ไขปัญหาเฉพาะหน้าก่อนส่งมอบงาน');
+            }
+
             $updateData = [
                 'status' => 'resolved',
-                'resolution_notes' => $request->resolution_notes,
+                'resolution_notes' => $resolutionNotes,
                 'resolved_at' => now(),
                 'resolved_by' => Auth::id(),
             ];
@@ -311,7 +322,7 @@ class TicketController extends Controller
                 }
             }
 
-            return redirect()->route('tickets.show', $id)->with('success', 'บันทึกการแก้ไขและส่งเพื่อรอผู้แจ้งรับงานเรียบร้อยแล้ว');
+            return redirect()->route('tickets.show', $id)->with('success', 'ส่งมอบงานให้ผู้แจ้งเรียบร้อยแล้ว ใบงานเข้าสู่สถานะ: รอผู้แจ้งกดรับงาน');
         } elseif ($request->action === 'update_notes') {
             $updateData = [
                 'resolution_notes' => $request->resolution_notes,
