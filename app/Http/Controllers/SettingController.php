@@ -4,13 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Mail\TestSmtpMail;
 use App\Models\Setting;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class SettingController extends Controller
 {
-    private function authorizeAdministrator()
+    private function authorizeAdministrator(): void
     {
         if (! request()->user() || request()->user()->role !== 'administrator') {
             abort(403, 'Unauthorized action.');
@@ -22,7 +26,7 @@ class SettingController extends Controller
         return hash_hmac('sha256', "{$host}:{$port}:{$username}:{$password}:{$encryption}", config('app.key'));
     }
 
-    public function index()
+    public function index(): Response
     {
         $this->authorizeAdministrator();
         $settings = Setting::all()->keyBy('key');
@@ -43,10 +47,16 @@ class SettingController extends Controller
             $initialSmtpToken = self::generateSmtpToken($savedHost, (string) $savedPort, $savedUsername, $savedPassword, $encryption);
         }
 
-        return view('settings.index', compact('settings', 'initialSmtpToken', 'savedVerified'));
+        $settingsMap = $settings->mapWithKeys(fn ($item, $key) => [$key => $item->value])->all();
+
+        return Inertia::render('Settings/Index', [
+            'settings' => $settingsMap,
+            'initialSmtpToken' => $initialSmtpToken,
+            'savedVerified' => $savedVerified,
+        ]);
     }
 
-    public function update(Request $request)
+    public function update(Request $request): RedirectResponse
     {
         $this->authorizeAdministrator();
 
@@ -122,7 +132,7 @@ class SettingController extends Controller
         return redirect()->back()->with('success', 'บันทึกการตั้งค่าระบบเรียบร้อยแล้ว');
     }
 
-    public function testEmail(Request $request)
+    public function testEmail(Request $request): JsonResponse|RedirectResponse
     {
         $this->authorizeAdministrator();
 

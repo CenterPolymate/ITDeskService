@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class BackupTest extends TestCase
@@ -18,7 +19,7 @@ class BackupTest extends TestCase
 
         $response = $this->actingAs($admin)->get(route('backups.index'));
         $response->assertOk();
-        $response->assertViewIs('backups.index');
+        $response->assertInertia(fn (AssertableInertia $page) => $page->component('Backups/Index'));
     }
 
     public function test_non_administrator_cannot_view_backup_index(): void
@@ -39,9 +40,11 @@ class BackupTest extends TestCase
 
         $response = $this->actingAs($admin)->get(route('backups.index'));
         $response->assertOk();
-        $response->assertSee('FULL_2026-10-13-14-56-47.zip');
-        // ตรวจสอบว่าแสดงผลเป็นภาษาไทย และเวลาตามชื่อไฟล์ในเขตเวลา Asia/Bangkok
-        $response->assertSee('13 ตุลาคม 2026 14:56:47');
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Backups/Index')
+            ->where('backups.0.file_name', 'FULL_2026-10-13-14-56-47.zip')
+            ->where('backups.0.last_modified', '13 ตุลาคม 2026 14:56:47')
+        );
     }
 
     public function test_administrator_can_trigger_database_backup_with_disabled_notifications(): void

@@ -3,33 +3,36 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class CategoryController extends Controller
 {
-    private function authorizeAdministrator()
+    private function authorizeAdministrator(): void
     {
         if (! request()->user() || request()->user()->role !== 'administrator') {
             abort(403, 'Unauthorized action.');
         }
     }
 
-    public function index()
+    public function index(): Response
     {
         $this->authorizeAdministrator();
         $categories = Category::orderBy('name')->get();
 
-        return view('categories.index', compact('categories'));
+        return Inertia::render('Categories/Index', compact('categories'));
     }
 
-    public function create()
+    public function create(): Response
     {
         $this->authorizeAdministrator();
 
-        return view('categories.create');
+        return Inertia::render('Categories/Create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $this->authorizeAdministrator();
         $request->validate([
@@ -47,14 +50,14 @@ class CategoryController extends Controller
         return redirect()->route('categories.index')->with('success', 'เพิ่มหมวดหมู่สำเร็จ');
     }
 
-    public function edit(Category $category)
+    public function edit(Category $category): Response
     {
         $this->authorizeAdministrator();
 
-        return view('categories.edit', compact('category'));
+        return Inertia::render('Categories/Edit', compact('category'));
     }
 
-    public function update(Request $request, Category $category)
+    public function update(Request $request, Category $category): RedirectResponse
     {
         $this->authorizeAdministrator();
         $request->validate([
@@ -72,7 +75,7 @@ class CategoryController extends Controller
         return redirect()->route('categories.index')->with('success', 'อัปเดตหมวดหมู่สำเร็จ');
     }
 
-    public function destroy(Category $category)
+    public function destroy(Category $category): RedirectResponse
     {
         $this->authorizeAdministrator();
         $category->delete();

@@ -80,4 +80,11 @@
   - [x] รองรับ Mobile Cards View และ Desktop Table View พร้อมป้ายสถานะและทีม
   - [x] ระบบ Pagination และ Live Auto-polling อัปเดตทุก 15 วินาที (หยุดชั่วคราวเมื่อกำลังพิมพ์ค้นหา)
 - [x] อัปเดตชุดทดสอบ `HelpdeskDashboardTest.php` ให้รองรับ Inertia Page Assertions ทั้ง IT Staff และ Superadmin ผ่าน 100% (71/71 tests ทั้งระบบ)
+- [x] ไมเกรตระบบจัดการและตั้งค่า (Admin Settings & Utilities) สู่ React + Inertia.js (กลุ่มที่ 2):
+  - [x] ไมเกรตหน้าตั้งค่าระบบ (`Settings/Index.jsx`): LINE OA Settings, Email (SMTP) Settings พร้อมสถานะ Live Badge, Modal ตรวจสอบการตั้งค่า SMTP (Test Connection), Data Retention และตรวจสอบ `smtp_verified_token`
+  - [x] ไมเกรตหน้าระบบสำรองข้อมูล (`Backups/Index.jsx`): ฟอร์มสร้างไฟล์สำรองข้อมูล (Full / DB Only), แสดง Terminal Output, ตารางประวัติและ Mobile Card View พร้อมดาวน์โหลด/ลบ, กล่องคำแนะนำ Cron Job และคู่มือกู้คืนข้อมูล
+  - [x] ไมเกรตหน้าประวัติการใช้งานระบบ (`AuditLogs/Index.jsx`): ฟอร์มตัวกรอง (วันที่, ผู้ใช้งาน, การกระทำ), แสดงรายละเอียดการเปลี่ยนแปลง (Diff ค่าเดิม vs ค่าใหม่), ส่งออก CSV, แบ่งหน้า Pagination และรองรับ Mobile Cards View
+  - [x] ไมเกรตหน้าแก้ไขข้อมูลส่วนตัว (`Profile/Edit.jsx`): อัปเดตข้อมูลบัญชีผู้ใช้ (ล็อกไม่ให้ Administrator แก้ไขชื่อ, สังกัดบริษัทและแผนก Dynamic/พิมพ์เอง, อีเมลและปุ่มส่งยืนยันซ้ำ) และฟอร์มเปลี่ยนรหัสผ่าน
+  - [x] ไมเกรตหน้าจัดการหมวดหมู่ปัญหา (`Categories/Index.jsx`, `Create.jsx`, `Edit.jsx`): แสดงรายการ, เพิ่ม, แก้ไข และลบหมวดหมู่ปัญหา พร้อมสลับสถานะเปิด/ปิดใช้งาน
+  - [x] อัปเดตชุดทดสอบ `SmtpSettingTest`, `BackupTest`, `ProfileTest` และสร้างชุดทดสอบใหม่ `AuditLogTest`, `CategoryManagementTest` ผ่าน 100% (82/82 tests ทั้งระบบ)
 - **All current tasks are completed.**

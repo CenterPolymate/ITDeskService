@@ -1,0 +1,585 @@
+import React, { useState } from 'react';
+import { Head, usePage, router } from '@inertiajs/react';
+
+export default function Index({ settings = {}, initialSmtpToken = '', savedVerified = false }) {
+    const { auth, flash, errors } = usePage().props;
+
+    // Form states
+    const [lineAccessToken, setLineAccessToken] = useState(settings.line_channel_access_token || '');
+    const [lineSecret, setLineSecret] = useState(settings.line_channel_secret || '');
+
+    const [smtpHost, setSmtpHost] = useState(settings.smtp_host || 'smtp.mailtrap.io');
+    const [smtpPort, setSmtpPort] = useState(settings.smtp_port || '2525');
+    const [smtpUsername, setSmtpUsername] = useState(settings.smtp_username || settings.smtp_from_address || '');
+    const [smtpPassword, setSmtpPassword] = useState('');
+    const [smtpEncryption, setSmtpEncryption] = useState(settings.smtp_encryption || 'ssl');
+
+    const [auditRetentionYears, setAuditRetentionYears] = useState(settings.audit_log_retention_years || '1');
+
+    const [smtpVerifiedToken, setSmtpVerifiedToken] = useState(initialSmtpToken || '');
+    const [isVerified, setIsVerified] = useState(savedVerified && Boolean(initialSmtpToken));
+    const [lastTestResult, setLastTestResult] = useState(null);
+
+    // Modal state
+    const [showTestModal, setShowTestModal] = useState(false);
+    const [testEmailTarget, setTestEmailTarget] = useState(auth?.user?.email || '');
+    const [testing, setTesting] = useState(false);
+    const [testFeedback, setTestFeedback] = useState(null);
+
+    const isConfigured = smtpHost.trim() && smtpHost.trim() !== 'smtp.mailtrap.io';
+
+    // Handle SMTP field changes - invalidate verification if changed
+    const handleSmtpChange = (setter) => (e) => {
+        setter(e.target.value);
+        setIsVerified(false);
+        setSmtpVerifiedToken('');
+        setLastTestResult(null);
+    };
+
+    const handlePortChange = (e) => {
+        const val = e.target.value.trim();
+        setSmtpPort(val);
+        if (val === '465') {
+            setSmtpEncryption('ssl');
+        } else if (val === '587') {
+            setSmtpEncryption('tls');
+        }
+        setIsVerified(false);
+        setSmtpVerifiedToken('');
+        setLastTestResult(null);
+    };
+
+    const openTestModal = () => {
+        if (!smtpHost.trim()) {
+            alert('กรุณากรอก SMTP Host ก่อนทดสอบ');
+            return;
+        }
+        if (!smtpUsername.trim()) {
+            alert('กรุณากรอกอีเมลผู้ส่ง (Sender Email / SMTP Username) ก่อนทดสอบ');
+            return;
+        }
+        setTestFeedback(null);
+        setShowTestModal(true);
+    };
+
+    const handleRunTestEmail = async (e) => {
+        e.preventDefault();
+        setTesting(true);
+        setTestFeedback({ status: 'loading', message: 'กำลังเชื่อมต่อกับเซิร์ฟเวอร์ SMTP และส่งอีเมลทดสอบ... (อาจใช้เวลา 3-5 วินาที)' });
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const response = await fetch(route('settings.test_email'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    smtp_host: smtpHost.trim(),
+                    smtp_port: smtpPort.trim(),
+                    smtp_username: smtpUsername.trim(),
+                    smtp_password: smtpPassword,
+                    smtp_encryption: smtpEncryption,
+                    smtp_from_address: smtpUsername.trim(),
+                    test_email: testEmailTarget.trim(),
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                setIsVerified(true);
+                setSmtpVerifiedToken(data.verified_token || '');
+                setLastTestResult({ success: true, message: data.message });
+                setTestFeedback({ status: 'success', message: data.message });
+            } else {
+                setIsVerified(false);
+                setSmtpVerifiedToken('');
+                setLastTestResult({ success: false, message: data.message || 'การเชื่อมต่อ SMTP ล้มเหลว' });
+                setTestFeedback({ status: 'error', message: data.message || 'การเชื่อมต่อ SMTP ล้มเหลว' });
+            }
+        } catch (err) {
+            setIsVerified(false);
+            setSmtpVerifiedToken('');
+            setLastTestResult({ success: false, message: 'เกิดข้อผิดพลาดในการส่งคำขอ: ' + err.message });
+            setTestFeedback({ status: 'error', message: 'เกิดข้อผิดพลาด: ' + err.message });
+        } finally {
+            setTesting(false);
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        if (isConfigured && !isVerified) {
+            let errorReason = 'การตั้งค่า Email (SMTP) ยังไม่ผ่านการตรวจสอบความถูกต้อง';
+            if (lastTestResult && !lastTestResult.success) {
+                errorReason = 'ผลการตรวจสอบการเชื่อมต่อ SMTP ล่าสุด "ไม่ผ่าน" (' + lastTestResult.message + ')';
+            }
+            alert('⛔ ไม่สามารถบันทึกการตั้งค่าได้!\n\n' + errorReason + '\n\nกรุณากดปุ่ม "ตรวจสอบการตั้งค่า (Test Connection)" ให้ผ่านก่อนบันทึก เพื่อป้องกันไม่ให้ระบบส่งอีเมลล้มเหลว');
+            return;
+        }
+
+        router.post(route('settings.update'), {
+            line_channel_access_token: lineAccessToken,
+            line_channel_secret: lineSecret,
+            smtp_host: smtpHost,
+            smtp_port: smtpPort,
+            smtp_username: smtpUsername,
+            smtp_password: smtpPassword,
+            smtp_encryption: smtpEncryption,
+            smtp_verified_token: smtpVerifiedToken,
+            audit_log_retention_years: auditRetentionYears,
+        });
+    };
+
+    return (
+        <>
+            <Head title="ตั้งค่าระบบและการแจ้งเตือน (System Settings)" />
+
+            <div className="py-6 sm:py-8 bg-gray-50 min-h-screen">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+                    {/* Header */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div>
+                            <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+                                ตั้งค่าระบบและการแจ้งเตือน (System Settings)
+                            </h1>
+                            <p className="text-sm text-gray-500 mt-1">
+                                กำหนดค่าการเชื่อมต่ออีเมล (SMTP), LINE OA และนโยบายดูแลรักษาข้อมูล
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Alerts */}
+                    {flash?.success && (
+                        <div className="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-800 p-4 rounded-r-xl shadow-sm flex items-start gap-3">
+                            <svg className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="text-sm font-medium leading-5">{flash.success}</span>
+                        </div>
+                    )}
+
+                    {flash?.error && (
+                        <div className="bg-rose-50 border-l-4 border-rose-500 text-rose-800 p-4 rounded-r-xl shadow-sm flex items-start gap-3">
+                            <svg className="w-5 h-5 text-rose-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div>
+                                <strong className="font-semibold text-sm block">เกิดข้อผิดพลาด</strong>
+                                <span className="text-xs text-rose-700 block mt-0.5 whitespace-pre-line">{flash.error}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 p-6 sm:p-8">
+                        <form onSubmit={handleSubmit} className="space-y-8">
+                            {/* Section: LINE OA Settings */}
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                    LINE OA Settings
+                                </h3>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Channel Access Token
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={lineAccessToken}
+                                            onChange={(e) => setLineAccessToken(e.target.value)}
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono"
+                                            placeholder="กรอก Access Token"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Channel Secret
+                                        </label>
+                                        <input
+                                            type="password"
+                                            value={lineSecret}
+                                            onChange={(e) => setLineSecret(e.target.value)}
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono"
+                                            placeholder="กรอก Channel Secret"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section: Email (SMTP) Settings */}
+                            <div>
+                                <div className="border-b border-gray-100 pb-2 mb-4 flex items-center justify-between flex-wrap gap-2">
+                                    <div className="flex items-center gap-2.5">
+                                        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                            Email (SMTP) Settings
+                                        </h3>
+                                        {/* Status Badge */}
+                                        {!isConfigured ? (
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span> ยังไม่ได้ตั้งค่า
+                                            </span>
+                                        ) : isVerified ? (
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> ผ่านการตรวจสอบแล้ว (พร้อมใช้งาน)
+                                            </span>
+                                        ) : lastTestResult && !lastTestResult.success ? (
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-300">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span> ตรวจสอบไม่ผ่าน (ห้ามบันทึก)
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> ยังไม่ผ่านการตรวจสอบ (ต้องทดสอบก่อนบันทึก)
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-gray-500 w-full">การตั้งค่าเซิร์ฟเวอร์ส่งอีเมลสำหรับการแจ้งเตือนและการยืนยันตัวตน (Email Verification)</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            SMTP Host <span className="text-rose-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={smtpHost}
+                                            onChange={handleSmtpChange(setSmtpHost)}
+                                            placeholder="เช่น mailpro-02.zth.netdesignhost.com"
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            SMTP Port <span className="text-rose-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={smtpPort}
+                                            onChange={handlePortChange}
+                                            placeholder="เช่น 465 หรือ 587"
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            อีเมลผู้ส่ง (Sender Email / SMTP Username) <span className="text-rose-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={smtpUsername}
+                                            onChange={handleSmtpChange(setSmtpUsername)}
+                                            placeholder="เช่น admin@polymate.co.th"
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono"
+                                            required
+                                        />
+                                        <p className="mt-1 text-xs text-gray-400">ระบบจะใช้อีเมลนี้เป็นทั้งบัญชีล็อกอินส่งเมล (Username) และอีเมลผู้ส่ง (From Address)</p>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            รหัสผ่าน (SMTP Password)
+                                        </label>
+                                        <input
+                                            type="password"
+                                            value={smtpPassword}
+                                            onChange={handleSmtpChange(setSmtpPassword)}
+                                            placeholder="เว้นว่างไว้หากไม่ต้องการเปลี่ยนรหัสผ่านเดิม"
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            การเข้ารหัสความปลอดภัย (Encryption)
+                                        </label>
+                                        <select
+                                            value={smtpEncryption}
+                                            onChange={handleSmtpChange(setSmtpEncryption)}
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                        >
+                                            <option value="ssl">SSL (แนะนำสำหรับพอร์ต 465)</option>
+                                            <option value="tls">TLS / STARTTLS (แนะนำสำหรับพอร์ต 587)</option>
+                                            <option value="none">None (ไม่เข้ารหัส)</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="rounded-xl bg-gray-50 border border-gray-200 p-3.5 text-xs text-gray-600 flex flex-col justify-center">
+                                        <span className="font-semibold text-gray-700 mb-1 flex items-center gap-1.5">
+                                            <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            คำแนะนำการตั้งค่าพอร์ตและการเข้ารหัส:
+                                        </span>
+                                        <ul className="list-disc list-inside space-y-0.5 text-gray-500 text-[11px]">
+                                            <li><strong>พอร์ต 465:</strong> ใช้ Encryption แบบ <code className="text-indigo-600 font-mono">ssl</code> (แนะนำสำหรับ Mail Server โฮสติ้ง)</li>
+                                            <li><strong>พอร์ต 587:</strong> ใช้ Encryption แบบ <code className="text-indigo-600 font-mono">tls</code></li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                {/* SMTP Live Banner */}
+                                <div className="mt-4">
+                                    {!isConfigured ? (
+                                        <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs">
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                    <span className="text-sm font-bold text-gray-700">ยังไม่มีการตั้งค่า Mail Server</span>
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-1">กรอกข้อมูล Host, Port, อีเมลผู้ส่ง และ Password เพื่อเริ่มใช้งานระบบส่งอีเมล</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={openTestModal}
+                                                className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition"
+                                            >
+                                                ตรวจสอบการตั้งค่า (Test Connection)
+                                            </button>
+                                        </div>
+                                    ) : isVerified ? (
+                                        <div className="p-4 bg-emerald-50/90 border border-emerald-300 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs">
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                    <span className="text-sm font-bold text-emerald-900">ผลการตรวจสอบ: ผ่าน (Connected Successfully)</span>
+                                                </div>
+                                                <p className="text-xs text-emerald-700 mt-1">
+                                                    {lastTestResult?.message || 'การตั้งค่าปัจจุบันได้รับการตรวจสอบแล้ว สามารถกดบันทึกการตั้งค่าระบบได้ตามปกติ'}
+                                                </p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={openTestModal}
+                                                className="shrink-0 inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition"
+                                            >
+                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                                <span>ทดสอบซ้ำ</span>
+                                            </button>
+                                        </div>
+                                    ) : lastTestResult && !lastTestResult.success ? (
+                                        <div className="p-4 bg-rose-50 border border-rose-300 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs">
+                                            <div className="max-w-xl">
+                                                <div className="flex items-center gap-2">
+                                                    <svg className="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                    <span className="text-sm font-bold text-rose-900">ผลการตรวจสอบ: ไม่ผ่าน (Connection Failed)</span>
+                                                </div>
+                                                <p className="text-xs text-rose-700 mt-1 break-words">{lastTestResult.message}</p>
+                                                <p className="text-[11px] font-semibold text-rose-800 mt-1">⚠️ ระบบจะไม่อนุญาตให้บันทึกจนกว่าจะแก้ไขและทดสอบผ่าน</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={openTestModal}
+                                                className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg shadow-sm transition"
+                                            >
+                                                <span>แก้ไขและตรวจสอบใหม่</span>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 bg-amber-50/90 border border-amber-300 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs">
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                                    <span className="text-sm font-bold text-amber-900">ต้องตรวจสอบการตั้งค่าก่อนบันทึก</span>
+                                                </div>
+                                                <p className="text-xs text-amber-700 mt-1">กรุณากด 'ตรวจสอบการตั้งค่า (Test Connection)' ให้ผ่านก่อนบันทึก เพื่อป้องกันไม่ให้ระบบส่งอีเมลล้มเหลว</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={openTestModal}
+                                                className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs font-bold rounded-lg shadow-sm transition"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                                <span>ตรวจสอบการตั้งค่า (Test Connection)</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Section: Maintenance */}
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-slate-500"></span>
+                                    ระบบดูแลรักษากลาง (Maintenance)
+                                </h3>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            เก็บประวัติการใช้งาน (Audit Logs) ย้อนหลัง (ปี)
+                                        </label>
+                                        <select
+                                            value={auditRetentionYears}
+                                            onChange={(e) => setAuditRetentionYears(e.target.value)}
+                                            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                        >
+                                            <option value="1">1 ปี</option>
+                                            <option value="2">2 ปี</option>
+                                            <option value="3">3 ปี</option>
+                                            <option value="5">5 ปี</option>
+                                            <option value="99">เก็บถาวร (99 ปี)</option>
+                                        </select>
+                                        <p className="mt-1 text-xs text-gray-400">ระบบจะทำการลบประวัติที่เก่ากว่าจำนวนปีที่ตั้งค่าไว้อัตโนมัติทุกๆ วัน</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Submit */}
+                            <div className="flex items-center justify-end pt-4 border-t border-gray-100">
+                                <button
+                                    type="submit"
+                                    className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-2.5 bg-indigo-600 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-wider hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 shadow-md transition"
+                                >
+                                    บันทึกการตั้งค่า
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {/* Test Email Modal */}
+            {showTestModal && (
+                <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+                    <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:p-0">
+                        <div
+                            className="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity"
+                            onClick={() => !testing && setShowTestModal(false)}
+                        ></div>
+                        <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+                        <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-gray-100 z-10">
+                            <form onSubmit={handleRunTestEmail}>
+                                <div className="bg-white p-6">
+                                    <div className="flex items-start gap-4">
+                                        <div className="shrink-0 flex items-center justify-center h-11 w-11 rounded-xl bg-amber-100 text-amber-600">
+                                            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        <div className="w-full">
+                                            <h3 className="text-base font-bold text-gray-900">
+                                                ทดสอบการเชื่อมต่อ Email (SMTP)
+                                            </h3>
+                                            <p className="mt-1 text-xs text-gray-500 leading-relaxed">
+                                                ระบบจะนำค่า Host, Port, Username และ Password ที่กรอกอยู่ในหน้าจอส่งอีเมลทดสอบจริงทันที
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-5 space-y-3">
+                                        <div>
+                                            <label className="block text-xs font-semibold text-gray-700">ส่งอีเมลทดสอบไปยัง:</label>
+                                            <input
+                                                type="email"
+                                                value={testEmailTarget}
+                                                onChange={(e) => setTestEmailTarget(e.target.value)}
+                                                required
+                                                className="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono"
+                                                placeholder="ระบุอีเมลปลายทาง"
+                                            />
+                                            <p className="mt-1 text-[11px] text-gray-400">ค่าเริ่มต้นคืออีเมลผู้ดูแลระบบปัจจุบัน</p>
+                                        </div>
+
+                                        <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-xs text-gray-600 space-y-1">
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-400">Host:</span>
+                                                <span className="font-mono text-gray-800 font-semibold truncate max-w-[200px]">{smtpHost || '-'}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-400">Port:</span>
+                                                <span className="font-mono text-gray-800 font-semibold">{smtpPort || '-'}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-400">Encryption:</span>
+                                                <span className="font-mono text-gray-800 font-semibold">{smtpEncryption || 'None'}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-400">อีเมลผู้ส่ง:</span>
+                                                <span className="font-mono text-gray-800 font-semibold truncate max-w-[200px]">{smtpUsername || '-'}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Feedback box */}
+                                        {testFeedback && (
+                                            <div className="mt-4">
+                                                {testFeedback.status === 'loading' && (
+                                                    <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 text-xs flex items-center gap-2.5">
+                                                        <svg className="animate-spin h-4 w-4 text-blue-600 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                                        </svg>
+                                                        <span>{testFeedback.message}</span>
+                                                    </div>
+                                                )}
+
+                                                {testFeedback.status === 'success' && (
+                                                    <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-xl text-emerald-800 text-xs flex items-start gap-3">
+                                                        <svg className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        <div>
+                                                            <div className="font-bold text-sm text-emerald-900">ผลการทดสอบ: ผ่าน (Passed)</div>
+                                                            <div className="mt-1 text-emerald-700 leading-relaxed">{testFeedback.message}</div>
+                                                            <div className="mt-2 text-xs font-semibold text-emerald-900 bg-emerald-100 px-2.5 py-1 rounded border border-emerald-200 inline-block">
+                                                                ✅ สามารถกด "บันทึกการตั้งค่า" ได้แล้ว
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {testFeedback.status === 'error' && (
+                                                    <div className="p-4 bg-rose-50 border border-rose-300 rounded-xl text-rose-800 text-xs flex items-start gap-3">
+                                                        <svg className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        <div>
+                                                            <div className="font-bold text-sm text-rose-900">ผลการทดสอบ: ไม่ผ่าน (Failed)</div>
+                                                            <div className="mt-1 text-rose-700 leading-relaxed break-words">{testFeedback.message}</div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50 px-6 py-3.5 flex items-center justify-end gap-2 border-t border-gray-100">
+                                    <button
+                                        type="button"
+                                        disabled={testing}
+                                        onClick={() => setShowTestModal(false)}
+                                        className="px-4 py-2 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg shadow-xs transition"
+                                    >
+                                        ปิดหน้าต่าง
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={testing}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-xs font-semibold text-white rounded-lg shadow-sm transition disabled:opacity-50"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                        </svg>
+                                        <span>{testing ? 'กำลังทดสอบ...' : 'ส่งอีเมลทดสอบ'}</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}

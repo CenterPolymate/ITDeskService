@@ -203,7 +203,13 @@
     - [x] ไมเกรตหน้ารายการ, เพิ่ม, แก้ไขบริษัทและแผนก (`Companies/Index.jsx`, `Create.jsx`, `Edit.jsx`) พร้อม Modal นำเข้า CSV และ Map แผนกที่ยังไม่ได้ผูกกับบริษัท
     - [x] ไมเกรตหน้ารายการ, เพิ่ม, แก้ไขผู้ใช้ทั่วไป (`NormalUsers/Index.jsx`, `Create.jsx`, `Edit.jsx`) พร้อมค้นหา, กรองสถานะ Active/รอการยืนยัน/Inactive, Sortable columns, Pagination, นำเข้า CSV, Impersonation และ Smart Delete
     - [x] ไมเกรตหน้ารายการ, เพิ่ม, แก้ไขผู้ใช้ทีม IT (`Users/Index.jsx`, `Create.jsx`, `Edit.jsx`) พร้อม Role Badges, Force Reset Password, และการป้องกันไม่ให้แก้ชื่อ Admin สูงสุด
-    - [x] สร้างชุดทดสอบอัตโนมัติรองรับ Inertia (`CompanyManagementTest`, `NormalUserManagementTest`, `UserManagementTest`) ผ่านครบ 100%
+- [x] **Admin Settings & Utilities (กลุ่มที่ 2 - ✅ ดำเนินการแล้ว):**
+  - [x] ไมเกรตหน้าตั้งค่าระบบ (`Settings/Index.jsx`): LINE OA Settings, Email (SMTP) Settings พร้อมสถานะ Live Badge, Modal ตรวจสอบการตั้งค่า SMTP (Test Connection), Data Retention และการตรวจสอบ token
+  - [x] ไมเกรตหน้าระบบสำรองข้อมูล (`Backups/Index.jsx`): ฟอร์มสร้างไฟล์สำรองข้อมูล (Full / DB Only), แสดง Terminal Output, ตารางประวัติและ Mobile Card View พร้อมดาวน์โหลด/ลบ, กล่องคำแนะนำ Cron Job และคู่มือกู้คืนข้อมูล
+  - [x] ไมเกรตหน้าประวัติการใช้งานระบบ (`AuditLogs/Index.jsx`): ฟอร์มตัวกรอง (วันที่, ผู้ใช้งาน, การกระทำ), แสดงรายละเอียดการเปลี่ยนแปลง (Diff ค่าเดิม vs ค่าใหม่), ส่งออก CSV, แบ่งหน้า Pagination และรองรับ Mobile Cards View
+  - [x] ไมเกรตหน้าแก้ไขข้อมูลส่วนตัว (`Profile/Edit.jsx`): อัปเดตข้อมูลบัญชีผู้ใช้ (ล็อกไม่ให้ Administrator แก้ไขชื่อ, สังกัดบริษัทและแผนก Dynamic/พิมพ์เอง, อีเมลและปุ่มส่งยืนยันซ้ำ) และฟอร์มเปลี่ยนรหัสผ่าน
+  - [x] ไมเกรตหน้าจัดการหมวดหมู่ปัญหา (`Categories/Index.jsx`, `Create.jsx`, `Edit.jsx`): แสดงรายการ, เพิ่ม, แก้ไข และลบหมวดหมู่ปัญหา พร้อมสลับสถานะเปิด/ปิดใช้งาน
+  - [x] อัปเดตและสร้างชุดทดสอบครอบคลุม (`SmtpSettingTest`, `BackupTest`, `ProfileTest`, `AuditLogTest`, `CategoryManagementTest`) ผ่าน 100%
 - [ ] **Core Ticketing System (แผนงานถัดไป):**
   - [ ] ไมเกรตฟอร์มการแจ้งซ่อม และหน้ารายละเอียดเคส (Show Ticket) ไปใช้ React
 - [x] **ระบบตั้งค่าวันหยุดนักขัตฤกษ์ (Holidays Management):**

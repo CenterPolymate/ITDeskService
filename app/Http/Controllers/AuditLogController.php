@@ -4,20 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\User;
+use Inertia\Inertia;
+use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AuditLogController extends Controller
 {
-    private function authorizeAdministrator()
+    private function authorizeAdministrator(): void
     {
         if (! request()->user() || request()->user()->role !== 'administrator') {
             abort(403, 'Unauthorized action.');
         }
     }
 
-    public function index()
+    public function index(): Response|StreamedResponse
     {
         $this->authorizeAdministrator();
-        $perPage = request()->input('per_page', 30);
+        $perPage = (int) request()->input('per_page', 30);
         $query = AuditLog::with('user')->orderBy('created_at', 'desc');
 
         if (request()->filled('action_filter')) {
@@ -38,12 +41,22 @@ class AuditLogController extends Controller
         }
 
         $logs = $query->paginate($perPage)->appends(request()->query());
-        $users = User::whereIn('role', ['administrator', 'manager'])->orderBy('name')->get();
+        $users = User::whereIn('role', ['administrator', 'manager'])->orderBy('name')->get(['id', 'name']);
 
-        return view('audit_logs.index', compact('logs', 'perPage', 'users'));
+        return Inertia::render('AuditLogs/Index', [
+            'logs' => $logs,
+            'users' => $users,
+            'filters' => [
+                'action_filter' => (string) request('action_filter', ''),
+                'user_id' => (string) request('user_id', ''),
+                'date_from' => (string) request('date_from', ''),
+                'date_to' => (string) request('date_to', ''),
+                'per_page' => $perPage,
+            ],
+        ]);
     }
 
-    private function exportCsv($query)
+    private function exportCsv($query): StreamedResponse
     {
         $fileName = 'audit_logs_'.date('Y-m-d_H-i-s').'.csv';
         $headers = [

@@ -6,11 +6,22 @@ use App\Http\Controllers\SettingController;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class SmtpSettingTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_administrator_can_view_settings_index(): void
+    {
+        $admin = User::factory()->create(['role' => 'administrator']);
+
+        $response = $this->actingAs($admin)->get(route('settings.index'));
+
+        $response->assertOk();
+        $response->assertInertia(fn (AssertableInertia $page) => $page->component('Settings/Index'));
+    }
 
     public function test_administrator_can_test_smtp_settings(): void
     {

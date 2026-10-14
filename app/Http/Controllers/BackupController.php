@@ -3,20 +3,24 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BackupController extends Controller
 {
-    private function authorizeAdministrator()
+    private function authorizeAdministrator(): void
     {
         if (! request()->user() || request()->user()->role !== 'administrator') {
             abort(403, 'Unauthorized action.');
         }
     }
 
-    public function index()
+    public function index(): Response
     {
         $this->authorizeAdministrator();
 
@@ -72,17 +76,12 @@ class BackupController extends Controller
             }
         }
 
-        return view('backups.index', compact('backups'));
+        return Inertia::render('Backups/Index', [
+            'backups' => $backups,
+        ]);
     }
 
-    public function create()
-    {
-        $this->authorizeAdministrator();
-
-        return view('backups.create');
-    }
-
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $this->authorizeAdministrator();
 
@@ -112,11 +111,11 @@ class BackupController extends Controller
         }
     }
 
-    public function download(Request $request)
+    public function download(Request $request): StreamedResponse|RedirectResponse
     {
         $this->authorizeAdministrator();
 
-        $fileName = $request->query('file_name');
+        $fileName = (string) $request->query('file_name');
         $backupName = config('backup.backup.name');
         $file = $backupName.'/'.$fileName;
 
@@ -129,11 +128,11 @@ class BackupController extends Controller
         return redirect()->route('backups.index')->with('error', 'ไม่พบไฟล์ที่ต้องการดาวน์โหลด');
     }
 
-    public function destroy(Request $request)
+    public function destroy(Request $request): RedirectResponse
     {
         $this->authorizeAdministrator();
 
-        $fileName = $request->input('file_name');
+        $fileName = (string) $request->input('file_name');
         $backupName = config('backup.backup.name');
         $file = $backupName.'/'.$fileName;
 
@@ -148,10 +147,10 @@ class BackupController extends Controller
         return redirect()->route('backups.index')->with('error', 'ไม่พบไฟล์ที่ต้องการลบ');
     }
 
-    private function humanFilesize($bytes, $decimals = 2)
+    private function humanFilesize(int $bytes, int $decimals = 2): string
     {
         $size = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-        $factor = floor((strlen($bytes) - 1) / 3);
+        $factor = floor((strlen((string) $bytes) - 1) / 3);
 
         return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)).@$size[$factor];
     }
