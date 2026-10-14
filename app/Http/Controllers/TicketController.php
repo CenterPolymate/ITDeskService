@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Company;
 use App\Models\HelpdeskCase;
 use App\Services\SlaService;
@@ -10,15 +11,21 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class TicketController extends Controller
 {
     /**
      * Show the form for creating a new ticket.
      */
-    public function create(): View|Factory
+    public function create(): Response
     {
-        return view('tickets.create');
+        $categories = Category::where('is_active', true)->get(['id', 'name']);
+
+        return Inertia::render('Tickets/Create', [
+            'categories' => $categories,
+        ]);
     }
 
     /**
@@ -115,9 +122,23 @@ class TicketController extends Controller
     /**
      * Display the specified ticket.
      */
-    public function show(string $id): View|Factory
+    public function show(string $id): Response
     {
-        $ticket = HelpdeskCase::with(['analyzingBy', 'inProgressBy', 'resolvedBy', 'closedBy', 'cancelledBy'])->findOrFail($id);
+        $ticket = HelpdeskCase::with([
+            'attachments',
+            'parts',
+            'comments.user',
+            'analyzingBy',
+            'inProgressBy',
+            'resolvedBy',
+            'assignedBy',
+            'approvedBy',
+            'closedBy',
+            'cancelledBy',
+            'pcarOpenedBy',
+            'pcarAnalyzedBy',
+            'pcarClosedBy',
+        ])->findOrFail($id);
 
         // Check if user has permission to view
         $user = Auth::user();
@@ -125,7 +146,7 @@ class TicketController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        return view('tickets.show', compact('ticket'));
+        return Inertia::render('Tickets/Show', compact('ticket'));
     }
 
     /**

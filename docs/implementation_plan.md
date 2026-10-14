@@ -210,8 +210,11 @@
   - [x] ไมเกรตหน้าแก้ไขข้อมูลส่วนตัว (`Profile/Edit.jsx`): อัปเดตข้อมูลบัญชีผู้ใช้ (ล็อกไม่ให้ Administrator แก้ไขชื่อ, สังกัดบริษัทและแผนก Dynamic/พิมพ์เอง, อีเมลและปุ่มส่งยืนยันซ้ำ) และฟอร์มเปลี่ยนรหัสผ่าน
   - [x] ไมเกรตหน้าจัดการหมวดหมู่ปัญหา (`Categories/Index.jsx`, `Create.jsx`, `Edit.jsx`): แสดงรายการ, เพิ่ม, แก้ไข และลบหมวดหมู่ปัญหา พร้อมสลับสถานะเปิด/ปิดใช้งาน
   - [x] อัปเดตและสร้างชุดทดสอบครอบคลุม (`SmtpSettingTest`, `BackupTest`, `ProfileTest`, `AuditLogTest`, `CategoryManagementTest`) ผ่าน 100%
-- [ ] **Core Ticketing System (แผนงานถัดไป):**
-  - [ ] ไมเกรตฟอร์มการแจ้งซ่อม และหน้ารายละเอียดเคส (Show Ticket) ไปใช้ React
+- [x] **Core Ticketing System (กลุ่มที่ 3 - ✅ ดำเนินการแล้ว):**
+  - [x] ไมเกรตฟอร์มการแจ้งซ่อม (`Tickets/Create.jsx`) รองรับการกรอกข้อมูล 5W2H, สถานะเครื่องจักร, แนบภาพหรือถ่ายรูปจากกล้องมือถือ (`capture="environment"`)
+  - [x] ไมเกรตหน้ารายละเอียดเคส (`Tickets/Show.jsx`) ครอบคลุม Triage, Timeline Task 1 & Task 2, Action Forms สำหรับทุก Role, CSAT Modal, Manager Review, Inline Edit, Cancellation, และ Real-time Comments ด้วย Live Auto-polling
+  - [x] สร้างคอมโพเนนต์ Reusable Modal (`Components/Modal.jsx`)
+  - [x] เพิ่มชุดทดสอบอัตโนมัติ `TicketManagementTest.php` ผ่านครบ 100% (88/88 tests ทั้งระบบ)
 - [x] **ระบบตั้งค่าวันหยุดนักขัตฤกษ์ (Holidays Management):**
   - [x] สร้าง CRUD สำหรับ `holidays`
   - [x] หน้า UI ปฏิทินแสดงผลโดยใช้ React + Inertia

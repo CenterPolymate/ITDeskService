@@ -153,9 +153,13 @@ class HelpdeskDashboardTest extends TestCase
         $response = $this->get(route('tickets.show', $case->id));
 
         $response->assertStatus(200);
-        $response->assertSee('ITD-2026-100');
-        $response->assertSee('โปรเจกเตอร์ภาพไม่ออก');
-        $response->assertSee('วรรณา ทดสอบ');
-        $response->assertSee('ห้องประชุม 5A');
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Tickets/Show')
+            ->has('ticket')
+            ->where('ticket.ticket_no', 'ITD-2026-100')
+            ->where('ticket.title', 'โปรเจกเตอร์ภาพไม่ออก')
+            ->where('ticket.requester_name', 'วรรณา ทดสอบ')
+            ->where('ticket.location', 'ห้องประชุม 5A')
+        );
     }
 }

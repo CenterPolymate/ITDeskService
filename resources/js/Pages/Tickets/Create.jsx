@@ -1,0 +1,450 @@
+import InputError from '@/Components/InputError';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { useState } from 'react';
+
+export default function Create({ categories = [] }) {
+    const user = usePage().props.auth.user;
+
+    const { data, setData, post, processing, errors } = useForm({
+        title: '',
+        category: '',
+        description: '',
+        location: '',
+        requester_phone: '',
+        actual_user_name: '',
+        machine_name: '',
+        machine_code: '',
+        is_machine_stopped: '',
+        attachments: [],
+    });
+
+    const [previews, setPreviews] = useState([]);
+    const [fileError, setFileError] = useState('');
+
+    const defaultCategories = [
+        { id: 'Hardware', name: 'อุปกรณ์ Hardware' },
+        { id: 'Software', name: 'โปรแกรม Software' },
+        { id: 'Network', name: 'ระบบ Network' },
+        { id: 'Other', name: 'อื่นๆ' },
+    ];
+
+    const categoryList = categories && categories.length > 0 
+        ? categories 
+        : defaultCategories;
+
+    const handleFileChange = (e) => {
+        setFileError('');
+        const files = Array.from(e.target.files);
+
+        if (files.length > 2) {
+            setFileError('สามารถแนบรูปภาพได้สูงสุด 2 รูปเท่านั้น');
+            e.target.value = '';
+            setData('attachments', []);
+            setPreviews([]);
+            return;
+        }
+
+        const hasOversized = files.some((f) => f.size > 5242880);
+        if (hasOversized) {
+            setFileError('มีไฟล์ขนาดใหญ่เกิน 5MB กรุณาเลือกไฟล์ใหม่');
+            e.target.value = '';
+            setData('attachments', []);
+            setPreviews([]);
+            return;
+        }
+
+        setData('attachments', files);
+
+        const newPreviews = [];
+        files.forEach((file) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                newPreviews.push(event.target.result);
+                if (newPreviews.length === files.length) {
+                    setPreviews([...newPreviews]);
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const removeFiles = (e) => {
+        e.preventDefault();
+        setData('attachments', []);
+        setPreviews([]);
+        setFileError('');
+        const fileInput = document.getElementById('attachments');
+        if (fileInput) fileInput.value = '';
+    };
+
+    const submit = (e) => {
+        e.preventDefault();
+        post(route('tickets.store'), {
+            forceFormData: true,
+        });
+    };
+
+    return (
+        <AuthenticatedLayout
+            header={
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-2xl text-indigo-600 shadow-sm cursor-default">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 className="font-black text-2xl sm:text-3xl bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-indigo-800 tracking-tight">
+                            เปิดใบแจ้งซ่อมใหม่
+                        </h2>
+                        <p className="text-sm sm:text-base text-slate-500 mt-1 font-medium">
+                            บอกเล่าปัญหาที่คุณเจอ ให้ทีม IT ช่วยดูแลและแก้ไขปัญหาให้คุณ
+                        </p>
+                    </div>
+                </div>
+            }
+        >
+            <Head title="เปิดใบแจ้งซ่อมใหม่" />
+
+            <div className="py-6 sm:py-10">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <form onSubmit={submit} className="space-y-6 sm:space-y-8">
+                        {/* Section 1: User Info */}
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-200/80 group hover:border-indigo-200 transition-colors duration-300">
+                            <div className="flex flex-col md:flex-row gap-6 md:items-center">
+                                <div className="flex items-center gap-5 flex-1">
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-100 to-indigo-100 border border-white shadow-inner flex items-center justify-center text-indigo-600 font-black text-2xl group-hover:scale-105 transition-transform duration-300">
+                                        {user.name ? user.name.charAt(0) : 'U'}
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">ผู้แจ้งปัญหา</p>
+                                        <h4 className="text-xl font-bold text-slate-800">{user.name}</h4>
+                                        <p className="text-sm text-slate-500">
+                                            {user.department || 'ไม่ระบุแผนก'} • {user.email}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="w-full md:w-72">
+                                    <label htmlFor="requester_phone" className="block font-bold text-sm text-slate-700 mb-2">
+                                        เบอร์โทรติดต่อกลับ <span className="text-rose-500">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                                            </svg>
+                                        </div>
+                                        <input
+                                            id="requester_phone"
+                                            type="text"
+                                            value={data.requester_phone}
+                                            onChange={(e) => setData('requester_phone', e.target.value)}
+                                            required
+                                            pattern="^0[0-9]{1,2}-?[0-9]{3}-?[0-9]{4}$"
+                                            placeholder="081-123-4567"
+                                            className="block w-full pl-12 py-3 bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400"
+                                        />
+                                    </div>
+                                    <InputError message={errors.requester_phone} className="mt-2" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section 2: Machine Details */}
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-200/80">
+                            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-3">
+                                <span className="p-2.5 bg-purple-50 text-purple-600 border border-purple-200 rounded-xl shadow-sm">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
+                                    </svg>
+                                </span>
+                                ข้อมูลอุปกรณ์ / เครื่องจักร
+                            </h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label htmlFor="actual_user_name" className="block font-bold text-sm text-slate-700 mb-2">
+                                        แจ้งแทนผู้อื่น (ระบุชื่อผู้ใช้งานจริง)
+                                    </label>
+                                    <input
+                                        id="actual_user_name"
+                                        type="text"
+                                        value={data.actual_user_name}
+                                        onChange={(e) => setData('actual_user_name', e.target.value)}
+                                        placeholder="ปล่อยว่างหากแจ้งให้ตนเอง"
+                                        className="block w-full py-3 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400"
+                                    />
+                                    <InputError message={errors.actual_user_name} className="mt-2" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label htmlFor="machine_name" className="block font-bold text-sm text-slate-700 mb-2">
+                                            ชื่ออุปกรณ์
+                                        </label>
+                                        <input
+                                            id="machine_name"
+                                            type="text"
+                                            value={data.machine_name}
+                                            onChange={(e) => setData('machine_name', e.target.value)}
+                                            placeholder="เช่น PC-01, เครื่องพิมพ์"
+                                            className="block w-full py-3 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="machine_code" className="block font-bold text-sm text-slate-700 mb-2">
+                                            รหัสอุปกรณ์ / ทรัพย์สิน
+                                        </label>
+                                        <input
+                                            id="machine_code"
+                                            type="text"
+                                            value={data.machine_code}
+                                            onChange={(e) => setData('machine_code', e.target.value)}
+                                            placeholder="เช่น MCH-01, IT-2024"
+                                            className="block w-full py-3 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Machine Status Cards */}
+                            <div>
+                                <label className="block font-bold text-sm text-slate-700 mb-3">
+                                    สถานะเครื่องจักร ณ ปัจจุบัน <span className="text-rose-500">*</span>
+                                </label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <label
+                                        onClick={() => setData('is_machine_stopped', '0')}
+                                        className={`cursor-pointer h-full flex flex-col items-center justify-center p-5 sm:p-6 bg-white border-2 rounded-2xl transition-all duration-300 ${
+                                            data.is_machine_stopped === '0'
+                                                ? 'border-emerald-500 bg-emerald-50/50 shadow-md -translate-y-1'
+                                                : 'border-slate-100 hover:border-emerald-200'
+                                        }`}
+                                    >
+                                        <div
+                                            className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl mb-3 transition-colors ${
+                                                data.is_machine_stopped === '0'
+                                                    ? 'bg-emerald-500 text-white'
+                                                    : 'bg-emerald-100 text-emerald-600'
+                                            }`}
+                                        >
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <span className={`font-bold text-center ${data.is_machine_stopped === '0' ? 'text-emerald-700' : 'text-slate-700'}`}>
+                                            ใช้งานได้ปกติ
+                                        </span>
+                                    </label>
+
+                                    <label
+                                        onClick={() => setData('is_machine_stopped', '1')}
+                                        className={`cursor-pointer h-full flex flex-col items-center justify-center p-5 sm:p-6 bg-white border-2 rounded-2xl transition-all duration-300 ${
+                                            data.is_machine_stopped === '1'
+                                                ? 'border-rose-500 bg-rose-50/50 shadow-md -translate-y-1'
+                                                : 'border-slate-100 hover:border-rose-200'
+                                        }`}
+                                    >
+                                        <div
+                                            className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl mb-3 transition-colors ${
+                                                data.is_machine_stopped === '1'
+                                                    ? 'bg-rose-500 text-white'
+                                                    : 'bg-rose-100 text-rose-600'
+                                            }`}
+                                        >
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                            </svg>
+                                        </div>
+                                        <span className={`font-bold text-center ${data.is_machine_stopped === '1' ? 'text-rose-700' : 'text-slate-700'}`}>
+                                            เครื่องจักรหยุดทำงาน
+                                        </span>
+                                    </label>
+                                </div>
+                                <InputError message={errors.is_machine_stopped} className="mt-2 text-center" />
+                            </div>
+                        </div>
+
+                        {/* Section 3: Problem Details */}
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-200/80">
+                            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-3">
+                                <span className="p-2.5 bg-pink-50 text-pink-600 border border-pink-200 rounded-xl shadow-sm">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                    </svg>
+                                </span>
+                                รายละเอียดปัญหา
+                            </h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label htmlFor="category" className="block font-bold text-sm text-slate-700 mb-2">
+                                        หมวดหมู่ปัญหา <span className="text-slate-400 font-normal">(ไม่บังคับ - ระบบจะบันทึกเป็น "อื่นๆ" ให้อัตโนมัติ)</span>
+                                    </label>
+                                    <select
+                                        id="category"
+                                        value={data.category}
+                                        onChange={(e) => setData('category', e.target.value)}
+                                        className="block w-full py-3 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium text-slate-800"
+                                    >
+                                        <option value="">-- เลือกประเภทปัญหา (หรือเว้นว่างไว้) --</option>
+                                        {categoryList.map((cat) => (
+                                            <option key={cat.id || cat.name} value={cat.name}>
+                                                {cat.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <InputError message={errors.category} className="mt-2" />
+                                </div>
+                                <div>
+                                    <label htmlFor="location" className="block font-bold text-sm text-slate-700 mb-2">
+                                        สถานที่ / จุดเกิดปัญหา <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        id="location"
+                                        type="text"
+                                        value={data.location}
+                                        onChange={(e) => setData('location', e.target.value)}
+                                        required
+                                        placeholder="ระบุอาคาร, ชั้น, แผนก หรือโซน"
+                                        className="block w-full py-3 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400"
+                                    />
+                                    <InputError message={errors.location} className="mt-2" />
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <div className="flex justify-between items-end mb-2">
+                                    <label htmlFor="title" className="font-bold text-sm text-slate-700">
+                                        หัวข้อปัญหา <span className="text-rose-500">*</span>
+                                    </label>
+                                    <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+                                        {data.title.length}/100
+                                    </span>
+                                </div>
+                                <input
+                                    id="title"
+                                    type="text"
+                                    value={data.title}
+                                    onChange={(e) => setData('title', e.target.value)}
+                                    maxLength={100}
+                                    required
+                                    placeholder="สรุปสั้นๆ ให้เรารู้ว่าเกิดอะไรขึ้น เช่น เปิดคอมไม่ติด, พิมพ์งานไม่ออก"
+                                    className="block w-full py-3 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400"
+                                />
+                                <InputError message={errors.title} className="mt-2" />
+                            </div>
+
+                            <div>
+                                <label htmlFor="description" className="block font-bold text-sm text-slate-700 mb-2">
+                                    รายละเอียดอาการ (แนะนำระบุตามหลัก 5W2H) <span className="text-rose-500">*</span>
+                                </label>
+                                <textarea
+                                    id="description"
+                                    rows={4}
+                                    maxLength={400}
+                                    required
+                                    value={data.description}
+                                    onChange={(e) => setData('description', e.target.value)}
+                                    placeholder="เล่ารายละเอียดเพิ่มเติม เช่น เกิดอะไรขึ้น เมื่อไหร่ ใครใช้งานอยู่ มีข้อความ Error อะไรปรากฏ..."
+                                    className="block w-full py-4 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 resize-none font-medium placeholder:text-slate-400 leading-relaxed"
+                                />
+                                <InputError message={errors.description} className="mt-2" />
+                            </div>
+                        </div>
+
+                        {/* Section 4: File Upload with Camera Capture */}
+                        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-200/80">
+                            <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-3">
+                                <span className="p-2.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-xl shadow-sm">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                                    </svg>
+                                </span>
+                                รูปภาพประกอบ (รองรับถ่ายภาพจากมือถือ)
+                            </h3>
+
+                            <div className="relative group">
+                                <input
+                                    id="attachments"
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    capture="environment"
+                                    onChange={handleFileChange}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                                />
+
+                                <div className="flex flex-col items-center justify-center p-8 sm:p-12 border-2 border-dashed border-blue-200 bg-blue-50/40 rounded-3xl group-hover:bg-blue-50 group-hover:border-blue-400 transition-all duration-300">
+                                    {previews.length === 0 ? (
+                                        <div className="flex flex-col items-center text-center">
+                                            <div className="w-20 h-20 bg-white shadow-md rounded-full flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300">
+                                                <svg className="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                                </svg>
+                                            </div>
+                                            <h4 className="text-lg font-bold text-blue-900 mb-1">
+                                                แตะเพื่อถ่ายรูป หรือเลือกไฟล์รูปภาพ
+                                            </h4>
+                                            <p className="text-sm font-medium text-blue-600/70">
+                                                รองรับ PNG, JPG ไม่เกิน 5MB (สูงสุด 2 รูป)
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="w-full relative z-30">
+                                            <div className="flex flex-row flex-wrap gap-4 justify-center mb-6">
+                                                {previews.map((src, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl border-4 border-white shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300"
+                                                    >
+                                                        <img src={src} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="text-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={removeFiles}
+                                                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-rose-500 font-bold rounded-full shadow-sm hover:shadow-md hover:bg-rose-50 border border-rose-100 transition-all pointer-events-auto"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                    ลบและเลือกใหม่
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            {fileError && <p className="mt-3 text-center text-sm font-semibold text-rose-600">{fileError}</p>}
+                            <InputError message={errors.attachments} className="mt-3 text-center" />
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row items-center justify-end gap-4 pt-4 pb-12">
+                            <Link
+                                href={route('dashboard')}
+                                className="w-full sm:w-auto px-8 py-3.5 bg-white text-slate-600 font-bold rounded-2xl shadow-sm hover:shadow-md hover:bg-slate-50 border border-slate-200 transition-all text-center"
+                            >
+                                ยกเลิก
+                            </Link>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="w-full sm:w-auto px-10 py-3.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-black rounded-2xl shadow-lg shadow-purple-200 hover:shadow-purple-300 hover:-translate-y-0.5 transition-all duration-300 text-base sm:text-lg flex items-center justify-center gap-3 disabled:opacity-50"
+                            >
+                                {processing ? 'กำลังส่งข้อมูล...' : 'ส่งใบแจ้งซ่อม'}
+                                <svg className="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </AuthenticatedLayout>
+    );
+}
