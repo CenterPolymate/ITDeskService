@@ -102,20 +102,26 @@
                     dropdownOpen: false,
                     soundEnabled: true,
                     permission: 'default',
+                    selectedTone: 'chime',
                     init() {
                         this.syncState();
                         window.addEventListener('itdesk:sound-toggled', (e) => {
                             this.soundEnabled = !!e.detail.enabled;
+                        });
+                        window.addEventListener('itdesk:sound-tone-changed', (e) => {
+                            this.selectedTone = e.detail.tone;
                         });
                     },
                     syncState() {
                         if (window.ITDeskNotification) {
                             this.soundEnabled = window.ITDeskNotification.isSoundEnabled();
                             this.permission = window.ITDeskNotification.getNotificationPermission();
+                            this.selectedTone = window.ITDeskNotification.getSelectedSoundTone();
                         } else {
                             const stored = localStorage.getItem('itdesk_sound_enabled');
                             this.soundEnabled = stored === null ? true : stored === 'true';
                             this.permission = (typeof Notification !== 'undefined') ? Notification.permission : 'denied';
+                            this.selectedTone = localStorage.getItem('itdesk_sound_tone') || 'chime';
                         }
                     },
                     toggle() {
@@ -127,9 +133,18 @@
                             window.dispatchEvent(new CustomEvent('itdesk:sound-toggled', { detail: { enabled: this.soundEnabled } }));
                         }
                     },
+                    changeTone(tone) {
+                        this.selectedTone = tone;
+                        if (window.ITDeskNotification) {
+                            window.ITDeskNotification.setSelectedSoundTone(tone);
+                            window.ITDeskNotification.playNotificationTone(tone, true);
+                        } else {
+                            localStorage.setItem('itdesk_sound_tone', tone);
+                        }
+                    },
                     testSound() {
                         if (window.ITDeskNotification) {
-                            window.ITDeskNotification.playNotificationChime(true);
+                            window.ITDeskNotification.playNotificationTone(this.selectedTone, true);
                         }
                     },
                     async requestPermission() {
@@ -143,7 +158,7 @@
                     <button
                         type="button"
                         @click="dropdownOpen = !dropdownOpen; syncState();"
-                        :title="soundEnabled ? 'ระบบเสียงแจ้งเตือน: เปิดอยู่ (คลิกเพื่อตั้งค่า/ทดสอบเสียง)' : 'ระบบเสียงแจ้งเตือน: ปิดอยู่ (คลิกเพื่อเปิด)'"
+                        :title="soundEnabled ? 'ระบบเสียงแจ้งเตือน: เปิดอยู่ (คลิกเพื่อเลือกเสียง/ทดสอบ/ตั้งค่า)' : 'ระบบเสียงแจ้งเตือน: ปิดอยู่ (คลิกเพื่อเปิด)'"
                         class="relative p-2 rounded-xl border transition-all duration-200 shadow-xs focus:outline-none flex items-center justify-center shrink-0 cursor-pointer"
                         :class="soundEnabled 
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400' 
@@ -177,7 +192,7 @@
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 scale-100"
                         x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 z-50 text-slate-800"
+                        class="absolute right-0 mt-2 w-84 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 z-50 text-slate-800"
                         style="display: none;"
                     >
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -187,7 +202,7 @@
                                 </h4>
                                 <p class="text-[11px] text-slate-500 mt-0.5">แจ้งเตือนเคสตามบทบาทและแชทใหม่</p>
                             </div>
-                            <button type="button" @click="dropdownOpen = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                            <button type="button" @click="dropdownOpen = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
@@ -211,18 +226,38 @@
                             </button>
                         </div>
 
-                        <!-- Test Sound Button -->
-                        <div class="py-3 border-b border-slate-100">
-                            <button
-                                type="button"
-                                @click="testSound()"
-                                class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl border border-indigo-200 transition"
-                            >
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                                </svg>
-                                <span>🔊 ทดสอบเสียง (Two-tone Chime)</span>
-                            </button>
+                        <!-- Sound Tone Selector & Preview -->
+                        <div class="py-3 border-b border-slate-100 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label for="sound-tone-select-desktop" class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                                    <span>🎵 รูปแบบเสียง (Sound Tone)</span>
+                                </label>
+                                <span class="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-medium border border-emerald-200">ปรับเสียงให้ดัง & ยาวขึ้น</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <select 
+                                    id="sound-tone-select-desktop"
+                                    x-model="selectedTone" 
+                                    @change="changeTone(selectedTone)"
+                                    class="w-full text-xs border-slate-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 py-1.5 px-2.5 font-medium text-slate-700 bg-slate-50 cursor-pointer"
+                                >
+                                    <option value="chime">🔔 กระดิ่งกังวาน 3 โน้ต (ดังชัดเจน - แนะนำ)</option>
+                                    <option value="melody">✨ ท่วงทำนอง 4 โน้ต (นุ่มนวล พรีเมียม)</option>
+                                    <option value="desk_bell">🛎️ กระดิ่งเคาน์เตอร์ Service Desk (คมชัด)</option>
+                                    <option value="radar">🚨 สัญญาณเรดาร์เตือน (ฉุกเฉิน ตื่นตัว)</option>
+                                    <option value="classic">🎵 คลาสสิก ดิ่ง-ด่อง (ปรับเสียงดังขึ้น)</option>
+                                </select>
+                                <button
+                                    type="button"
+                                    @click="changeTone(selectedTone)"
+                                    title="กดฟังตัวอย่างเสียงนี้"
+                                    class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shrink-0 transition flex items-center gap-1 shadow-xs cursor-pointer"
+                                >
+                                    <span>▶</span>
+                                    <span>ฟัง</span>
+                                </button>
+                            </div>
+                            <p class="text-[10px] text-slate-400">เลือกเสียงแล้วระบบจะเล่นให้ฟังทันที และจำค่าไว้บนเบราว์เซอร์นี้</p>
                         </div>
 
                         <!-- Browser Push Notification Card -->
@@ -419,6 +454,82 @@
                 <div class="font-medium text-base text-gray-800">{{ Auth::user()?->name }}</div>
                 <div class="font-medium text-sm text-gray-500">{{ Auth::user()?->email }}</div>
                 <div class="text-[11px] text-gray-400 font-normal mt-0.5">{{ now()->locale('th')->translatedFormat('d F Y') }}</div>
+            </div>
+
+            <!-- Mobile Sound Notification Settings -->
+            <div x-data="{
+                soundEnabled: true,
+                selectedTone: 'chime',
+                init() {
+                    this.syncState();
+                    window.addEventListener('itdesk:sound-toggled', (e) => { this.soundEnabled = !!e.detail.enabled; });
+                    window.addEventListener('itdesk:sound-tone-changed', (e) => { this.selectedTone = e.detail.tone; });
+                },
+                syncState() {
+                    if (window.ITDeskNotification) {
+                        this.soundEnabled = window.ITDeskNotification.isSoundEnabled();
+                        this.selectedTone = window.ITDeskNotification.getSelectedSoundTone();
+                    } else {
+                        const stored = localStorage.getItem('itdesk_sound_enabled');
+                        this.soundEnabled = stored === null ? true : stored === 'true';
+                        this.selectedTone = localStorage.getItem('itdesk_sound_tone') || 'chime';
+                    }
+                },
+                toggle() {
+                    if (window.ITDeskNotification) {
+                        this.soundEnabled = window.ITDeskNotification.toggleSound();
+                    } else {
+                        this.soundEnabled = !this.soundEnabled;
+                        localStorage.setItem('itdesk_sound_enabled', this.soundEnabled ? 'true' : 'false');
+                        window.dispatchEvent(new CustomEvent('itdesk:sound-toggled', { detail: { enabled: this.soundEnabled } }));
+                    }
+                },
+                changeTone(tone) {
+                    this.selectedTone = tone;
+                    if (window.ITDeskNotification) {
+                        window.ITDeskNotification.setSelectedSoundTone(tone);
+                        window.ITDeskNotification.playNotificationTone(tone, true);
+                    } else {
+                        localStorage.setItem('itdesk_sound_tone', tone);
+                    }
+                }
+            }" class="mx-4 my-2 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <span>🔔 เสียงแจ้งเตือน</span>
+                    </span>
+                    <button
+                        type="button"
+                        @click="toggle()"
+                        class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                        :class="soundEnabled ? 'bg-emerald-600' : 'bg-slate-300'"
+                    >
+                        <span
+                            class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                            :class="soundEnabled ? 'translate-x-4' : 'translate-x-0'"
+                        ></span>
+                    </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select
+                        x-model="selectedTone"
+                        @change="changeTone(selectedTone)"
+                        class="w-full text-xs border-slate-300 rounded-lg py-1.5 px-2 bg-white text-slate-700"
+                    >
+                        <option value="chime">🔔 กระดิ่งกังวาน 3 โน้ต (ดังชัดเจน)</option>
+                        <option value="melody">✨ ท่วงทำนอง 4 โน้ต (พรีเมียม)</option>
+                        <option value="desk_bell">🛎️ กระดิ่งเคาน์เตอร์ (คมชัด)</option>
+                        <option value="radar">🚨 สัญญาณเรดาร์เตือน</option>
+                        <option value="classic">🎵 คลาสสิก ดิ่ง-ด่อง</option>
+                    </select>
+                    <button
+                        type="button"
+                        @click="changeTone(selectedTone)"
+                        class="px-2.5 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold shrink-0 cursor-pointer"
+                    >
+                        ▶ ฟัง
+                    </button>
+                </div>
             </div>
 
             <div class="mt-3 space-y-1">

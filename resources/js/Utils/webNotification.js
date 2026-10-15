@@ -32,11 +32,43 @@ export function toggleSound() {
     return next;
 }
 
+export const SOUND_TONES = [
+    { id: 'chime', name: '🔔 กระดิ่งกังวาน 3 โน้ต (ชัดเจน กังวาน - แนะนำ)' },
+    { id: 'melody', name: '✨ ท่วงทำนองดนตรี 4 โน้ต (นุ่มนวล พรีเมียม)' },
+    { id: 'desk_bell', name: '🛎️ กระดิ่งเคาน์เตอร์ Service Desk (คมชัด)' },
+    { id: 'radar', name: '🚨 สัญญาณเรดาร์เตือน (ฉุกเฉิน ตื่นตัว)' },
+    { id: 'classic', name: '🎵 คลาสสิก ดิ่ง-ด่อง (ปรับเสียงดังขึ้น)' },
+];
+
 /**
- * Web Audio API synthesizer for notification sound (two-tone chime).
- * @param {boolean} force - If true, plays regardless of isSoundEnabled (used for testing).
+ * Get current selected sound tone. Defaults to 'chime'.
  */
-export function playNotificationChime(force = false) {
+export function getSelectedSoundTone() {
+    if (typeof window === 'undefined') return 'chime';
+    try {
+        return localStorage.getItem('itdesk_sound_tone') || 'chime';
+    } catch {
+        return 'chime';
+    }
+}
+
+/**
+ * Set sound tone and notify listeners.
+ */
+export function setSelectedSoundTone(tone) {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem('itdesk_sound_tone', tone);
+        window.dispatchEvent(new CustomEvent('itdesk:sound-tone-changed', { detail: { tone } }));
+    } catch {}
+}
+
+/**
+ * Synthesize and play the specified notification sound tone.
+ * @param {string|null} toneName - Tone id or null to use selected tone.
+ * @param {boolean} force - If true, plays regardless of isSoundEnabled (for testing).
+ */
+export function playNotificationTone(toneName = null, force = false) {
     if (!force && !isSoundEnabled()) return;
 
     try {
@@ -45,33 +77,56 @@ export function playNotificationChime(force = false) {
 
         const ctx = new AudioCtx();
         const now = ctx.currentTime;
+        const tone = toneName || getSelectedSoundTone();
 
-        // Tone 1: D5 (587.33Hz)
-        const osc1 = ctx.createOscillator();
-        const gain1 = ctx.createGain();
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(587.33, now);
-        gain1.gain.setValueAtTime(0.15, now);
-        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-        osc1.connect(gain1);
-        gain1.connect(ctx.destination);
-        osc1.start(now);
-        osc1.stop(now + 0.15);
+        const playNote = (freq, startTime, duration, gainLevel = 0.38, type = 'sine') => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, startTime);
+            gain.gain.setValueAtTime(gainLevel, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        };
 
-        // Tone 2: A5 (880Hz)
-        const osc2 = ctx.createOscillator();
-        const gain2 = ctx.createGain();
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(880, now + 0.08);
-        gain2.gain.setValueAtTime(0.2, now + 0.08);
-        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-        osc2.connect(gain2);
-        gain2.connect(ctx.destination);
-        osc2.start(now + 0.08);
-        osc2.stop(now + 0.35);
+        if (tone === 'melody') {
+            // 4-note melodic chime: G4 -> C5 -> E5 -> G5 (Rich, soft, premium)
+            playNote(392.00, now, 0.22, 0.35);
+            playNote(523.25, now + 0.12, 0.25, 0.38);
+            playNote(659.25, now + 0.24, 0.30, 0.40);
+            playNote(783.99, now + 0.36, 0.55, 0.45);
+        } else if (tone === 'desk_bell') {
+            // Service desk bell: Crisp double ding
+            playNote(1318.51, now, 0.25, 0.45, 'triangle');
+            playNote(1567.98, now + 0.16, 0.45, 0.48, 'triangle');
+        } else if (tone === 'radar') {
+            // Radar alert: Crisp dual ping
+            playNote(880.00, now, 0.20, 0.42);
+            playNote(1174.66, now + 0.16, 0.35, 0.48);
+        } else if (tone === 'classic') {
+            // Classic two-tone: D5 -> A5 (Louder, longer decay)
+            playNote(587.33, now, 0.28, 0.38);
+            playNote(880.00, now + 0.14, 0.50, 0.45);
+        } else {
+            // Default 'chime': 3-note ascending bright chord (C5 -> E5 -> G5)
+            playNote(523.25, now, 0.30, 0.38);
+            playNote(659.25, now + 0.14, 0.35, 0.42);
+            playNote(783.99, now + 0.28, 0.55, 0.48);
+        }
     } catch (e) {
         // Ignore audio context errors if blocked by browser autoplay policy
     }
+}
+
+/**
+ * Web Audio API synthesizer for notification sound (defaults to current chosen tone).
+ * @param {boolean} force - If true, plays regardless of isSoundEnabled (used for testing).
+ */
+export function playNotificationChime(force = false) {
+    playNotificationTone(null, force);
 }
 
 /**
@@ -143,7 +198,11 @@ if (typeof window !== 'undefined') {
         isSoundEnabled,
         setSoundEnabled,
         toggleSound,
+        getSelectedSoundTone,
+        setSelectedSoundTone,
+        playNotificationTone,
         playNotificationChime,
+        SOUND_TONES,
         isNotificationSupported,
         getNotificationPermission,
         requestNotificationPermission,
