@@ -109,6 +109,13 @@ class LogAdminActions
                 ];
             }
 
+            // กรณีรีเซ็ตรหัสผ่าน ให้บันทึกหมายเหตุชัดเจน
+            if (str_contains((string) $routeName, 'force_reset_password')) {
+                $changes = [
+                    'action_note' => 'ส่งลิงก์รีเซ็ตรหัสผ่านใหม่ไปยังอีเมลของผู้ใช้งาน',
+                ];
+            }
+
             // ไฟล์อัปโหลดแปลงเป็น JSON ไม่ได้ ให้บันทึกเป็นชื่อไฟล์แทน
             array_walk_recursive($changes, function (mixed &$value): void {
                 if ($value instanceof UploadedFile) {

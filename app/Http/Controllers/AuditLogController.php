@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\Company;
 use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -42,11 +43,16 @@ class AuditLogController extends Controller
 
         $logs = $query->paginate($perPage)->appends(request()->query());
 
-        // Eager-load target users for impersonate & user-related actions
+        // Eager-load target users for user-related actions only
         $targetUserIds = $logs->getCollection()
             ->filter(function ($log) {
-                return (str_contains($log->target_type, 'impersonate') || str_contains($log->target_type, 'users') || str_contains($log->action, 'impersonate'))
-                    && is_numeric($log->target_id);
+                $isUser = str_contains($log->target_type, 'impersonate')
+                    || str_contains($log->target_type, 'users')
+                    || str_contains($log->action, 'impersonate')
+                    || str_contains($log->action, 'force_reset_password')
+                    || str_contains($log->action, 'force-reset-password');
+
+                return $isUser && is_numeric($log->target_id);
             })
             ->pluck('target_id')
             ->unique()
@@ -54,8 +60,25 @@ class AuditLogController extends Controller
 
         $targetUsers = User::whereIn('id', $targetUserIds)->get()->keyBy('id');
 
-        $logs->getCollection()->transform(function ($log) use ($targetUsers) {
-            if (is_numeric($log->target_id) && isset($targetUsers[$log->target_id])) {
+        // Eager-load target companies for company-related actions
+        $targetCompanyIds = $logs->getCollection()
+            ->filter(function ($log) {
+                return str_contains($log->target_type, 'companies') && is_numeric($log->target_id);
+            })
+            ->pluck('target_id')
+            ->unique()
+            ->filter();
+
+        $targetCompanies = Company::whereIn('id', $targetCompanyIds)->get()->keyBy('id');
+
+        $logs->getCollection()->transform(function ($log) use ($targetUsers, $targetCompanies) {
+            $isUserTarget = str_contains($log->target_type, 'users')
+                || str_contains($log->target_type, 'impersonate')
+                || str_contains($log->action, 'impersonate')
+                || str_contains($log->action, 'force_reset_password')
+                || str_contains($log->action, 'force-reset-password');
+
+            if ($isUserTarget && is_numeric($log->target_id) && isset($targetUsers[$log->target_id])) {
                 $u = $targetUsers[$log->target_id];
                 $log->target_user = [
                     'id' => $u->id,
@@ -64,6 +87,19 @@ class AuditLogController extends Controller
                     'role' => $u->role,
                     'department' => $u->department,
                 ];
+            }
+
+            $isCompanyTarget = str_contains($log->target_type, 'companies');
+            if ($isCompanyTarget && is_numeric($log->target_id)) {
+                $compName = null;
+                if (isset($targetCompanies[$log->target_id])) {
+                    $compName = $targetCompanies[$log->target_id]->name;
+                } elseif (is_array($log->changes) && ! empty($log->changes['name'])) {
+                    $compName = $log->changes['name'];
+                }
+                if ($compName) {
+                    $log->target_company_name = $compName;
+                }
             }
 
             return $log;
@@ -137,6 +173,8 @@ class AuditLogController extends Controller
                         $actionText = 'จำลองสิทธิ์ (Impersonate)';
                     } elseif (str_contains($log->action, 'logout')) {
                         $actionText = 'ออกจากระบบ';
+                    } elseif (str_contains($log->action, 'force_reset_password') || str_contains($log->action, 'force-reset-password')) {
+                        $actionText = 'รีเซ็ตรหัสผ่าน';
                     } elseif (str_contains($log->action, 'DEACTIVATE') || str_contains($log->action, 'deactivated')) {
                         $actionText = 'เปลี่ยนสถานะเป็น Inactive';
                     } elseif (str_contains($log->action, 'settings.update')) {
@@ -149,13 +187,27 @@ class AuditLogController extends Controller
                         $actionText = 'ลบข้อมูล';
                     }
 
+                    $displayId = $log->target_id;
+                    if ($displayId) {
+                        $decoded = json_decode($displayId, true);
+                        if (is_array($decoded) && isset($decoded['id'])) {
+                            $displayId = $decoded['id'];
+                        } elseif (strlen($displayId) > 15) {
+                            $displayId = substr($displayId, 0, 15).'...';
+                        }
+                    }
+
                     $targetText = class_basename($log->target_type);
                     if (str_contains($log->target_type, 'categories')) {
                         $targetText = 'หมวดหมู่ปัญหา';
                     } elseif (str_contains($log->target_type, 'companies')) {
-                        $targetText = 'ข้อมูลบริษัท';
+                        $comp = is_numeric($displayId) ? Company::find($displayId) : null;
+                        $compName = $comp ? $comp->name : (is_array($log->changes) && isset($log->changes['name']) ? $log->changes['name'] : '');
+                        $targetText = 'ข้อมูลบริษัท'.($compName ? " : $compName" : '');
                     } elseif (str_contains($log->target_type, 'users')) {
-                        $targetText = 'ผู้ใช้งาน';
+                        $u = is_numeric($displayId) ? User::find($displayId) : null;
+                        $uName = $u ? $u->name : '';
+                        $targetText = 'ผู้ใช้งาน'.($uName ? " : $uName" : '');
                     } elseif (str_contains($log->target_type, 'departments')) {
                         $targetText = 'แผนก/หน่วยงาน';
                     } elseif (str_contains($log->target_type, 'slas')) {
@@ -165,19 +217,11 @@ class AuditLogController extends Controller
                     } elseif (str_contains($log->target_type, 'settings')) {
                         $targetText = 'ตั้งค่าระบบ';
                     } elseif (str_contains($log->target_type, 'impersonate')) {
-                        $targetText = 'บัญชีผู้ใช้';
+                        $u = is_numeric($displayId) ? User::find($displayId) : null;
+                        $uName = $u ? $u->name : '';
+                        $targetText = 'บัญชีผู้ใช้'.($uName ? " : $uName" : '');
                     } elseif (str_contains($log->target_type, 'logout')) {
                         $targetText = 'เซสชันการใช้งาน';
-                    }
-
-                    $displayId = $log->target_id;
-                    if ($displayId) {
-                        $decoded = json_decode($displayId, true);
-                        if (is_array($decoded) && isset($decoded['id'])) {
-                            $displayId = $decoded['id'];
-                        } elseif (strlen($displayId) > 15) {
-                            $displayId = substr($displayId, 0, 15).'...';
-                        }
                     }
 
                     $target = $targetText.($displayId ? ' #'.$displayId : '');
@@ -191,6 +235,8 @@ class AuditLogController extends Controller
                             $userName = $targetUser ? $targetUser->name : "ID: $displayId";
                             $changesText[] = "เข้าสู่ระบบด้วยสิทธิ์ของ: $userName";
                         }
+                    } elseif (str_contains($log->action, 'force_reset_password') || str_contains($log->action, 'force-reset-password')) {
+                        $changesText[] = 'ส่งลิงก์รีเซ็ตรหัสผ่านใหม่ไปยังอีเมลของผู้ใช้งาน';
                     } elseif (str_contains($log->target_type, 'logout') || str_contains($log->action, 'logout')) {
                         $changesText[] = 'ออกจากระบบสำเร็จ';
                     } elseif (is_array($log->changes) && count($log->changes) > 0) {

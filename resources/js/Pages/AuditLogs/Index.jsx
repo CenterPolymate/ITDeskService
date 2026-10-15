@@ -50,6 +50,9 @@ function getActionBadge(action = '') {
     if (action.includes('logout')) {
         return { label: 'ออกจากระบบ', className: 'bg-slate-100 text-slate-700 ring-1 ring-slate-400/20' };
     }
+    if (action.includes('force_reset_password') || action.includes('force-reset-password')) {
+        return { label: 'รีเซ็ตรหัสผ่าน', className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20' };
+    }
     if (action.includes('DEACTIVATE') || action.toLowerCase().includes('deactivate')) {
         return { label: 'เปลี่ยนสถานะเป็น Inactive', className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20' };
     }
@@ -68,16 +71,28 @@ function getActionBadge(action = '') {
     return { label: action, className: 'bg-gray-100 text-gray-800' };
 }
 
-function getTargetInfo(targetType = '', targetId = '', targetUser = null) {
+function getTargetInfo(targetType = '', targetId = '', targetUser = null, targetCompanyName = null) {
     let text = targetType.split('\\').pop() || targetType;
+    let isUser = false;
+    let isCompany = false;
+
     if (targetType.includes('categories')) text = 'หมวดหมู่ปัญหา';
-    else if (targetType.includes('companies')) text = 'ข้อมูลบริษัท';
-    else if (targetType.includes('users')) text = 'ผู้ใช้งาน';
+    else if (targetType.includes('companies')) {
+        text = 'ข้อมูลบริษัท';
+        isCompany = true;
+    }
+    else if (targetType.includes('users')) {
+        text = 'ผู้ใช้งาน';
+        isUser = true;
+    }
     else if (targetType.includes('departments')) text = 'แผนก/หน่วยงาน';
     else if (targetType.includes('slas')) text = 'SLA';
     else if (targetType.includes('holidays')) text = 'วันหยุดนักขัตฤกษ์';
     else if (targetType.includes('settings')) text = 'ตั้งค่าระบบ';
-    else if (targetType.includes('impersonate')) text = 'บัญชีผู้ใช้';
+    else if (targetType.includes('impersonate')) {
+        text = 'บัญชีผู้ใช้';
+        isUser = true;
+    }
     else if (targetType.includes('logout')) text = 'เซสชันการใช้งาน';
 
     let displayId = targetId;
@@ -92,7 +107,12 @@ function getTargetInfo(targetType = '', targetId = '', targetUser = null) {
         }
     }
 
-    return { text, displayId, targetUser };
+    return {
+        text,
+        displayId,
+        targetUser: isUser ? targetUser : null,
+        targetCompanyName: isCompany ? targetCompanyName : null,
+    };
 }
 
 function formatValue(val, key) {
@@ -105,6 +125,17 @@ function formatValue(val, key) {
 }
 
 function LogChangesDisplay({ log }) {
+    if (log.action && (log.action.includes('force_reset_password') || log.action.includes('force-reset-password'))) {
+        return (
+            <span className="text-amber-800 font-medium text-xs flex items-center gap-1.5">
+                <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+                ส่งลิงก์รีเซ็ตรหัสผ่านใหม่ไปยังอีเมลของผู้ใช้งานเรียบร้อยแล้ว
+            </span>
+        );
+    }
+
     if (log.target_type && (log.target_type.includes('logout') || (log.action && log.action.includes('logout')))) {
         return <span className="text-gray-700 font-medium">ออกจากระบบสำเร็จ</span>;
     }
@@ -356,7 +387,7 @@ export default function Index({ logs, users = [], filters = {} }) {
                                 <div className="md:hidden divide-y divide-gray-100">
                                     {logs.data.map((log) => {
                                         const badge = getActionBadge(log.action);
-                                        const target = getTargetInfo(log.target_type, log.target_id, log.target_user);
+                                        const target = getTargetInfo(log.target_type, log.target_id, log.target_user, log.target_company_name);
                                         const createdDate = new Date(log.created_at);
                                         const dateStr = createdDate.toLocaleDateString('th-TH', {
                                             day: 'numeric',
@@ -398,6 +429,10 @@ export default function Index({ logs, users = [], filters = {} }) {
                                                             <span className="text-indigo-600 font-medium ml-1">
                                                                 : {target.targetUser.name} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId}</span>
                                                             </span>
+                                                        ) : target.targetCompanyName ? (
+                                                            <span className="text-indigo-600 font-medium ml-1">
+                                                                : {target.targetCompanyName} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId}</span>
+                                                            </span>
                                                         ) : target.displayId ? (
                                                             <span className="text-gray-400 font-mono"> #{target.displayId}</span>
                                                         ) : null}
@@ -430,7 +465,7 @@ export default function Index({ logs, users = [], filters = {} }) {
                                         <tbody className="bg-white divide-y divide-gray-100 text-sm">
                                             {logs.data.map((log) => {
                                                 const badge = getActionBadge(log.action);
-                                                const target = getTargetInfo(log.target_type, log.target_id, log.target_user);
+                                                const target = getTargetInfo(log.target_type, log.target_id, log.target_user, log.target_company_name);
                                                 const createdDate = new Date(log.created_at);
                                                 const dateStr = createdDate.toLocaleDateString('th-TH', {
                                                     day: 'numeric',
@@ -468,6 +503,10 @@ export default function Index({ logs, users = [], filters = {} }) {
                                                             {target.targetUser?.name ? (
                                                                 <span className="text-indigo-600 font-medium text-xs ml-1">
                                                                     : {target.targetUser.name} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId}</span>
+                                                                </span>
+                                                            ) : target.targetCompanyName ? (
+                                                                <span className="text-indigo-600 font-medium text-xs ml-1">
+                                                                    : {target.targetCompanyName} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId}</span>
                                                                 </span>
                                                             ) : target.displayId ? (
                                                                 <span className="text-gray-400 font-mono text-xs ml-1">#{target.displayId}</span>
