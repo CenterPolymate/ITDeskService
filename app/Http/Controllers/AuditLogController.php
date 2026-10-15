@@ -107,6 +107,8 @@ class AuditLogController extends Controller
                         $actionText = 'คืนสิทธิ์การใช้งาน (Leave Impersonation)';
                     } elseif (str_contains($log->action, 'impersonate')) {
                         $actionText = 'จำลองสิทธิ์ (Impersonate)';
+                    } elseif (str_contains($log->action, 'logout')) {
+                        $actionText = 'ออกจากระบบ';
                     } elseif (str_contains($log->action, 'DEACTIVATE') || str_contains($log->action, 'deactivated')) {
                         $actionText = 'เปลี่ยนสถานะเป็น Inactive';
                     } elseif (str_contains($log->action, 'settings.update')) {
@@ -136,6 +138,8 @@ class AuditLogController extends Controller
                         $targetText = 'ตั้งค่าระบบ';
                     } elseif (str_contains($log->target_type, 'impersonate')) {
                         $targetText = 'บัญชีผู้ใช้';
+                    } elseif (str_contains($log->target_type, 'logout')) {
+                        $targetText = 'เซสชันการใช้งาน';
                     }
 
                     $displayId = $log->target_id;
@@ -159,6 +163,8 @@ class AuditLogController extends Controller
                             $userName = $targetUser ? $targetUser->name : "ID: $displayId";
                             $changesText[] = "เข้าสู่ระบบด้วยสิทธิ์ของ: $userName";
                         }
+                    } elseif (str_contains($log->target_type, 'logout') || str_contains($log->action, 'logout')) {
+                        $changesText[] = 'ออกจากระบบสำเร็จ';
                     } elseif (is_array($log->changes) && count($log->changes) > 0) {
                         $ignoredKeys = ['id', 'created_at', 'updated_at', 'deleted_at', 'email_verified_at', 'remember_token', 'password'];
                         foreach ($log->changes as $key => $value) {

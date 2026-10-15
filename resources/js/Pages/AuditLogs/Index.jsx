@@ -37,6 +37,9 @@ function getActionBadge(action = '') {
     if (action.includes('impersonate')) {
         return { label: 'จำลองสิทธิ์', className: 'bg-purple-50 text-purple-700 ring-1 ring-purple-600/20' };
     }
+    if (action.includes('logout')) {
+        return { label: 'ออกจากระบบ', className: 'bg-slate-100 text-slate-700 ring-1 ring-slate-400/20' };
+    }
     if (action.includes('DEACTIVATE') || action.toLowerCase().includes('deactivate')) {
         return { label: 'เปลี่ยนสถานะเป็น Inactive', className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20' };
     }
@@ -65,6 +68,7 @@ function getTargetInfo(targetType = '', targetId = '') {
     else if (targetType.includes('holidays')) text = 'วันหยุดนักขัตฤกษ์';
     else if (targetType.includes('settings')) text = 'ตั้งค่าระบบ';
     else if (targetType.includes('impersonate')) text = 'บัญชีผู้ใช้';
+    else if (targetType.includes('logout')) text = 'เซสชันการใช้งาน';
 
     let displayId = targetId;
     if (displayId) {
@@ -91,6 +95,10 @@ function formatValue(val, key) {
 }
 
 function LogChangesDisplay({ log }) {
+    if (log.target_type && (log.target_type.includes('logout') || (log.action && log.action.includes('logout')))) {
+        return <span className="text-gray-700 font-medium">ออกจากระบบสำเร็จ</span>;
+    }
+
     if (log.target_type && log.target_type.includes('impersonate')) {
         if (log.action && log.action.includes('impersonate.leave')) {
             return <span className="text-gray-700 font-medium">กลับสู่บัญชีหลัก (Admin)</span>;
