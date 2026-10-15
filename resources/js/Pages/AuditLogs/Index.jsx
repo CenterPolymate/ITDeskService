@@ -140,9 +140,25 @@ function LogChangesDisplay({ log }) {
         return <span className="text-gray-700 font-medium">ออกจากระบบสำเร็จ</span>;
     }
 
-    if (log.target_type && log.target_type.includes('impersonate')) {
+    if (log.target_type && (log.target_type.includes('impersonate') || (log.action && log.action.includes('impersonate')))) {
         if (log.action && log.action.includes('impersonate.leave')) {
-            return <span className="text-gray-700 font-medium">กลับสู่บัญชีหลัก (Admin)</span>;
+            const tu = log.target_user || (log.changes?.impersonated_user_name ? {
+                name: log.changes.impersonated_user_name,
+            } : null);
+
+            return (
+                <div className="text-gray-700 font-medium text-xs flex items-center gap-1.5 flex-wrap">
+                    {tu?.name ? (
+                        <>
+                            <span className="text-gray-500 font-normal">ออกจากสิทธิ์ของ:</span>
+                            <span className="text-purple-700 font-bold">{tu.name}</span>
+                            <span className="text-gray-500 font-normal">กลับสู่บัญชีหลัก (Admin)</span>
+                        </>
+                    ) : (
+                        <span>กลับสู่บัญชีหลัก (Admin)</span>
+                    )}
+                </div>
+            );
         }
 
         const tu = log.target_user || (log.changes?.impersonated_user_name ? {
@@ -414,11 +430,11 @@ export default function Index({ logs, users = [], filters = {} }) {
                                                 <div className="space-y-1 text-xs">
                                                     <div className="flex items-center gap-2">
                                                         <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center shrink-0">
-                                                            {(log.user?.name || 'S').substring(0, 1)}
+                                                            {(log.display_actor_name || log.user?.name || 'S').substring(0, 1)}
                                                         </div>
                                                         <span className="text-gray-700">
                                                             <span className="text-gray-400">โดย: </span>
-                                                            <span className="font-semibold">{log.user?.name || 'System'}</span>
+                                                            <span className="font-semibold">{log.display_actor_name || log.user?.name || 'System'}</span>
                                                         </span>
                                                     </div>
 
@@ -427,7 +443,7 @@ export default function Index({ logs, users = [], filters = {} }) {
                                                         <span className="font-semibold">{target.text}</span>
                                                         {target.targetUser?.name ? (
                                                             <span className="text-indigo-600 font-medium ml-1">
-                                                                : {target.targetUser.name} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId}</span>
+                                                                : {target.targetUser.name} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId || target.targetUser.id}</span>
                                                             </span>
                                                         ) : target.targetCompanyName ? (
                                                             <span className="text-indigo-600 font-medium ml-1">
@@ -486,10 +502,10 @@ export default function Index({ logs, users = [], filters = {} }) {
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <div className="flex items-center gap-2">
                                                                 <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
-                                                                    {(log.user?.name || 'S').substring(0, 1)}
+                                                                    {(log.display_actor_name || log.user?.name || 'S').substring(0, 1)}
                                                                 </div>
                                                                 <span className="font-semibold text-gray-900 text-xs">
-                                                                    {log.user?.name || 'System'}
+                                                                    {log.display_actor_name || log.user?.name || 'System'}
                                                                 </span>
                                                             </div>
                                                         </td>
@@ -502,7 +518,7 @@ export default function Index({ logs, users = [], filters = {} }) {
                                                             <span className="font-bold text-gray-800 text-xs">{target.text}</span>
                                                             {target.targetUser?.name ? (
                                                                 <span className="text-indigo-600 font-medium text-xs ml-1">
-                                                                    : {target.targetUser.name} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId}</span>
+                                                                    : {target.targetUser.name} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId || target.targetUser.id}</span>
                                                                 </span>
                                                             ) : target.targetCompanyName ? (
                                                                 <span className="text-indigo-600 font-medium text-xs ml-1">

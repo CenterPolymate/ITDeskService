@@ -89,6 +89,29 @@ class AuditLogController extends Controller
                 ];
             }
 
+            // จัดการกรณี impersonate.leave ทั้งกรณีเก่าและใหม่
+            if (str_contains($log->action, 'impersonate.leave')) {
+                if (is_array($log->changes) && ! empty($log->changes['impersonated_user_name'])) {
+                    $log->target_user = [
+                        'id' => $log->changes['impersonated_user_id'] ?? $log->target_id,
+                        'name' => $log->changes['impersonated_user_name'],
+                        'email' => $log->changes['impersonated_user_email'] ?? '',
+                        'role' => $log->changes['impersonated_user_role'] ?? '',
+                        'department' => $log->changes['impersonated_user_department'] ?? '',
+                    ];
+                } elseif (empty($log->target_id) && $log->user) {
+                    // หากเป็น log เดิมที่ไม่มี target_id แต่บันทึก user_id เป็นผู้ถูกสวมรอย
+                    $log->target_user = [
+                        'id' => $log->user->id,
+                        'name' => $log->user->name,
+                        'email' => $log->user->email,
+                        'role' => $log->user->role,
+                        'department' => $log->user->department,
+                    ];
+                    $log->display_actor_name = 'ผู้ดูแลระบบ (Admin)';
+                }
+            }
+
             $isCompanyTarget = str_contains($log->target_type, 'companies');
             if ($isCompanyTarget && is_numeric($log->target_id)) {
                 $compName = null;
@@ -227,9 +250,19 @@ class AuditLogController extends Controller
                     $target = $targetText.($displayId ? ' #'.$displayId : '');
 
                     $changesText = [];
-                    if (str_contains($log->target_type, 'impersonate')) {
+                    $actorName = $log->user->name ?? 'System';
+
+                    if (str_contains($log->target_type, 'impersonate') || str_contains($log->action, 'impersonate')) {
                         if (str_contains($log->action, 'impersonate.leave')) {
-                            $changesText[] = 'กลับสู่บัญชีหลัก (Admin)';
+                            $tuName = is_array($log->changes) && ! empty($log->changes['impersonated_user_name'])
+                                ? $log->changes['impersonated_user_name']
+                                : ($log->user ? $log->user->name : '');
+
+                            if (empty($log->target_id) && $log->user) {
+                                $actorName = 'ผู้ดูแลระบบ (Admin)';
+                            }
+
+                            $changesText[] = $tuName ? "ออกจากสิทธิ์ของ $tuName กลับสู่บัญชีหลัก (Admin)" : 'กลับสู่บัญชีหลัก (Admin)';
                         } else {
                             $targetUser = User::find($displayId);
                             $userName = $targetUser ? $targetUser->name : "ID: $displayId";
@@ -277,7 +310,7 @@ class AuditLogController extends Controller
 
                     fputcsv($file, [
                         $log->created_at->format('Y-m-d H:i:s'),
-                        $log->user->name ?? 'System',
+                        $actorName,
                         $actionText,
                         $target,
                         $changesOutput,

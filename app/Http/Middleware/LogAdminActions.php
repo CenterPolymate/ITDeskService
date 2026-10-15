@@ -22,12 +22,13 @@ class LogAdminActions
     public function handle(Request $request, Closure $next): Response
     {
         $user = Auth::user();
-        $isPrivilegedUser = Auth::check() && in_array($user?->role, ['administrator', 'manager'], true);
+        $impersonatedBy = session('impersonated_by');
+        $isPrivilegedUser = (Auth::check() && in_array($user?->role, ['administrator', 'manager'], true)) || ($impersonatedBy !== null);
         $method = $request->method();
         $isModifyingAction = in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE']);
         $shouldLog = $isPrivilegedUser && $isModifyingAction;
 
-        $actorId = Auth::id();
+        $actorId = $impersonatedBy ?: Auth::id();
         $routeName = null;
         $targetId = null;
         $oldValues = null;
@@ -41,7 +42,10 @@ class LogAdminActions
                 $shouldLog = false;
             }
 
-            if ($shouldLog && $request->route() && $request->route()->parameterNames()) {
+            if ($routeName === 'impersonate.leave' && $impersonatedBy) {
+                $actorId = $impersonatedBy;
+                $targetId = (string) $user?->id;
+            } elseif ($shouldLog && $request->route() && $request->route()->parameterNames()) {
                 $params = array_values($request->route()->parameters());
                 $ids = [];
                 foreach ($params as $param) {
@@ -106,6 +110,18 @@ class LogAdminActions
                     'impersonated_user_email' => $targetModel->email,
                     'impersonated_user_role' => $targetModel->role,
                     'impersonated_user_department' => $targetModel->department,
+                ];
+            }
+
+            // กรณีคืนสิทธิ์ ให้บันทึกข้อมูลของผู้ใช้ที่เคยถูกสวมรอยไว้ใน changes
+            if ($routeName === 'impersonate.leave') {
+                $changes = [
+                    'impersonated_user_id' => $user?->id,
+                    'impersonated_user_name' => $user?->name,
+                    'impersonated_user_email' => $user?->email,
+                    'impersonated_user_role' => $user?->role,
+                    'impersonated_user_department' => $user?->department,
+                    'action_note' => "ออกจากสิทธิ์ของ {$user?->name} กลับสู่บัญชีหลัก (Admin)",
                 ];
             }
 
