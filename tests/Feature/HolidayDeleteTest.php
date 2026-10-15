@@ -44,4 +44,58 @@ class HolidayDeleteTest extends TestCase
         $response->assertSessionHas('success', 'ลบวันหยุดนักขัตฤกษ์สำเร็จ');
         $this->assertDatabaseMissing('holidays', ['id' => $futureHoliday->id]);
     }
+
+    public function test_administrator_cannot_create_past_holiday(): void
+    {
+        $admin = User::factory()->create(['role' => 'administrator']);
+
+        $pastDate = now()->subDays(2)->format('Y-m-d');
+
+        $response = $this->actingAs($admin)->post(route('holidays.store'), [
+            'name' => 'วันหยุดย้อนหลังที่ทดสอบ',
+            'date' => $pastDate,
+        ]);
+
+        $response->assertSessionHasErrors(['date']);
+        $this->assertDatabaseMissing('holidays', ['date' => $pastDate]);
+    }
+
+    public function test_administrator_can_create_future_or_today_holiday(): void
+    {
+        $admin = User::factory()->create(['role' => 'administrator']);
+
+        $futureDate = now()->addDays(10)->format('Y-m-d');
+
+        $response = $this->actingAs($admin)->post(route('holidays.store'), [
+            'name' => 'วันหยุดในอนาคต',
+            'date' => $futureDate,
+        ]);
+
+        $response->assertRedirect(route('holidays.index'));
+        $response->assertSessionHas('success', 'เพิ่มวันหยุดนักขัตฤกษ์สำเร็จ');
+        $this->assertDatabaseHas('holidays', [
+            'name' => 'วันหยุดในอนาคต',
+        ]);
+        $this->assertTrue(Holiday::whereDate('date', $futureDate)->exists());
+    }
+
+    public function test_administrator_bulk_store_skips_past_holidays(): void
+    {
+        $admin = User::factory()->create(['role' => 'administrator']);
+
+        $pastDate = now()->subDays(3)->format('Y-m-d');
+        $futureDate = now()->addDays(3)->format('Y-m-d');
+
+        $response = $this->actingAs($admin)->post(route('holidays.storeBulk'), [
+            'holidays' => [
+                ['name' => 'วันหยุดในอดีต', 'date' => $pastDate],
+                ['name' => 'วันหยุดในอนาคต', 'date' => $futureDate],
+            ],
+        ]);
+
+        $response->assertRedirect(route('holidays.index'));
+        $response->assertSessionHas('success', 'เพิ่มวันหยุดสำเร็จจำนวน 1 วัน');
+        $this->assertFalse(Holiday::whereDate('date', $pastDate)->exists());
+        $this->assertTrue(Holiday::whereDate('date', $futureDate)->exists());
+    }
 }

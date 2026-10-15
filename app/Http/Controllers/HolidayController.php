@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Holiday;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -101,7 +102,15 @@ class HolidayController extends Controller
         $this->authorizeAdministrator();
         $request->validate([
             'name' => 'required|string|max:255',
-            'date' => 'required|date|unique:holidays,date',
+            'date' => [
+                'required',
+                'date',
+                'after_or_equal:today',
+                'unique:holidays,date',
+            ],
+        ], [
+            'date.after_or_equal' => 'ไม่อนุญาตให้เพิ่มวันหยุดที่ผ่านมาแล้ว เนื่องจากมีผลกระทบต่อการคำนวณ SLA ในใบงานที่ผ่านไปแล้ว',
+            'date.unique' => 'วันที่นี้ถูกบันทึกเป็นวันหยุดในระบบแล้ว',
         ]);
 
         Holiday::create([
@@ -136,8 +145,14 @@ class HolidayController extends Controller
             'holidays.*.date' => 'required|date',
         ]);
 
+        $today = now()->startOfDay();
         $count = 0;
         foreach ($request->holidays as $holidayData) {
+            $hDate = Carbon::parse($holidayData['date'])->startOfDay();
+            if ($hDate->lt($today)) {
+                continue; // ไม่อนุญาตให้เพิ่มวันหยุดย้อนหลัง
+            }
+
             // Check if already exists
             $exists = Holiday::where('date', $holidayData['date'])->exists();
             if (! $exists) {

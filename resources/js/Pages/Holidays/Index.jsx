@@ -137,6 +137,11 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                                         // Check suggested
                                         const suggested = suggestedHolidays?.find(h => h?.date === dateStr);
 
+                                        // Check if date is in the past
+                                        const today = new Date();
+                                        const todayStr = formatDate(today.getFullYear(), today.getMonth(), today.getDate());
+                                        const isDatePast = dateStr < todayStr;
+
                                         // Check if user selected the suggested one
                                         const isSelected = selectedSuggested.some(h => h.date === dateStr);
 
@@ -152,19 +157,26 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                                             tooltip = `วันหยุดระบบ: ${existing.name}`;
                                             dot = <div className="w-1.5 h-1.5 bg-red-500 rounded-full mx-auto mt-0.5"></div>;
                                         } else if (suggested) {
-                                            cursor = "cursor-pointer hover:bg-yellow-50";
-                                            if (isSelected) {
-                                                textColor = "text-red-600 font-bold";
-                                                bgColor = "bg-red-50 border border-red-200";
-                                                tooltip = `(เตรียมบันทึก) ${suggested.name}`;
-                                                dot = <div className="w-1.5 h-1.5 bg-red-500 rounded-full mx-auto mt-0.5"></div>;
+                                            if (isDatePast) {
+                                                cursor = "cursor-not-allowed opacity-50";
+                                                textColor = "text-gray-400 line-through";
+                                                tooltip = `(วันหยุดนี้ผ่านมาแล้ว ไม่สามารถเพิ่มย้อนหลังได้) ${suggested.name}`;
+                                                onClick = undefined;
                                             } else {
-                                                textColor = "text-yellow-600 font-bold";
-                                                bgColor = "bg-yellow-50 border border-yellow-200";
-                                                tooltip = `คลิกเพื่อเพิ่ม: ${suggested.name}`;
-                                                dot = <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full mx-auto mt-0.5"></div>;
+                                                cursor = "cursor-pointer hover:bg-yellow-50";
+                                                if (isSelected) {
+                                                    textColor = "text-red-600 font-bold";
+                                                    bgColor = "bg-red-50 border border-red-200";
+                                                    tooltip = `(เตรียมบันทึก) ${suggested.name}`;
+                                                    dot = <div className="w-1.5 h-1.5 bg-red-500 rounded-full mx-auto mt-0.5"></div>;
+                                                } else {
+                                                    textColor = "text-yellow-600 font-bold";
+                                                    bgColor = "bg-yellow-50 border border-yellow-200";
+                                                    tooltip = `คลิกเพื่อเพิ่ม: ${suggested.name}`;
+                                                    dot = <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full mx-auto mt-0.5"></div>;
+                                                }
+                                                onClick = () => toggleHoliday(suggested);
                                             }
-                                            onClick = () => toggleHoliday(suggested);
                                         }
 
                                         return (
@@ -187,6 +199,9 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
             </div>
         );
     };
+
+    const todayDate = new Date();
+    const minDateStr = formatDate(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
 
     return (
         <>
@@ -255,11 +270,13 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                                 <TextInput
                                     id="manualDate"
                                     type="date"
+                                    min={minDateStr}
                                     className="mt-1 block w-full"
                                     value={manualForm.data.date}
                                     onChange={(e) => manualForm.setData('date', e.target.value)}
                                     required
                                 />
+                                <p className="text-xs text-gray-400 mt-1">ไม่อนุญาตให้เลือกวันหยุดย้อนหลัง เพื่อป้องกันผลกระทบต่อ SLA</p>
                                 <InputError message={manualForm.errors.date} className="mt-2" />
                             </div>
                             <div className="w-full md:w-1/2">
