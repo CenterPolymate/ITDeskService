@@ -140,7 +140,7 @@ export default function Index({
                         {/* Action Buttons */}
                         <div className="flex items-center gap-2.5 shrink-0 no-print">
                             <a
-                                href={route('reports.export', { month: selectedMonth, year: selectedYear, company: selectedCompany, team: selectedTeam })}
+                                href={route('reports.export', { month, year, company, team })}
                                 className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-sm transition active:scale-95"
                                 title="ดาวน์โหลดสรุปรายงานและรายการ P-CAR เป็นไฟล์ Excel/CSV"
                             >
