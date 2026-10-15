@@ -1555,7 +1555,9 @@ export default function Show({ ticket }) {
                                     <div>
                                         <p className="text-sm font-bold text-slate-800">1. เปิดเคส / รอดำเนินการ</p>
                                         <p className="text-xs text-slate-500">{formatThaiDateTime(ticket.created_at)}</p>
-                                        <p className="text-xs text-indigo-600 font-medium">โดย: {ticket.requester_name}</p>
+                                        {user.role !== 'user' && (
+                                            <p className="text-xs text-indigo-600 font-medium">โดย: {ticket.requester_name}</p>
+                                        )}
                                     </div>
                                 </div>
 
@@ -1574,7 +1576,7 @@ export default function Show({ ticket }) {
                                                 {ticket.in_progress_at && (
                                                     <p className="text-xs text-slate-500">จบ: {formatThaiDateTime(ticket.in_progress_at)}</p>
                                                 )}
-                                                {ticket.analyzing_by && (
+                                                {user.role !== 'user' && ticket.analyzing_by && (
                                                     <p className="text-xs text-purple-600 font-medium">บันทึกโดย: {ticket.analyzing_by.name}</p>
                                                 )}
                                             </>
@@ -1599,7 +1601,7 @@ export default function Show({ ticket }) {
                                                 {ticket.resolved_at && (
                                                     <p className="text-xs text-emerald-600 font-bold">ส่งมอบ: {formatThaiDateTime(ticket.resolved_at)}</p>
                                                 )}
-                                                {ticket.resolved_by && (
+                                                {user.role !== 'user' && ticket.resolved_by && (
                                                     <p className="text-xs text-emerald-600 font-medium">ส่งงานโดย: {ticket.resolved_by.name}</p>
                                                 )}
                                             </>
@@ -1623,7 +1625,7 @@ export default function Show({ ticket }) {
                                         {ticket.approved_at ? (
                                             <>
                                                 <p className="text-xs text-slate-500">{formatThaiDateTime(ticket.approved_at)}</p>
-                                                {ticket.approved_by && (
+                                                {user.role !== 'user' && ticket.approved_by && (
                                                     <p className="text-xs text-emerald-600 font-medium">รับงานโดย: {ticket.approved_by.name}</p>
                                                 )}
                                             </>
@@ -1647,7 +1649,7 @@ export default function Show({ ticket }) {
                                         {ticket.closed_at ? (
                                             <>
                                                 <p className="text-xs text-slate-500">{formatThaiDateTime(ticket.closed_at)}</p>
-                                                {ticket.closed_by && (
+                                                {user.role !== 'user' && ticket.closed_by && (
                                                     <p className="text-xs text-slate-800 font-medium">ปิดโดย: {ticket.closed_by.name}</p>
                                                 )}
                                             </>
