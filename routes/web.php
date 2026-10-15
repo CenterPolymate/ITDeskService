@@ -31,6 +31,7 @@ Route::post('/line/link-account', [LineLiffController::class, 'linkAccount']);
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
 
     // Ticket Routes
     Route::get('/tickets/create', [TicketController::class, 'create'])->name('tickets.create');

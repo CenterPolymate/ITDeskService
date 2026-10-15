@@ -2,6 +2,13 @@ import InputError from '@/Components/InputError';
 import Modal from '@/Components/Modal';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
+import {
+    isNotificationSupported,
+    getNotificationPermission,
+    requestNotificationPermission,
+    sendBrowserNotification,
+    playNotificationChime,
+} from '@/Utils/webNotification';
 
 // Format Date to Thai standard
 function formatThaiDateTime(dateStr) {
@@ -65,6 +72,24 @@ export default function Show({ ticket }) {
     const canCancel = (isRequester || isHelpdesk || isManager) &&
         ['pending', 'assigned', 'analyzing', 'in_progress'].includes(ticket.status);
 
+    const [notificationPermission, setNotificationPermission] = useState('default');
+    const prevCommentsCountRef = useRef(null);
+    const prevStatusRef = useRef(null);
+
+    useEffect(() => {
+        setNotificationPermission(getNotificationPermission());
+    }, []);
+
+    const handleRequestPermission = async () => {
+        const res = await requestNotificationPermission();
+        setNotificationPermission(res);
+        if (res === 'granted') {
+            sendBrowserNotification('✅ เปิดการแจ้งเตือนสำเร็จ', {
+                body: 'คุณจะได้รับการแจ้งเตือนทางเสียงและป๊อปอัปเมื่อมีข้อความแชทใหม่หรือสถานะเปลี่ยน',
+            });
+        }
+    };
+
     // Live auto-polling for comments and ticket status every 15s
     useEffect(() => {
         const interval = setInterval(() => {
@@ -72,6 +97,48 @@ export default function Show({ ticket }) {
         }, 15000);
         return () => clearInterval(interval);
     }, []);
+
+    // Watch for new incoming comments from other users and notify
+    useEffect(() => {
+        const comments = ticket.comments || [];
+        if (prevCommentsCountRef.current === null) {
+            prevCommentsCountRef.current = comments.length;
+            prevStatusRef.current = ticket.status;
+            return;
+        }
+
+        // Check new comments
+        if (comments.length > prevCommentsCountRef.current) {
+            const newComments = comments.slice(prevCommentsCountRef.current);
+            const lastComment = newComments[newComments.length - 1];
+            if (lastComment && lastComment.user_id !== user.id) {
+                const senderName = user.role === 'user' && lastComment.user?.role !== 'user'
+                    ? 'เจ้าหน้าที่ไอที (IT Support)'
+                    : (lastComment.user?.name || 'มีผู้ใช้งาน');
+
+                sendBrowserNotification(`💬 ข้อความใหม่จาก ${senderName} [${ticket.ticket_no}]`, {
+                    body: lastComment.message || (lastComment.attachment_path ? '📎 ส่งไฟล์รูปภาพแนบ' : 'มีข้อความใหม่'),
+                    tag: `comment-${lastComment.id}`,
+                    onClick: () => {
+                        window.focus();
+                    },
+                });
+            }
+        }
+        prevCommentsCountRef.current = comments.length;
+
+        // Check status change
+        if (prevStatusRef.current && prevStatusRef.current !== ticket.status) {
+            sendBrowserNotification(`📌 ใบงาน #${ticket.ticket_no} เปลี่ยนสถานะ`, {
+                body: `สถานะปัจจุบัน: ${ticket.status_label || ticket.status}`,
+                tag: `status-${ticket.id}-${ticket.status}`,
+                onClick: () => {
+                    window.focus();
+                },
+            });
+        }
+        prevStatusRef.current = ticket.status;
+    }, [ticket.comments, ticket.status]);
 
     // Scroll comments to bottom
     const commentsContainerRef = useRef(null);
@@ -1285,14 +1352,48 @@ export default function Show({ ticket }) {
 
                         {/* 9. Real-time Comments Thread */}
                         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200">
-                            <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+                            <h3 className="text-lg font-bold text-slate-800 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                                 <span className="flex items-center gap-2">
                                     <span className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">💬</span>
                                     พูดคุย / สอบถามข้อมูลเพิ่มเติม
                                 </span>
-                                <span className="text-xs text-slate-400 font-normal">
-                                    อัปเดตอัตโนมัติทุก 15 วินาที
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    {isNotificationSupported() && (
+                                        notificationPermission === 'granted' ? (
+                                            <button
+                                                type="button"
+                                                onClick={playNotificationChime}
+                                                title="คลิกเพื่อทดสอบเสียงแจ้งเตือน"
+                                                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 rounded-full text-xs font-semibold transition cursor-pointer shadow-sm"
+                                            >
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                <span>🔔 แจ้งเตือนแชทเปิดอยู่ (ทดสอบเสียง)</span>
+                                            </button>
+                                        ) : notificationPermission === 'denied' ? (
+                                            <span
+                                                title="เบราว์เซอร์บล็อกการแจ้งเตือน"
+                                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium"
+                                            >
+                                                <span>🔕 ปิดแจ้งเตือน</span>
+                                            </span>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={handleRequestPermission}
+                                                title="เปิดรับการแจ้งเตือนเมื่อมีข้อความแชทใหม่"
+                                                className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-xs font-semibold shadow-sm transition cursor-pointer"
+                                            >
+                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                                </svg>
+                                                <span>เปิดแจ้งเตือนแชท (Alerts)</span>
+                                            </button>
+                                        )
+                                    )}
+                                    <span className="text-xs text-slate-400 font-normal">
+                                        อัปเดตทุก 15 วิ
+                                    </span>
+                                </div>
                             </h3>
 
                             <div

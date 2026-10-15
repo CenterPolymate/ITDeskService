@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
@@ -346,5 +347,207 @@ class ReportController extends Controller
             'selectedMonthName' => $thaiMonthNames[$selectedMonth] ?? '',
             'buddhistYear' => $selectedYear + 543,
         ]);
+    }
+
+    /**
+     * Export monthly report to CSV with Excel UTF-8 BOM.
+     */
+    public function export(Request $request): StreamedResponse
+    {
+        $user = Auth::user();
+
+        if (! in_array($user?->role, ['administrator', 'manager', 'helpdesk'], true)) {
+            abort(403, 'คุณไม่มีสิทธิ์ดาวน์โหลดรายงานสถิตินี้');
+        }
+
+        $now = Carbon::now('Asia/Bangkok');
+        $selectedMonth = (int) $request->input('month', $now->month);
+        $selectedYear = (int) $request->input('year', $now->year);
+        $selectedCompany = (string) $request->input('company', 'all');
+        $selectedTeam = (string) $request->input('team', 'all');
+
+        $startDate = Carbon::createFromDate($selectedYear, $selectedMonth, 1, 'Asia/Bangkok')->startOfMonth();
+        $endDate = Carbon::createFromDate($selectedYear, $selectedMonth, 1, 'Asia/Bangkok')->endOfMonth();
+
+        $query = HelpdeskCase::whereBetween('created_at', [$startDate, $endDate]);
+
+        if ($selectedCompany !== 'all' && $selectedCompany !== '') {
+            $query->where('company', $selectedCompany);
+        }
+
+        if ($selectedTeam !== 'all' && $selectedTeam !== '') {
+            $query->where('escalated_to_team', $selectedTeam);
+        }
+
+        $allTickets = $query->orderBy('created_at', 'desc')->get();
+
+        $thaiMonthNames = [
+            1 => 'มกราคม', 2 => 'กุมภาพันธ์', 3 => 'มีนาคม', 4 => 'เมษายน',
+            5 => 'พฤษภาคม', 6 => 'มิถุนายน', 7 => 'กรกฎาคม', 8 => 'สิงหาคม',
+            9 => 'กันยายน', 10 => 'ตุลาคม', 11 => 'พฤศจิกายน', 12 => 'ธันวาคม',
+        ];
+        $monthName = $thaiMonthNames[$selectedMonth] ?? (string) $selectedMonth;
+        $buddhistYear = $selectedYear + 543;
+
+        // KPI Calculations
+        $totalTickets = $allTickets->count();
+        $resolvedTickets = $allTickets->filter(fn ($t) => in_array($t->status, ['resolved', 'approved', 'closed'], true));
+        $closedTickets = $allTickets->where('status', 'closed');
+        $cancelledTickets = $allTickets->where('status', 'cancelled');
+        $activeTickets = $allTickets->filter(fn ($t) => ! in_array($t->status, ['resolved', 'approved', 'closed'], true));
+
+        $nonCancelledTotal = $totalTickets - $cancelledTickets->count();
+        $resolutionRate = $nonCancelledTotal > 0
+            ? round(($resolvedTickets->count() / $nonCancelledTotal) * 100, 1)
+            : 0;
+
+        $slaMetTickets = $resolvedTickets->filter(function ($t) {
+            if (! $t->sla_due_at || ! $t->resolved_at) {
+                return true;
+            }
+
+            return $t->resolved_at->lte($t->sla_due_at);
+        });
+
+        $slaBreachedTickets = $resolvedTickets->filter(function ($t) {
+            if (! $t->sla_due_at || ! $t->resolved_at) {
+                return false;
+            }
+
+            return $t->resolved_at->gt($t->sla_due_at);
+        });
+
+        $activeOverdueCount = $activeTickets->filter(function ($t) {
+            return $t->sla_due_at && $t->sla_due_at->isPast();
+        })->count();
+
+        $totalBreachedCount = $slaBreachedTickets->count() + $activeOverdueCount;
+
+        $slaComplianceRate = $resolvedTickets->count() > 0
+            ? round(($slaMetTickets->count() / $resolvedTickets->count()) * 100, 1)
+            : 100.0;
+
+        $resolutionDurations = $resolvedTickets->map(function ($t) {
+            if ($t->resolved_at && $t->created_at) {
+                return $t->created_at->diffInMinutes($t->resolved_at);
+            }
+
+            return null;
+        })->filter();
+
+        $avgResolutionMinutes = $resolutionDurations->count() > 0 ? round($resolutionDurations->avg()) : 0;
+        $avgHours = floor($avgResolutionMinutes / 60);
+        $avgMins = $avgResolutionMinutes % 60;
+        $avgResolutionFormatted = $avgResolutionMinutes > 0
+            ? ($avgHours > 0 ? "{$avgHours} ชม. {$avgMins} นาที" : "{$avgMins} นาที")
+            : '-';
+
+        $ratedTickets = $allTickets->filter(fn ($t) => $t->rating !== null && $t->rating > 0);
+        $avgCsat = $ratedTickets->count() > 0 ? round((float) $ratedTickets->avg('rating'), 2) : 0;
+
+        $pcarCases = $allTickets->filter(function ($t) {
+            return $t->requires_preventive_measure === true
+                || ! empty($t->pcar_no)
+                || ! empty($t->root_cause_category);
+        });
+
+        $pcarTotal = $pcarCases->count();
+        $pcarDone = $pcarCases->filter(fn ($t) => $t->preventive_measure === 'done' || $t->pcar_closed_at !== null)->count();
+        $pcarPending = $pcarTotal - $pcarDone;
+
+        $filename = "Monthly_Report_{$selectedYear}_{$selectedMonth}.csv";
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use (
+            $monthName, $buddhistYear, $selectedCompany, $selectedTeam,
+            $totalTickets, $activeTickets, $resolvedTickets, $cancelledTickets,
+            $resolutionRate, $slaComplianceRate, $slaMetTickets, $totalBreachedCount,
+            $avgResolutionFormatted, $avgCsat, $ratedTickets,
+            $pcarTotal, $pcarDone, $pcarPending, $pcarCases
+        ) {
+            $file = fopen('php://output', 'w');
+            fwrite($file, "\xEF\xBB\xBF"); // UTF-8 BOM for Microsoft Excel
+
+            // Section 1: Executive Summary
+            fputcsv($file, ['รายงานสถิติประจำเดือนและการวิเคราะห์ P-CAR Form 4']);
+            fputcsv($file, ['ประจำเดือน', "{$monthName} พ.ศ. {$buddhistYear}"]);
+            fputcsv($file, ['บริษัท', $selectedCompany === 'all' ? 'ทุกบริษัท' : $selectedCompany]);
+            fputcsv($file, ['ทีมที่รับผิดชอบ', $selectedTeam === 'all' ? 'ทุกทีม' : $selectedTeam]);
+            fputcsv($file, ['วันที่ส่งออกข้อมูล', Carbon::now('Asia/Bangkok')->translatedFormat('d F Y H:i:s')]);
+            fputcsv($file, []);
+
+            fputcsv($file, ['=== สรุปผลตัวชี้วัดหลัก (KPI Overview) ===']);
+            fputcsv($file, ['ตัวชี้วัด (KPIs)', 'ค่าสถิติ']);
+            fputcsv($file, ['ใบงานทั้งหมด (Total Tickets)', $totalTickets]);
+            fputcsv($file, ['กำลังดำเนินการ (Active Tickets)', $activeTickets->count()]);
+            fputcsv($file, ['แก้ไขสำเร็จ (Resolved/Closed)', $resolvedTickets->count()]);
+            fputcsv($file, ['ยกเลิก (Cancelled)', $cancelledTickets->count()]);
+            fputcsv($file, ['อัตราการปิดงานสำเร็จ (Resolution Rate)', "{$resolutionRate}%"]);
+            fputcsv($file, ['อัตราการรักษาเวลา SLA (SLA Compliance)', "{$slaComplianceRate}%"]);
+            fputcsv($file, ['เคสที่ตรงตามเวลา SLA (SLA Met)', $slaMetTickets->count()]);
+            fputcsv($file, ['เคสที่เกินกำหนด SLA (SLA Breached)', $totalBreachedCount]);
+            fputcsv($file, ['เวลาซ่อมเฉลี่ย (Average Resolution Time)', $avgResolutionFormatted]);
+            fputcsv($file, ['คะแนนความพึงพอใจเฉลี่ย (CSAT)', $avgCsat > 0 ? "{$avgCsat} / 5 ({$ratedTickets->count()} ผู้ประเมิน)" : 'ยังไม่มีการประเมิน']);
+            fputcsv($file, ['มาตรการป้องกัน P-CAR ทั้งหมด', $pcarTotal]);
+            fputcsv($file, ['มาตรการที่ปิดแล้ว (Completed)', $pcarDone]);
+            fputcsv($file, ['มาตรการที่รอดำเนินการ (Pending)', $pcarPending]);
+            fputcsv($file, []);
+
+            // Section 2: Detailed P-CAR Incident Table
+            fputcsv($file, ['=== รายการใบงานมาตรการป้องกัน (P-CAR Incident List) ===']);
+            fputcsv($file, [
+                'ลำดับ',
+                'Ticket No',
+                'PCAR No',
+                'หัวข้อปัญหา',
+                'ผู้แจ้ง',
+                'บริษัท',
+                'แผนก',
+                'ทีมที่รับผิดชอบ',
+                'ความเร่งด่วน',
+                'หมวดหมู่ 5M',
+                'สาเหตุรากเหง้า (Root Cause)',
+                'สถานะใบงาน (Task 1)',
+                'สถานะมาตรการ (Task 2)',
+                'วันที่แจ้งซ่อม',
+                'วันที่ส่งมอบงาน',
+                'วันที่ปิดมาตรการ',
+                'คะแนน CSAT',
+            ]);
+
+            $index = 1;
+            foreach ($pcarCases as $ticket) {
+                fputcsv($file, [
+                    $index++,
+                    $ticket->ticket_no,
+                    $ticket->pcar_no ?: '-',
+                    $ticket->title,
+                    $ticket->requester_name,
+                    $ticket->company ?: '-',
+                    $ticket->department ?: '-',
+                    $ticket->assigned_team_label ?: ($ticket->escalated_to_team ?: 'Helpdesk'),
+                    $ticket->priority_label ?: $ticket->priority,
+                    $ticket->root_cause_category ?: '-',
+                    $ticket->root_cause_detail ?: '-',
+                    $ticket->status_label ?: $ticket->status,
+                    $ticket->task2_status_label ?: '-',
+                    $ticket->created_at ? $ticket->created_at->format('d/m/Y H:i') : '-',
+                    $ticket->resolved_at ? $ticket->resolved_at->format('d/m/Y H:i') : '-',
+                    $ticket->pcar_closed_at ? $ticket->pcar_closed_at->format('d/m/Y H:i') : '-',
+                    $ticket->rating ? "{$ticket->rating}/5" : '-',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

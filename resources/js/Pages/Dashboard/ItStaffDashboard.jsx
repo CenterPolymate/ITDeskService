@@ -1,5 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, Link, usePage } from '@inertiajs/react';
+import {
+    isNotificationSupported,
+    getNotificationPermission,
+    requestNotificationPermission,
+    sendBrowserNotification,
+    playNotificationChime,
+} from '@/Utils/webNotification';
 
 export default function ItStaffDashboard({ cases, stats, filters = {} }) {
     const { auth, flash } = usePage().props;
@@ -13,6 +20,51 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
     });
 
     const [isTyping, setIsTyping] = useState(false);
+    const [notificationPermission, setNotificationPermission] = useState('default');
+    const knownUrgentIdsRef = useRef(null);
+
+    useEffect(() => {
+        setNotificationPermission(getNotificationPermission());
+    }, []);
+
+    const handleRequestPermission = async () => {
+        const res = await requestNotificationPermission();
+        setNotificationPermission(res);
+        if (res === 'granted') {
+            sendBrowserNotification('✅ เปิดการแจ้งเตือนสำเร็จ', {
+                body: 'ระบบจะส่งเสียงและป๊อปอัปแจ้งเตือนทันทีเมื่อมีเคสด่วนที่สุดเข้ามา',
+            });
+        }
+    };
+
+    // Watch for new urgent tickets during polling
+    useEffect(() => {
+        const ticketList = cases?.data || (Array.isArray(cases) ? cases : []);
+        const urgentTickets = ticketList.filter(
+            c => c.priority === 'urgent' && !['closed', 'cancelled'].includes(c.status)
+        );
+
+        // First load: memorize existing urgent ticket IDs
+        if (knownUrgentIdsRef.current === null) {
+            knownUrgentIdsRef.current = new Set(urgentTickets.map(c => c.id));
+            return;
+        }
+
+        // On subsequent polls, check for new urgent tickets
+        const newlyArrived = urgentTickets.filter(c => !knownUrgentIdsRef.current.has(c.id));
+        if (newlyArrived.length > 0) {
+            newlyArrived.forEach(t => {
+                knownUrgentIdsRef.current.add(t.id);
+                sendBrowserNotification(`🚨 มีเคสด่วนที่สุดใหม่: #${t.ticket_no}`, {
+                    body: `${t.title || 'เคสด่วนที่สุด'}\nผู้แจ้ง: ${t.requester_name || '-'} (${t.department || '-'})`,
+                    tag: `urgent-ticket-${t.id}`,
+                    onClick: () => {
+                        window.location.href = route('tickets.show', t.id);
+                    },
+                });
+            });
+        }
+    }, [cases]);
 
     // Live polling updates every 15 seconds (paused if user is typing or focusing on inputs)
     useEffect(() => {
@@ -255,14 +307,52 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                     )}
 
                     {/* Task 1 Section Header */}
-                    <div className="flex items-center justify-between pt-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
                         <div className="flex items-center">
                             <div className="bg-blue-600 w-1.5 h-6 rounded-full mr-3" />
                             <h2 className="text-xl font-bold text-gray-800">Task 1: สถานะการแจ้งซ่อม (Ticketing)</h2>
                         </div>
-                        <span className="text-xs font-semibold px-2.5 py-1 bg-white text-gray-500 rounded-full border border-gray-200">
-                            คลิกที่การ์ดเพื่อกรองตามสถานะ
-                        </span>
+                        <div className="flex items-center gap-2">
+                            {/* Browser Notification Toggle / Status */}
+                            {isNotificationSupported() && (
+                                notificationPermission === 'granted' ? (
+                                    <button
+                                        type="button"
+                                        onClick={playNotificationChime}
+                                        title="คลิกเพื่อทดสอบเสียงแจ้งเตือน"
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 rounded-full text-xs font-semibold transition cursor-pointer shadow-sm"
+                                    >
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                        <span>🔔 แจ้งเตือนเคสด่วนเปิดอยู่ (ทดสอบเสียง)</span>
+                                    </button>
+                                ) : notificationPermission === 'denied' ? (
+                                    <span
+                                        title="เบราว์เซอร์บล็อกการแจ้งเตือน สามารถเปิดได้ที่การตั้งค่าไซต์ของเบราว์เซอร์"
+                                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium border border-gray-200"
+                                    >
+                                        <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                        </svg>
+                                        <span>ปิดแจ้งเตือนในบราวเซอร์</span>
+                                    </span>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={handleRequestPermission}
+                                        title="เปิดรับการแจ้งเตือนเสียงและป๊อปอัปเมื่อมีเคสด่วนเข้ามา"
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-xs font-semibold shadow-sm transition cursor-pointer"
+                                    >
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                        </svg>
+                                        <span>เปิดแจ้งเตือนเคสด่วน (Alerts)</span>
+                                    </button>
+                                )
+                            )}
+                            <span className="hidden lg:inline-flex text-xs font-semibold px-2.5 py-1 bg-white text-gray-500 rounded-full border border-gray-200">
+                                คลิกที่การ์ดเพื่อกรองตามสถานะ
+                            </span>
+                        </div>
                     </div>
 
                     {/* Task 1 KPI Cards Row */}

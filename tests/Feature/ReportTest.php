@@ -233,4 +233,60 @@ class ReportTest extends TestCase
             ->where('filters.team', 'team_network')
         );
     }
+
+    public function test_regular_user_cannot_export_reports(): void
+    {
+        $user = User::factory()->create(['role' => 'user', 'email_verified_at' => now()]);
+
+        $response = $this->actingAs($user)->get(route('reports.export'));
+        $response->assertForbidden();
+    }
+
+    public function test_manager_can_export_reports_as_csv_with_bom(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager', 'email_verified_at' => now()]);
+
+        Carbon::setTestNow(Carbon::create(2026, 10, 5, 10, 0, 0, 'Asia/Bangkok'));
+
+        HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0099',
+            'pcar_no' => 'PCAR-202610-0099',
+            'title' => 'ทดสอบ Export รายงาน',
+            'description' => 'รายละเอียดปัญหาสำหรับทดสอบส่งออกรายงาน',
+            'category' => 'Hardware',
+            'requester_name' => 'ผู้แจ้ง ทดสอบ',
+            'requester_phone' => '0812345678',
+            'location' => 'Line 1',
+            'department' => 'IT',
+            'company' => 'Polymate',
+            'priority' => 'high',
+            'status' => 'closed',
+            'requires_preventive_measure' => true,
+            'root_cause_category' => 'เครื่องจักร',
+            'root_cause_detail' => 'เครื่องจักร - ขาดการบำรุงรักษา',
+            'resolved_at' => Carbon::create(2026, 10, 5, 12, 0, 0, 'Asia/Bangkok'),
+            'closed_at' => Carbon::create(2026, 10, 5, 13, 0, 0, 'Asia/Bangkok'),
+            'rating' => 5,
+        ]);
+
+        $response = $this->actingAs($manager)->get(route('reports.export', [
+            'month' => 10,
+            'year' => 2026,
+        ]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+
+        $content = $response->streamedContent();
+
+        // Check BOM
+        $this->assertStringStartsWith("\xEF\xBB\xBF", $content);
+
+        // Check Content
+        $this->assertStringContainsString('รายงานสถิติประจำเดือนและการวิเคราะห์ P-CAR Form 4', $content);
+        $this->assertStringContainsString('ตุลาคม พ.ศ. 2569', $content);
+        $this->assertStringContainsString('IT-202610-0099', $content);
+        $this->assertStringContainsString('PCAR-202610-0099', $content);
+        $this->assertStringContainsString('เครื่องจักร - ขาดการบำรุงรักษา', $content);
+    }
 }
