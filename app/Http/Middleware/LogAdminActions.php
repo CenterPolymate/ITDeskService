@@ -36,8 +36,8 @@ class LogAdminActions
         if ($shouldLog) {
             $routeName = $request->route() ? $request->route()->getName() : $request->path();
 
-            // Exclude regular chat comments
-            if (in_array($routeName, ['tickets.comments.store'], true)) {
+            // Exclude regular chat comments and diagnostic/test actions
+            if (in_array($routeName, ['tickets.comments.store', 'settings.run_sla_check', 'settings.test_email'], true)) {
                 $shouldLog = false;
             }
 

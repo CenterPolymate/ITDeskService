@@ -19,6 +19,13 @@ const KEY_MAP = {
     date: 'วันที่',
     action_note: 'หมายเหตุ',
     reason: 'เหตุผล',
+    line_channel_access_token: 'LINE Access Token',
+    line_channel_secret: 'LINE Secret',
+    smtp_host: 'SMTP Host',
+    smtp_port: 'SMTP Port',
+    smtp_username: 'SMTP Username / อีเมลผู้ส่ง',
+    smtp_encryption: 'การเข้ารหัส SMTP',
+    smtp_from_address: 'อีเมลผู้ส่ง (From Address)',
 };
 
 const IGNORED_KEYS = ['id', 'created_at', 'updated_at', 'deleted_at', 'email_verified_at', 'remember_token', 'password'];
@@ -32,6 +39,9 @@ function getActionBadge(action = '') {
     }
     if (action.includes('DEACTIVATE') || action.toLowerCase().includes('deactivate')) {
         return { label: 'เปลี่ยนสถานะเป็น Inactive', className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20' };
+    }
+    if (action.includes('settings.update')) {
+        return { label: 'แก้ไขข้อมูล', className: 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20' };
     }
     if (action.includes('POST') || action === 'created') {
         return { label: 'เพิ่มข้อมูล', className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20' };

@@ -92,6 +92,13 @@ class AuditLogController extends Controller
                     'date' => 'วันที่',
                     'action_note' => 'หมายเหตุ',
                     'reason' => 'เหตุผล',
+                    'line_channel_access_token' => 'LINE Access Token',
+                    'line_channel_secret' => 'LINE Secret',
+                    'smtp_host' => 'SMTP Host',
+                    'smtp_port' => 'SMTP Port',
+                    'smtp_username' => 'SMTP Username / อีเมลผู้ส่ง',
+                    'smtp_encryption' => 'การเข้ารหัส SMTP',
+                    'smtp_from_address' => 'อีเมลผู้ส่ง (From Address)',
                 ];
 
                 foreach ($logs as $log) {
@@ -102,6 +109,8 @@ class AuditLogController extends Controller
                         $actionText = 'จำลองสิทธิ์ (Impersonate)';
                     } elseif (str_contains($log->action, 'DEACTIVATE') || str_contains($log->action, 'deactivated')) {
                         $actionText = 'เปลี่ยนสถานะเป็น Inactive';
+                    } elseif (str_contains($log->action, 'settings.update')) {
+                        $actionText = 'แก้ไขข้อมูล';
                     } elseif (str_contains($log->action, 'POST') || $log->action === 'created') {
                         $actionText = 'เพิ่มข้อมูล';
                     } elseif (str_contains($log->action, 'PUT') || str_contains($log->action, 'PATCH') || $log->action === 'updated') {
