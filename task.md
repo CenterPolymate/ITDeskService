@@ -163,11 +163,20 @@
 - [x] ปรับแต่ง Progress Timeline บนหน้าใบงานสำหรับผู้ใช้ทั่วไป (User Timeline Privacy - Option 2):
   - [x] ซ่อนชื่อจริงของช่าง/เจ้าหน้าที่ผู้ปฏิบัติงานในไทม์ไลน์ของ User โดยแสดงเป็นบทบาทกลาง เพื่อรักษาความเป็นส่วนตัวของทีมงาน
   - [x] คงการแสดงชื่อผู้ปฏิบัติงานจริงสำหรับทีม IT และ Admin
-- [x] จัดระเบียบปุ่มระบบเสียงแจ้งเตือน:
+- [x] จัดระเบียบปุ่มระบบเสียงแจ้งเตือนและแถบนำทาง (Navbar Audio Controls & Layout Refinement):
   - [x] ลบปุ่มกระดิ่งเสียงที่ซ้ำซ้อนใน Ticket Comments และ Dashboard Header เพื่อให้เหลือการควบคุมจาก Navbar จุดเดียว
+  - [x] ปรับปุ่มเปิด/ปิดเสียงบน Navbar เป็นแบบ Compact Icon สวยงาม กระชับ ไม่กินพื้นที่
+  - [x] เพิ่มคลาส `whitespace-nowrap` บนลิงก์นำทางทุกเมนู ป้องกันข้อความตัดบรรทัด
+- [x] เพิ่มระบบเลือกโทนเสียงแจ้งเตือน (Sound Tone Selector):
+  - [x] เพิ่ม 5 รูปแบบโทนเสียงสังเคราะห์ (Chime, Melody, Desk Bell, Radar, Classic) ใน `webNotification.js`
+  - [x] สร้าง Dropdown เมนูเลือกโทนเสียงบน Navbar พร้อมปุ่มทดลองฟังเสียงตัวอย่างทันที (`playTonePreview()`)
+  - [x] จัดเก็บค่าที่เลือกใน `localStorage` (`itdesk_sound_tone`)
 - [x] ตรวจสอบและจัดทำคู่มือระบบคำนวณ SLA 8x5 และการทบเวลาข้ามคืน (SLA Carry-over & Wall-clock Countdown):
   - [x] ตรวจสอบและชี้แจงการคำนวณ SLA 8x5 ของ บจก. โพลีเมต (เปิด 16:03 น. ทบเวลาไปครบกำหนด 11:03 น. ของวันทำการถัดไป)
   - [x] ชี้แจงการนับเวลาถอยหลังจริง (Wall-clock Time) บนหน้าเว็บที่นับรวมเวลากลางคืนนอกเวลาทำการ
+- [x] ปรับปรุงความกระชับของบริบทระบบ (Context Document Cleanup):
+  - [x] ลบตารางบัญชีทดสอบระบบ (Test Accounts) ออกจาก `CONTEXT.md` อย่างถาวรตามคำสั่งของผู้ใช้งาน
+- [x] ตรวจสอบและอัปเดตเอกสารหลักทั้ง 6 ไฟล์ (`er_diagram.md`, `glossary.md`, `implementation_plan.md`, `task.md`, `CONTEXT.md`, `AGENTS.md`) ให้เป็นปัจจุบัน
 - **All current tasks are completed.**
 
 

@@ -85,7 +85,7 @@
    - **Holidays Management:** ระบบตั้งค่าวันหยุดนักขัตฤกษ์สำหรับนำไปใช้ในการคำนวณ SLA ให้แม่นยำยิ่งขึ้น โดยรองรับการดึงข้อมูลจาก Google Calendar แบบอัตโนมัติ และฟังก์ชันเพิ่มวันหยุดแบบ Manual พร้อมระบบป้องกันไม่ให้ลบวันหยุดในอดีต (เพื่อรักษาประวัติการคำนวณ SLA ย้อนหลัง) และตัวกรองแสดงผลเฉพาะปีปัจจุบันเป็นค่าเริ่มต้น
    - **SLA Overdue Warning Alert & 8x5 Business Hours:** ระบบคำนวณ SLA ตามเวลาทำการ 8x5 (จันทร์-ศุกร์ 08:00-12:00 และ 13:00-17:00 ไม่รวมพักเที่ยง วันเสาร์-อาทิตย์ และวันหยุดนักขัตฤกษ์) พร้อมทบเวลาส่วนที่เหลือข้ามคืนหรือข้ามวันหยุดไปยังวันทำการถัดไป โดยตัวนับเวลาถอยหลังบนหน้าเว็บคำนวณตามเวลาจริง (Wall-clock Time) และมีระบบตรวจจับเคสใกล้หมดเวลา (Warning) หรือเกินกำหนด (Breached) อัตโนมัติผ่านคำสั่ง `sla:check-warnings` และ Laravel Task Scheduler ทุก 1 นาที พร้อมส่งการแจ้งเตือนทาง Email, Database และ Log Line Notify ไปยังช่างที่รับผิดชอบ ทีมเฉพาะทาง Helpdesk และ Manager พร้อมแสดงแบนเนอร์แจ้งเตือนและปุ่มกรองด่วนบนหน้า Dashboard รวมถึงการแสดงผลการ์ดสีส้ม (Warning) ในหน้ารายละเอียดเคส และหน้าตั้งค่าระบบ (Settings) สำหรับปรับเวลาเตือนล่วงหน้า (15-120 นาที)
    - **System Branding & Favicon:** กำหนดชื่อเว็บไซต์เป็น `ITDeskService` และใช้สัญลักษณ์ลูกบาศก์ Polymate IT Solutions เป็น Favicon ประจำระบบ
-   - **Audio Notification System:** ระบบเสียงแจ้งเตือนสังเคราะห์ผ่าน Web Audio API (Harmonic Chime) โดยเปิดใช้งานเป็นค่าเริ่มต้นสำหรับทุกผู้ใช้ และมีปุ่ม Toggle เปิด-ปิดเสียงรวมศูนย์บน Navbar กลางเพียงจุดเดียว บันทึกลง `localStorage` (นำปุ่มกระดิ่งซ้ำซ้อนใน Comments และ Dashboard ออก)
+   - **Audio Notification System & Tone Selector:** ระบบเสียงแจ้งเตือนสังเคราะห์ผ่าน Web Audio API โดยเปิดใช้งานเป็นค่าเริ่มต้นสำหรับทุกผู้ใช้ และมีปุ่ม Toggle เปิด-ปิดเสียงแบบ Compact Icon บน Navbar พร้อมเมนูดรอปดาวน์เลือกรูปแบบโทนเสียงได้ถึง 5 สไตล์ (กระดิ่งกังวาน 3 โน้ต, ท่วงทำนองดนตรี 4 โน้ต, กระดิ่งเคาน์เตอร์ Service Desk, สัญญาณเรดาร์เตือน, คลาสสิก ดิ่ง-ด่อง) พร้อมปุ่มทดลองฟังเสียงตัวอย่าง และบันทึกการตั้งค่าลง `localStorage` (นำปุ่มกระดิ่งซ้ำซ้อนใน Comments และ Dashboard ออก)
    - **User Dashboard PCAR Isolation & Timeline Privacy:** ซ่อนป้ายสถานะ PCAR (`task2_status_label`) และหมายเลข PCAR จากหน้า Dashboard และรายละเอียดเคสของผู้ใช้งานทั่วไป อีกทั้งปกปิดชื่อจริงของเจ้าหน้าที่ผู้ปฏิบัติงานในแต่ละขั้นตอนบน Progress Timeline สำหรับผู้ใช้ทั่วไป (แสดงเป็นบทบาทกลาง) เพื่อความเป็นส่วนตัวและความเรียบง่าย ในขณะที่ทีมงาน IT และ Admin ยังคงเห็นชื่อผู้ปฏิบัติงานครบถ้วนเพื่อการ Audit
 5. **มาตรฐานข้อมูลและสิทธิ (Data Standards & Security):**
    - **Date Format:** รูปแบบการแสดงผลวันที่ในระบบทั้งหมด กำหนดให้ใช้มาตรฐาน `dd/MMMM/yyyy` (เช่น 10 มกราคม 2026) หรือเทียบเท่ากับฟอร์แมต `d F Y` ในภาษา PHP
@@ -98,15 +98,3 @@
 - **`Company`**: เก็บรายชื่อบริษัทสำหรับให้พนักงานเลือกสังกัด (Dynamic Company Management)
 - **`User`**: ระบบจัดการผู้ใช้งานและสิทธิ์ (Roles) แยกสิทธิ์อย่างชัดเจน ได้แก่ `user`, `helpdesk`, `team_hardware`, `team_network`, `team_software`, `manager`, `administrator`
 - **`AuditLog`**: ระบบบันทึกประวัติการเปลี่ยนแปลงข้อมูล (Audit Logging) ที่ทำงานเบื้องหลังอัตโนมัติเมื่อ Administrator กระทำการสร้าง, อัปเดต, หรือลบข้อมูลใดๆ บนระบบ
-
-## บัญชีสำหรับทดสอบระบบ (Test Accounts)
-
-| ตำแหน่ง (Role) | ชื่อ (Name) | อีเมล (Email) | รหัสผ่าน (Password) | บริษัท (Company) |
-|---|---|---|---|---|
-| team_network | อาทิตย์ พรมจันทร์ | `network_02@polymate.co.th` | `password` | Polymate |
-| administrator | admin | `admin@example.com` | `password` | Polymate |
-| manager | ณัฏฐนันท์ สถิตกุลธรรม | `hardware_01@polymate.co.th` | `password` | Polymate |
-| helpdesk | จรัญนวัฒน์ ศิรินาโพธิ์ | `contact@polymate.co.th` | `password` | Polymate |
-| team_hardware | ปริญญา แตงทอง | `hardware_02@polymate.co.th` | `password` | Polymate |
-| user | General User | `user@example.com` | `password` | Polymate |
-| user | รชต วงศาสวัสดิ์ | `` | `password` | Polymate |
