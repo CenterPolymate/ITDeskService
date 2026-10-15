@@ -335,7 +335,7 @@ export default function Show({ ticket }) {
                                 <h2 className="font-bold text-xl sm:text-2xl text-slate-800 leading-tight">
                                     ใบแจ้งซ่อม #{ticket.ticket_no}
                                 </h2>
-                                {ticket.pcar_no && (
+                                {user.role !== 'user' && ticket.pcar_no && (
                                     <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800 border border-teal-200">
                                         PCAR #{ticket.pcar_no}
                                     </span>

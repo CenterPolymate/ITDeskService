@@ -400,14 +400,7 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
                                                     <span className="text-sm font-bold text-blue-600">
                                                         #{c.ticket_no}
                                                     </span>
-                                                    <div className="flex flex-col items-end gap-1">
-                                                        {getStatusBadge(c.status, c.status_label)}
-                                                        {c.task2_status_label && (
-                                                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${c.task2_status_color || 'bg-gray-100 text-gray-700'}`}>
-                                                                {c.task2_status_label}
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                                    {getStatusBadge(c.status, c.status_label)}
                                                 </div>
 
                                                 <h4 className="text-base font-semibold text-gray-900 mb-2 leading-tight">
@@ -477,14 +470,7 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
                                                             </span>
                                                         </td>
                                                         <td className="px-5 py-3.5 whitespace-nowrap text-sm">
-                                                            <div className="flex flex-col items-start gap-1">
-                                                                {getStatusBadge(c.status, c.status_label)}
-                                                                {c.task2_status_label && (
-                                                                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${c.task2_status_color || 'bg-gray-100 text-gray-700'}`}>
-                                                                        {c.task2_status_label}
-                                                                    </span>
-                                                                )}
-                                                            </div>
+                                                            {getStatusBadge(c.status, c.status_label)}
                                                         </td>
                                                         <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-500">
                                                             {formatThaiDate(c.created_at)}
