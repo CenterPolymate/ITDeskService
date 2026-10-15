@@ -275,4 +275,88 @@ class TicketManagementTest extends TestCase
         $this->assertEquals($technician->id, $case->resolved_by);
         $this->assertEquals('เปลี่ยน Power Supply ใหม่ และนำไปติดตั้งส่งมอบให้ผู้แจ้งแล้ว', $case->resolution_notes);
     }
+
+    public function test_non_tier2_cannot_start_task2_preventive_measure(): void
+    {
+        $helpdesk = User::factory()->create(['role' => 'helpdesk', 'email' => 'helpdesk@example.com']);
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0105',
+            'title' => 'เคสที่ต้องการ Task 2',
+            'description' => 'รายละเอียดเคส',
+            'category' => 'Hardware',
+            'status' => 'closed',
+            'requires_preventive_measure' => true,
+            'preventive_measure' => 'assigned',
+            'escalated_to_team' => 'Hardware',
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-000-1111',
+            'location' => 'ชั้น 1',
+        ]);
+
+        $response = $this->actingAs($helpdesk)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'start_preventive_measure',
+        ]);
+
+        $response->assertRedirect(route('tickets.show', $case->id));
+        $response->assertSessionHas('error');
+        $case->refresh();
+        $this->assertEquals('assigned', $case->preventive_measure);
+    }
+
+    public function test_different_tier2_team_cannot_start_task2_assigned_to_another_team(): void
+    {
+        $networkTech = User::factory()->create(['role' => 'team_network', 'email' => 'net@example.com']);
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0106',
+            'title' => 'เคสส่งต่อ Hardware',
+            'description' => 'รายละเอียดเคส',
+            'category' => 'Hardware',
+            'status' => 'closed',
+            'requires_preventive_measure' => true,
+            'preventive_measure' => 'assigned',
+            'escalated_to_team' => 'Hardware',
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-000-1111',
+            'location' => 'ชั้น 1',
+        ]);
+
+        $response = $this->actingAs($networkTech)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'start_preventive_measure',
+        ]);
+
+        $response->assertRedirect(route('tickets.show', $case->id));
+        $response->assertSessionHas('error');
+        $case->refresh();
+        $this->assertEquals('assigned', $case->preventive_measure);
+    }
+
+    public function test_assigned_tier2_specialist_can_start_task2_preventive_measure(): void
+    {
+        $hardwareTech = User::factory()->create(['role' => 'team_hardware', 'email' => 'hw@example.com']);
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0107',
+            'title' => 'เคสส่งต่อ Hardware ที่จะเริ่ม Task 2',
+            'description' => 'รายละเอียดเคส',
+            'category' => 'Hardware',
+            'status' => 'closed',
+            'requires_preventive_measure' => true,
+            'preventive_measure' => 'assigned',
+            'escalated_to_team' => 'Hardware',
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-000-1111',
+            'location' => 'ชั้น 1',
+        ]);
+
+        $response = $this->actingAs($hardwareTech)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'start_preventive_measure',
+        ]);
+
+        $response->assertRedirect(route('tickets.show', $case->id));
+        $response->assertSessionHas('success');
+        $case->refresh();
+        $this->assertEquals('in_progress', $case->preventive_measure);
+    }
 }

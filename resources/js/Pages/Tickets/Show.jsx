@@ -45,6 +45,7 @@ export default function Show({ ticket }) {
     const isRequester = user.email === ticket.requester_email;
     const isHelpdesk = user.role === 'helpdesk';
     const isManager = typeof user.role === 'string' && user.role.includes('manager');
+    const isTier2 = typeof user.role === 'string' && ['team_hardware', 'team_network', 'team_software'].includes(user.role);
 
     let isAssignedTeam = false;
     if (ticket.escalated_to_team && user.role && user.role.startsWith('team_')) {
@@ -56,6 +57,8 @@ export default function Show({ ticket }) {
     if (!ticket.escalated_to_team && user.role === 'helpdesk') {
         isAssignedTeam = true;
     }
+
+    const canStartTask2 = isTier2 && (!ticket.escalated_to_team || isAssignedTeam);
 
     const canEditNotes = (isAssignedTeam || (user.role === 'helpdesk' && !ticket.escalated_to_team)) &&
         ['in_progress', 'resolved'].includes(ticket.status);
@@ -1022,18 +1025,32 @@ export default function Show({ ticket }) {
                                 </h3>
 
                                 {ticket.preventive_measure === 'assigned' ? (
-                                    <div className="text-center py-6 bg-teal-50/50 rounded-2xl border border-teal-100 p-6">
-                                        <p className="text-teal-900 font-medium mb-4">
-                                            ผู้จัดการได้มอบหมายงาน Task 2 ให้กับทีมของคุณ กรุณากดปุ่มด้านล่างเพื่อเริ่มดำเนินการป้องกัน
-                                        </p>
-                                        <button
-                                            type="button"
-                                            onClick={() => router.put(route('tickets.updateStatus', ticket.id), { action: 'start_preventive_measure' })}
-                                            className="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl shadow transition"
-                                        >
-                                            ▶️ เริ่มดำเนินการป้องกัน (Start Task 2)
-                                        </button>
-                                    </div>
+                                    canStartTask2 ? (
+                                        <div className="text-center py-6 bg-teal-50/50 rounded-2xl border border-teal-100 p-6">
+                                            <p className="text-teal-900 font-medium mb-4">
+                                                ผู้จัดการได้มอบหมายงาน Task 2 ให้กับทีมของคุณ{ticket.escalated_to_team ? ` (${ticket.escalated_to_team})` : ''} กรุณากดปุ่มด้านล่างเพื่อเริ่มดำเนินการป้องกัน
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={() => router.put(route('tickets.updateStatus', ticket.id), { action: 'start_preventive_measure' })}
+                                                className="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl shadow transition cursor-pointer"
+                                            >
+                                                ▶️ เริ่มดำเนินการป้องกัน (Start Task 2)
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-6 bg-slate-50 rounded-2xl border border-slate-200 p-6">
+                                            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-full text-xs font-bold mb-3">
+                                                <span>⏳ รอดำเนินการ Task 2</span>
+                                            </div>
+                                            <p className="text-slate-800 font-bold mb-1 text-sm">
+                                                มอบหมายงาน Task 2 ให้กับ{ticket.escalated_to_team ? `ทีม ${ticket.escalated_to_team} (Tier 2)` : 'ช่างเฉพาะทาง (Tier 2)'} เรียบร้อยแล้ว
+                                            </p>
+                                            <p className="text-xs text-slate-500">
+                                                (สิทธิ์การกดเริ่มดำเนินการเป็นของช่างเฉพาะทาง {ticket.escalated_to_team ? `ทีม ${ticket.escalated_to_team} (Tier 2)` : 'Tier 2'} เท่านั้น)
+                                            </p>
+                                        </div>
+                                    )
                                 ) : (
                                     <form
                                         onSubmit={(e) => {

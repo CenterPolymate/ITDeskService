@@ -439,11 +439,31 @@ class TicketController extends Controller
 
             return redirect()->route('tickets.show', $id)->with('success', 'บันทึกการตรวจสอบและส่งต่องานเรียบร้อยแล้ว');
         } elseif ($request->action === 'start_preventive_measure') {
+            $user = Auth::user();
+            $tier2Roles = ['team_hardware', 'team_network', 'team_software'];
+
+            if (! in_array($user->role, $tier2Roles)) {
+                return redirect()->route('tickets.show', $id)
+                    ->with('error', 'ไม่อนุญาต: สิทธิ์การกดเริ่มดำเนินการ Task 2 เป็นของช่างเฉพาะทาง (Tier 2) เท่านั้น');
+            }
+
+            if ($ticket->escalated_to_team) {
+                $teamMap = [
+                    'team_hardware' => 'Hardware',
+                    'team_network' => 'Network',
+                    'team_software' => 'Software',
+                ];
+                if (($teamMap[$user->role] ?? null) !== $ticket->escalated_to_team) {
+                    return redirect()->route('tickets.show', $id)
+                        ->with('error', 'ไม่อนุญาต: ใบงาน Task 2 นี้ถูกมอบหมายให้ทีม '.$ticket->escalated_to_team.' เท่านั้น');
+                }
+            }
+
             $ticket->update([
                 'preventive_measure' => 'in_progress',
             ]);
 
-            return redirect()->route('tickets.show', $id)->with('success', 'เริ่มดำเนินการสืบสภาพ (Task 2) เรียบร้อยแล้ว');
+            return redirect()->route('tickets.show', $id)->with('success', 'เริ่มดำเนินการมาตรการป้องกัน (Task 2) เรียบร้อยแล้ว');
         } elseif ($request->action === 'preventive_action') {
             $ticket->update([
                 'why_1' => $request->why_1,
