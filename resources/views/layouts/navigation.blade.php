@@ -96,22 +96,22 @@
                 </div>
             </div>
 
-            <div class="hidden sm:flex sm:items-center sm:ms-6 gap-4">
-                <!-- Date -->
-                <div class="text-sm font-medium text-gray-500 border-r border-gray-200 pr-4">
-                    {{ now()->locale('th')->translatedFormat('d F Y') }}
-                </div>
-
+            <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div class="flex items-center gap-2">
-                                <span>{{ Auth::user()?->name }}</span>
-                                <span class="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">{{ Auth::user()?->role }}</span>
+                        <button class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-xl text-gray-500 bg-white hover:text-gray-700 hover:bg-slate-50 focus:outline-none transition ease-in-out duration-150">
+                            <div class="flex flex-col text-left">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-semibold text-gray-800 leading-tight">{{ Auth::user()?->name }}</span>
+                                    <span class="text-[9px] bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded-full uppercase font-bold tracking-wider leading-none">{{ Auth::user()?->role }}</span>
+                                </div>
+                                <span class="text-[11px] text-gray-400 font-normal leading-tight mt-0.5">
+                                    {{ now()->locale('th')->translatedFormat('d F Y') }}
+                                </span>
                             </div>
 
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <div class="ms-2">
+                                <svg class="fill-current h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
                             </div>
@@ -203,6 +203,7 @@
             <div class="px-4">
                 <div class="font-medium text-base text-gray-800">{{ Auth::user()?->name }}</div>
                 <div class="font-medium text-sm text-gray-500">{{ Auth::user()?->email }}</div>
+                <div class="text-[11px] text-gray-400 font-normal mt-0.5">{{ now()->locale('th')->translatedFormat('d F Y') }}</div>
             </div>
 
             <div class="mt-3 space-y-1">
