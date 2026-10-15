@@ -21,12 +21,13 @@ class LogAdminActions
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $isAdmin = Auth::check() && Auth::user()->role === 'administrator';
+        $user = Auth::user();
+        $isPrivilegedUser = Auth::check() && in_array($user?->role, ['administrator', 'manager'], true);
         $method = $request->method();
         $isModifyingAction = in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE']);
-        $shouldLog = $isAdmin && $isModifyingAction;
+        $shouldLog = $isPrivilegedUser && $isModifyingAction;
 
-        $adminId = Auth::id();
+        $actorId = Auth::id();
         $routeName = null;
         $targetId = null;
         $oldValues = null;
@@ -34,7 +35,13 @@ class LogAdminActions
 
         if ($shouldLog) {
             $routeName = $request->route() ? $request->route()->getName() : $request->path();
-            if ($request->route() && $request->route()->parameterNames()) {
+
+            // Exclude regular chat comments
+            if (in_array($routeName, ['tickets.comments.store'], true)) {
+                $shouldLog = false;
+            }
+
+            if ($shouldLog && $request->route() && $request->route()->parameterNames()) {
                 $params = array_values($request->route()->parameters());
                 $ids = [];
                 foreach ($params as $param) {
@@ -73,7 +80,7 @@ class LogAdminActions
 
             if ($isDeactivate) {
                 AuditLog::create([
-                    'user_id' => $adminId,
+                    'user_id' => $actorId,
                     'action' => 'DEACTIVATE '.$routeName,
                     'target_type' => $routeName,
                     'target_id' => $targetId,
@@ -137,7 +144,7 @@ class LogAdminActions
             }
 
             AuditLog::create([
-                'user_id' => $adminId,
+                'user_id' => $actorId,
                 'action' => $method.' '.$routeName,
                 'target_type' => $routeName,
                 'target_id' => $targetId,

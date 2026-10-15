@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -87,5 +88,37 @@ class UserManagementTest extends TestCase
         $response = $this->actingAs($admin)->delete(route('users.destroy', $admin->id));
         $response->assertRedirect(route('users.index'));
         $response->assertSessionHas('error', 'ไม่สามารถระงับบัญชีของตัวเองได้');
+    }
+
+    public function test_manager_modifying_user_is_recorded_in_audit_log(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $company = Company::create(['name' => 'Acme Corp', 'sla_type' => '8x5', 'is_active' => true]);
+        $targetUser = User::factory()->create([
+            'name' => 'Initial Tech',
+            'role' => 'team_hardware',
+            'company' => $company->name,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($manager)->put(route('users.update', $targetUser->id), [
+            'name' => 'Updated Tech Name',
+            'email' => $targetUser->email,
+            'role' => 'team_network',
+            'company' => $company->name,
+            'is_active' => '1',
+        ]);
+
+        $response->assertRedirect(route('users.index'));
+
+        // Verify Audit Log was created with manager's ID
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $manager->id,
+            'target_id' => (string) $targetUser->id,
+        ]);
+
+        $log = AuditLog::where('user_id', $manager->id)->latest('id')->first();
+        $this->assertNotNull($log);
+        $this->assertStringContainsString('users.update', $log->action);
     }
 }
