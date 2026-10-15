@@ -256,7 +256,7 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
                                     )}
                                 </div>
                                 <p className="text-[11px] text-slate-400">
-                                    ใช้สำหรับตรวจจับ SLA Overdue Alert อัตโนมัติทุก 1 นาที
+                                    ดูแลทั้งระบบ: ตรวจจับ SLA (ทุก 1 นาที), สำรองข้อมูล Backup ประจำวัน (00:00 น.) และล้าง Audit Log
                                 </p>
                             </div>
 
