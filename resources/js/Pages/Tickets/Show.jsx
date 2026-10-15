@@ -355,8 +355,8 @@ export default function Show({ ticket }) {
                     </div>
                 )}
 
-                {/* SLA Visualizer */}
-                {ticket.sla_due_at && (
+                {/* SLA Visualizer (Visible only to IT Staff, hidden from general users) */}
+                {user.role !== 'user' && ticket.sla_due_at && (
                     ['resolved', 'approved', 'closed'].includes(ticket.status) ? (
                         ticket.resolved_at && (
                             <div className={`p-5 rounded-2xl shadow-sm mb-6 flex justify-between items-center border-l-4 ${
