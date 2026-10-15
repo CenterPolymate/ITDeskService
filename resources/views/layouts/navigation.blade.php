@@ -192,15 +192,15 @@
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 scale-100"
                         x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute right-0 mt-2 w-84 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 z-50 text-slate-800"
-                        style="display: none;"
+                        class="absolute right-0 mt-2 w-[340px] sm:w-[360px] bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 z-50 text-slate-800"
+                        style="display: none; width: 360px; min-width: 320px; max-width: calc(100vw - 2rem);"
                     >
                         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                                <h4 class="text-sm font-bold text-slate-900 flex items-center gap-1.5 whitespace-nowrap">
                                     <span>🔔 ระบบเสียงแจ้งเตือน</span>
                                 </h4>
-                                <p class="text-[11px] text-slate-500 mt-0.5">แจ้งเตือนเคสตามบทบาทและแชทใหม่</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5 whitespace-nowrap">แจ้งเตือนเคสตามบทบาทและแชทใหม่</p>
                             </div>
                             <button type="button" @click="dropdownOpen = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -209,9 +209,9 @@
 
                         <!-- Toggle Switch -->
                         <div class="py-3 flex items-center justify-between gap-3 border-b border-slate-100">
-                            <div>
-                                <div class="text-xs font-bold text-slate-800">เสียงแจ้งเตือนทุกระบบ</div>
-                                <div class="text-[11px] text-slate-500">เปิดเป็นค่าเริ่มต้นทุกผู้ใช้งาน</div>
+                            <div class="min-w-0">
+                                <div class="text-xs font-bold text-slate-800 whitespace-nowrap">เสียงแจ้งเตือนทุกระบบ</div>
+                                <div class="text-[11px] text-slate-500 whitespace-nowrap">เปิดเป็นค่าเริ่มต้นทุกผู้ใช้งาน</div>
                             </div>
                             <button
                                 type="button"
@@ -228,30 +228,32 @@
 
                         <!-- Sound Tone Selector & Preview -->
                         <div class="py-3 border-b border-slate-100 space-y-2">
-                            <div class="flex items-center justify-between">
-                                <label for="sound-tone-select-desktop" class="text-xs font-bold text-slate-800 flex items-center gap-1">
+                            <div class="flex items-center justify-between gap-2">
+                                <label for="sound-tone-select-desktop" class="text-xs font-bold text-slate-800 flex items-center gap-1 whitespace-nowrap">
                                     <span>🎵 รูปแบบเสียง (Sound Tone)</span>
                                 </label>
-                                <span class="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-medium border border-emerald-200">ปรับเสียงให้ดัง & ยาวขึ้น</span>
+                                <span class="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-medium border border-emerald-200 whitespace-nowrap shrink-0">ปรับเสียงให้ดัง & ยาวขึ้น</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <select 
-                                    id="sound-tone-select-desktop"
-                                    x-model="selectedTone" 
-                                    @change="changeTone(selectedTone)"
-                                    class="w-full text-xs border-slate-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 py-1.5 px-2.5 font-medium text-slate-700 bg-slate-50 cursor-pointer"
-                                >
-                                    <option value="chime">🔔 กระดิ่งกังวาน 3 โน้ต (ดังชัดเจน - แนะนำ)</option>
-                                    <option value="melody">✨ ท่วงทำนอง 4 โน้ต (นุ่มนวล พรีเมียม)</option>
-                                    <option value="desk_bell">🛎️ กระดิ่งเคาน์เตอร์ Service Desk (คมชัด)</option>
-                                    <option value="radar">🚨 สัญญาณเรดาร์เตือน (ฉุกเฉิน ตื่นตัว)</option>
-                                    <option value="classic">🎵 คลาสสิก ดิ่ง-ด่อง (ปรับเสียงดังขึ้น)</option>
-                                </select>
+                                <div class="relative flex-1 min-w-0">
+                                    <select 
+                                        id="sound-tone-select-desktop"
+                                        x-model="selectedTone" 
+                                        @change="changeTone(selectedTone)"
+                                        class="w-full text-xs border-slate-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 py-1.5 px-2.5 font-medium text-slate-700 bg-slate-50 cursor-pointer truncate"
+                                    >
+                                        <option value="chime">🔔 กระดิ่งกังวาน 3 โน้ต (ดังชัดเจน - แนะนำ)</option>
+                                        <option value="melody">✨ ท่วงทำนอง 4 โน้ต (นุ่มนวล พรีเมียม)</option>
+                                        <option value="desk_bell">🛎️ กระดิ่งเคาน์เตอร์ Service Desk (คมชัด)</option>
+                                        <option value="radar">🚨 สัญญาณเรดาร์เตือน (ฉุกเฉิน ตื่นตัว)</option>
+                                        <option value="classic">🎵 คลาสสิก ดิ่ง-ด่อง (ปรับเสียงดังขึ้น)</option>
+                                    </select>
+                                </div>
                                 <button
                                     type="button"
                                     @click="changeTone(selectedTone)"
                                     title="กดฟังตัวอย่างเสียงนี้"
-                                    class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shrink-0 transition flex items-center gap-1 shadow-xs cursor-pointer"
+                                    class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shrink-0 transition flex items-center gap-1 shadow-xs cursor-pointer whitespace-nowrap"
                                 >
                                     <span>▶</span>
                                     <span>ฟัง</span>
