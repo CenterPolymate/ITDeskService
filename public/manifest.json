@@ -1,0 +1,24 @@
+{
+    "name": "ITDeskService - ระบบแจ้งซ่อมไอที",
+    "short_name": "ITDesk",
+    "description": "ระบบแจ้งซ่อมไอทีและติดตามสถานะงาน IT Service Desk",
+    "start_url": "/dashboard",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#f8fafc",
+    "theme_color": "#2563eb",
+    "icons": [
+        {
+            "src": "/images/favicon.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/images/Icon polymate logo.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

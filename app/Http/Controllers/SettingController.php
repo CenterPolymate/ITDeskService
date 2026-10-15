@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Mail\TestSmtpMail;
 use App\Models\Setting;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -50,10 +53,56 @@ class SettingController extends Controller
 
         $settingsMap = $settings->mapWithKeys(fn ($item, $key) => [$key => $item->value])->all();
 
+        // System Diagnostics
+        $schedulerHeartbeat = Cache::get('scheduler_last_heartbeat');
+        $schedulerStatus = 'inactive';
+        $schedulerMinutesAgo = null;
+
+        if ($schedulerHeartbeat) {
+            $heartbeatTime = Carbon::parse($schedulerHeartbeat);
+            $diffInSeconds = now()->diffInSeconds($heartbeatTime);
+            $schedulerMinutesAgo = round($diffInSeconds / 60, 1);
+
+            if ($diffInSeconds <= 120) {
+                $schedulerStatus = 'active';
+            } elseif ($diffInSeconds <= 300) {
+                $schedulerStatus = 'warning';
+            } else {
+                $schedulerStatus = 'inactive';
+            }
+        }
+
+        $storageLinked = is_link(public_path('storage')) || file_exists(public_path('storage'));
+
+        $dbStatus = 'connected';
+        try {
+            DB::connection()->getPdo();
+        } catch (\Throwable $e) {
+            $dbStatus = 'disconnected';
+        }
+
+        $diagnostics = [
+            'scheduler' => [
+                'status' => $schedulerStatus,
+                'last_heartbeat' => $schedulerHeartbeat ? Carbon::parse($schedulerHeartbeat)->timezone('Asia/Bangkok')->translatedFormat('d F Y H:i:s') : null,
+                'minutes_ago' => $schedulerMinutesAgo,
+            ],
+            'storage' => [
+                'linked' => $storageLinked,
+            ],
+            'database' => [
+                'status' => $dbStatus,
+                'driver' => config('database.default'),
+            ],
+            'php_version' => PHP_VERSION,
+            'laravel_version' => app()->version(),
+        ];
+
         return Inertia::render('Settings/Index', [
             'settings' => $settingsMap,
             'initialSmtpToken' => $initialSmtpToken,
             'savedVerified' => $savedVerified,
+            'diagnostics' => $diagnostics,
         ]);
     }
 

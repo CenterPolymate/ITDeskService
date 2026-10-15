@@ -10,6 +10,14 @@
         <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
         <link rel="apple-touch-icon" href="{{ asset('images/favicon.png') }}">
 
+        <!-- PWA & Mobile Web App -->
+        <link rel="manifest" href="{{ asset('manifest.json') }}">
+        <meta name="theme-color" content="#2563eb">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <meta name="apple-mobile-web-app-title" content="ITDesk">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=prompt:300,400,500,600,700|noto-sans-thai:300,400,500,600,700|inter:400,500,600,700|figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -21,6 +29,32 @@
         @inertiaHead
     </head>
     <body class="font-sans antialiased bg-gray-100 text-gray-900">
+        <!-- Offline Network Indicator -->
+        <div id="offline-network-banner" class="hidden fixed top-0 left-0 right-0 z-[9999] bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold py-2 px-4 shadow-md text-center flex items-center justify-center gap-2 transition-all duration-300">
+            <svg class="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>⚠️ สัญญาณอินเทอร์เน็ตขาดหาย กำลังรอเชื่อมต่อใหม่... (Offline Reconnecting)</span>
+        </div>
+        <script>
+            (function() {
+                function updateOnlineStatus() {
+                    var el = document.getElementById('offline-network-banner');
+                    if (!el) return;
+                    if (navigator.onLine) {
+                        el.classList.add('hidden');
+                    } else {
+                        el.classList.remove('hidden');
+                    }
+                }
+                window.addEventListener('online', updateOnlineStatus);
+                window.addEventListener('offline', updateOnlineStatus);
+                if (!navigator.onLine) {
+                    updateOnlineStatus();
+                }
+            })();
+        </script>
         @auth
             @if(Auth::user()->hasVerifiedEmail())
                 <div class="min-h-screen bg-gray-100 pb-12">

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Notifications\SlaAlertNotification;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class CheckSlaWarnings extends Command
@@ -31,6 +32,8 @@ class CheckSlaWarnings extends Command
      */
     public function handle(): int
     {
+        Cache::put('scheduler_last_heartbeat', now()->toIso8601String(), 86400);
+
         $this->info('Starting SLA alert check...');
 
         $alertEnabled = Setting::where('key', 'sla_alert_enabled')->value('value');
