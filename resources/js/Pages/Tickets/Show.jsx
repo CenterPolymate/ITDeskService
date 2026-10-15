@@ -3,11 +3,7 @@ import Modal from '@/Components/Modal';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import {
-    isNotificationSupported,
-    getNotificationPermission,
-    requestNotificationPermission,
     sendBrowserNotification,
-    playNotificationChime,
 } from '@/Utils/webNotification';
 
 // Format Date to Thai standard
@@ -72,23 +68,8 @@ export default function Show({ ticket }) {
     const canCancel = (isRequester || isHelpdesk || isManager) &&
         ['pending', 'assigned', 'analyzing', 'in_progress'].includes(ticket.status);
 
-    const [notificationPermission, setNotificationPermission] = useState('default');
     const prevCommentsCountRef = useRef(null);
     const prevStatusRef = useRef(null);
-
-    useEffect(() => {
-        setNotificationPermission(getNotificationPermission());
-    }, []);
-
-    const handleRequestPermission = async () => {
-        const res = await requestNotificationPermission();
-        setNotificationPermission(res);
-        if (res === 'granted') {
-            sendBrowserNotification('✅ เปิดการแจ้งเตือนสำเร็จ', {
-                body: 'คุณจะได้รับการแจ้งเตือนทางเสียงและป๊อปอัปเมื่อมีข้อความแชทใหม่หรือสถานะเปลี่ยน',
-            });
-        }
-    };
 
     // Live auto-polling for comments and ticket status every 15s
     useEffect(() => {
@@ -1358,39 +1339,8 @@ export default function Show({ ticket }) {
                                     พูดคุย / สอบถามข้อมูลเพิ่มเติม
                                 </span>
                                 <div className="flex items-center gap-2">
-                                    {isNotificationSupported() && (
-                                        notificationPermission === 'granted' ? (
-                                            <button
-                                                type="button"
-                                                onClick={() => playNotificationChime(true)}
-                                                title="คลิกเพื่อทดสอบเสียงแจ้งเตือน"
-                                                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 rounded-full text-xs font-semibold transition cursor-pointer shadow-sm"
-                                            >
-                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                <span>🔔 แจ้งเตือนแชทเปิดอยู่ (ทดสอบเสียง)</span>
-                                            </button>
-                                        ) : notificationPermission === 'denied' ? (
-                                            <span
-                                                title="เบราว์เซอร์บล็อกการแจ้งเตือน"
-                                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium"
-                                            >
-                                                <span>🔕 ปิดแจ้งเตือน</span>
-                                            </span>
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                onClick={handleRequestPermission}
-                                                title="เปิดรับการแจ้งเตือนเมื่อมีข้อความแชทใหม่"
-                                                className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-xs font-semibold shadow-sm transition cursor-pointer"
-                                            >
-                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                                </svg>
-                                                <span>เปิดแจ้งเตือนแชท (Alerts)</span>
-                                            </button>
-                                        )
-                                    )}
-                                    <span className="text-xs text-slate-400 font-normal">
+                                    <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 font-normal">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                         อัปเดตทุก 15 วิ
                                     </span>
                                 </div>
