@@ -147,5 +147,19 @@
   - [x] แก้ไขการคำนวณ `task2_total` ใน `DashboardController.php` และตัวกรอง `task2_all` ใน `HelpdeskCase.php` ให้คัดกรองเคสที่ระบุ "ไม่ต้องการมาตรการป้องกัน" (`requires_preventive_measure = false`) ออกจากการ์ดเคสทั้งหมดและรายการเคสของ Task 2
   - [x] เพิ่มตัวเลือก `task2_all` ใน Select Dropdown ตัวกรองสถานะของ `ItStaffDashboard.jsx`
   - [x] เพิ่มชุดทดสอบอัตโนมัติใน `HelpdeskDashboardTest.php` ผ่านครบ 100% (104/104 tests ทั้งระบบ)
+- [x] พัฒนาระบบเสียงแจ้งเตือนสังเคราะห์ (Web Audio API Synthesizer Notification):
+  - [x] สร้างและปรับปรุงฟังก์ชันสังเคราะห์เสียง Harmonic Chime ใน `resources/js/Utils/webNotification.js` ให้คมชัด
+  - [x] กำหนดให้เปิดเสียงแจ้งเตือนเป็นค่าเริ่มต้นสำหรับทุก Role และทุกผู้ใช้งาน
+  - [x] เพิ่มปุ่ม Toggle สลับเปิด-ปิดเสียงแจ้งเตือนบน Navbar กลาง (`navigation.blade.php`) และจดจำการตั้งค่าใน `localStorage`
+  - [x] จัดระเบียบองค์ประกอบและไอคอนบน Navbar ของ Administrator ให้เรียงสวยงาม ไม่เบียดกัน
+- [x] ปรับปรุงสิทธิ์การเริ่มดำเนินการ Task 2 (Preventive Action Tier 2 Enforcement):
+  - [x] กำหนดให้เฉพาะช่างเฉพาะทาง (Tier 2: `team_hardware`, `team_network`, `team_software`) ของทีมที่ได้รับมอบหมายเท่านั้น ที่สามารถกดเริ่มดำเนินการ Task 2 ได้
+  - [x] ปรับแต่ง UI ใน `Tickets/Show.jsx` หากเป็น Role อื่น (Helpdesk, Manager, Administrator) ให้แสดงเป็นการ์ดสถานะแจ้งว่าส่งต่องานแล้วแทนการแสดงปุ่มกด
+  - [x] เพิ่มการตรวจสอบสิทธิ์ความปลอดภัยใน Action `start_preventive_measure` ของ `TicketController.php`
+  - [x] เพิ่ม Feature Tests ใน `TicketManagementTest.php` ผ่านครบ 100%
+- [x] ปรับปรุงมุมมอง User Dashboard (PCAR Isolation):
+  - [x] นำป้ายสถานะ PCAR (`task2_status_label`) ออกจากตารางประวัติการแจ้งซ่อมของ Role `user` ใน `UserDashboard.jsx` ทั้งโหมดเดสก์ท็อปและมือถือ
+  - [x] ซ่อนป้ายแท็ก `PCAR #...` ในส่วนหัวของหน้าดูรายละเอียดใบงาน (`Show.jsx`) สำหรับผู้ใช้ทั่วไป
 - **All current tasks are completed.**
+
 

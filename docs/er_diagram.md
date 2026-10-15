@@ -60,6 +60,7 @@ erDiagram
         json analysis_notes "ข้อมูลสาเหตุของปัญหาเบื้องต้น"
         text resolution_notes "บันทึกการแก้ไขปัญหาเฉพาะหน้า"
         boolean requires_preventive_measure "ต้องการมาตรการป้องกัน (Manager อนุมัติ)"
+        string preventive_measure "สถานะ Task 2 (assigned, in_progress, pending_review, done)"
         string root_cause_category "หมวดหมู่สาเหตุ (P-CAR)"
         string why_1 "การวิเคราะห์ ทำไม ครั้งที่ 1"
         string why_2 "การวิเคราะห์ ทำไม ครั้งที่ 2"
@@ -211,6 +212,7 @@ erDiagram
 > - **การติดตามผู้ปฏิบัติงาน:** ทุกขั้นตอนการเปลี่ยนสถานะ ระบบจะบันทึก ID ของผู้ใช้งานที่กดทำรายการไว้ (`assigned_by`, `analyzing_by`, `in_progress_by`, `resolved_by`, `approved_by`, `closed_by`, `cancelled_by`)
 > - **การส่งมอบงานและการหยุดนับเวลา SLA (Handover & SLA Pausing):** ช่างสามารถบันทึกข้อความการแก้ไขเฉพาะหน้า (`resolution_notes`) ได้ตลอดเวลาในระหว่างซ่อม (`in_progress`) และเมื่อส่งงานให้ผู้แจ้งแล้วจริง ๆ จึงกด Action "ส่งมอบงานให้ผู้แจ้ง" เพื่อเปลี่ยนสถานะเป็น `resolved` ("รอผู้แจ้งกดรับงาน") พร้อมหยุดนับเวลา SLA ทันที
 > - **การรับทราบผลงาน (Acceptance & CSAT):** ผู้แจ้งเป็นผู้กดรับงานและให้คะแนนความพึงพอใจ CSAT เพื่อเปลี่ยนสถานะเป็นปิดใบงาน (`closed`) ทันที (Helpdesk กดแทนได้เมื่อเวลาผ่านไปครบ 5 นาที)
-> - **การตรวจสอบย้อนหลัง (Manager Review):** หลังจากใบงานปิดแล้ว Manager (Tier 3) เข้ามาตรวจสอบเพื่อระบุว่าต้องการมาตรการป้องกันปัญหา (Preventive Measure - Task 2) หรือไม่
+> - **การตรวจสอบย้อนหลัง (Manager Review) และสิทธิ์การเริ่ม Task 2:** หลังจากใบงานปิดแล้ว Manager (Tier 3) เข้ามาตรวจสอบเพื่อระบุว่าต้องการมาตรการป้องกันปัญหา (Preventive Measure - Task 2) หรือไม่ โดยสิทธิ์การกดเริ่มดำเนินการป้องกัน (`start_preventive_measure`) ถูกจำกัดให้เฉพาะช่างเฉพาะทาง (Tier 2: Hardware, Network, Software) ของทีมที่ได้รับมอบหมายเท่านั้น
+> - **การแยกบริบทข้อมูลสำหรับผู้ใช้งานทั่วไป (User Dashboard PCAR Isolation):** ในหน้า Dashboard ของ Role `user` (ทั้งตารางในโหมดเดสก์ท็อปและการ์ดในโหมดมือถือ) รวมถึงส่วนหัวของหน้ารายละเอียดใบงาน จะไม่แสดงสถานะ PCAR หรือเลขที่ PCAR เพื่อแยกกระบวนการภายในของฝ่าย IT ออกจากมุมมองของผู้ใช้งาน
 > - **ระบบแจ้งเตือน SLA Overdue Warning Alert:** ตาราง `HELPDESK_CASES` มีฟิลด์ `sla_warning_sent_at` และ `sla_breached_sent_at` สำหรับบันทึกเวลาที่ส่งการแจ้งเตือนเคสใกล้หมดเวลา SLA และเคสเกินเวลา SLA ป้องกันการส่งซ้ำ
 > - **External Systems (LINE OA & Email Server):** เป็นระบบภายนอกที่ไม่ได้เก็บข้อมูลเป็นตารางหลักในฐานข้อมูล แต่ระบบ ITDeskService จะเชื่อมต่อผ่าน API และ SMTP เพื่อใช้ในการแจ้งเตือน (Notifications) และยืนยันตัวตน (Email Verification)

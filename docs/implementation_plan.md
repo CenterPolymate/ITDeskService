@@ -264,3 +264,18 @@
 - [x] **System Branding:**
   - [x] กำหนดชื่อเว็บไซต์เป็น `ITDeskService` ทั่วทั้งระบบ
   - [x] อัปเดตไอคอนประจำเว็บไซต์ (Favicon) ด้วยสัญลักษณ์ลูกบาศก์ Polymate IT Solutions
+
+## Phase 11: Audio Notifications, Task 2 Tier 2 Enforcement & User Dashboard Scope (✅ ดำเนินการแล้วเสร็จ)
+- [x] **ระบบเสียงแจ้งเตือนสังเคราะห์ (Web Audio Synthesizer Notification):**
+  - [x] พัฒนาระบบเสียงแจ้งเตือนสังเคราะห์ด้วย Web Audio API (Harmonic Chime) คมชัดระดับสตูดิโอ ไม่พึ่งพาไฟล์ภายนอก
+  - [x] เปิดใช้งานเสียงแจ้งเตือนเป็นค่าเริ่มต้น (Default Enabled) สำหรับทุก Role และทุกผู้ใช้งาน
+  - [x] เพิ่มปุ่ม Toggle สลับเปิด-ปิดเสียงแจ้งเตือนบริเวณ Navbar กึ่งกลาง พร้อมจำสถานะผ่าน `localStorage`
+  - [x] ปรับปรุงเลย์เอาต์แถบนำทางของ Administrator ให้เป็นระเบียบสวยงาม ไม่เบียดกัน
+- [x] **การจำกัดสิทธิ์การเริ่ม Task 2 (Tier 2 Specialist Enforcement):**
+  - [x] ปรับปรุงสิทธิ์การกดเริ่มดำเนินการป้องกัน (`start_preventive_measure`) ใน Task 2 ให้เฉพาะช่าง Tier 2 (`team_hardware`, `team_network`, `team_software`) ของทีมที่ได้รับมอบหมายเท่านั้น
+  - [x] ปรับ UI ในหน้า `Tickets/Show.jsx` หากผู้ใช้ไม่ใช่ Tier 2 ของทีมที่ได้รับมอบหมาย ให้ซ่อนปุ่มเริ่ม และแสดงการ์ดสถานะแจ้งว่าส่งต่องานให้ Tier 2 แล้ว
+  - [x] เพิ่มการตรวจสอบสิทธิ์ความปลอดภัยใน Controller ฝั่ง Server (`TicketController.php`) ป้องกันการส่งคำขอข้ามสิทธิ์
+  - [x] เพิ่ม Feature Test ครอบคลุมใน `TicketManagementTest.php` ผ่านครบ 100%
+- [x] **การปรับปรุงมุมมอง User Dashboard (PCAR Isolation):**
+  - [x] นำป้ายสถานะ PCAR (`task2_status_label`) ออกจากตารางประวัติการแจ้งซ่อมของ Role `user` ทั้ง Desktop Table และ Mobile Cards
+  - [x] ซ่อนแท็ก `PCAR #...` ในส่วนหัวของหน้าดูรายละเอียดใบงาน (`Show.jsx`) สำหรับผู้ใช้ทั่วไป เพื่อแยกบริบทงานภายในของ IT ออกจากผู้ใช้งาน
