@@ -1,6 +1,6 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
     <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1550px] mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex items-center">
                 <!-- Logo & Title -->
@@ -9,14 +9,14 @@
                         <div>
                             <img src="{{ asset('images/polymate-logo.png') }}" alt="Polymate Logo" class="h-8 w-auto">
                         </div>
-                        <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600 hidden sm:block">
+                        <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600 hidden sm:block whitespace-nowrap">
                             ITDeskService
                         </span>
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden sm:-my-px sm:ms-5 lg:ms-8 sm:flex sm:items-center sm:gap-1.5 lg:gap-3 xl:gap-5">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
@@ -28,11 +28,11 @@
                     @endif
 
                     @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
-                        <div class="hidden sm:flex sm:items-center sm:ms-6">
+                        <div class="hidden sm:flex sm:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
-                                    <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 {{ request()->routeIs('users.*') || request()->routeIs('normal_users.*') ? 'border-b-2 border-indigo-400 text-gray-900 focus:border-indigo-700' : '' }}">
-                                        <div>จัดการผู้ใช้งาน</div>
+                                    <button class="inline-flex items-center px-2.5 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 whitespace-nowrap {{ request()->routeIs('users.*') || request()->routeIs('normal_users.*') ? 'border-b-2 border-indigo-400 text-gray-900 focus:border-indigo-700' : '' }}">
+                                        <span>จัดการผู้ใช้งาน</span>
                                         <div class="ms-1">
                                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -56,11 +56,11 @@
                     @endif
 
                     @if(Auth::user()?->role === 'administrator')
-                        <div class="hidden sm:flex sm:items-center sm:ms-6">
+                        <div class="hidden sm:flex sm:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
-                                    <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 {{ request()->routeIs('categories.*') || request()->routeIs('slas.*') || request()->routeIs('settings.*') || request()->routeIs('audit_logs.*') ? 'border-b-2 border-indigo-400 text-gray-900 focus:border-indigo-700' : '' }}">
-                                        <div>ตั้งค่าระบบ (Admin)</div>
+                                    <button class="inline-flex items-center px-2.5 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 whitespace-nowrap {{ request()->routeIs('categories.*') || request()->routeIs('slas.*') || request()->routeIs('settings.*') || request()->routeIs('audit_logs.*') ? 'border-b-2 border-indigo-400 text-gray-900 focus:border-indigo-700' : '' }}">
+                                        <span>ตั้งค่าระบบ (Admin)</span>
                                         <div class="ms-1">
                                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -96,7 +96,7 @@
                 </div>
             </div>
 
-            <div class="hidden sm:flex sm:items-center sm:gap-2.5 sm:ms-6">
+            <div class="hidden sm:flex sm:items-center sm:gap-2 sm:ms-4 shrink-0">
                 <!-- Sound Notification Control Dropdown (Desktop) -->
                 <div x-data="{
                     dropdownOpen: false,
@@ -143,36 +143,29 @@
                     <button
                         type="button"
                         @click="dropdownOpen = !dropdownOpen; syncState();"
-                        :title="soundEnabled ? 'เสียงแจ้งเตือน: เปิดอยู่ (คลิกเพื่อตั้งค่า/ทดสอบเสียง)' : 'เสียงแจ้งเตือน: ปิดอยู่ (คลิกเพื่อเปิด)'"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all duration-200 shadow-xs focus:outline-none"
+                        :title="soundEnabled ? 'ระบบเสียงแจ้งเตือน: เปิดอยู่ (คลิกเพื่อตั้งค่า/ทดสอบเสียง)' : 'ระบบเสียงแจ้งเตือน: ปิดอยู่ (คลิกเพื่อเปิด)'"
+                        class="relative p-2 rounded-xl border transition-all duration-200 shadow-xs focus:outline-none flex items-center justify-center shrink-0 cursor-pointer"
                         :class="soundEnabled 
-                            ? 'bg-emerald-50/90 text-emerald-800 border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400' 
-                            : 'bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200 hover:text-slate-800'"
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400' 
+                            : 'bg-slate-100 text-slate-500 border-slate-300 hover:bg-slate-200 hover:text-slate-800'"
                     >
                         <template x-if="soundEnabled">
-                            <span class="flex items-center gap-1.5">
-                                <span class="relative flex h-2 w-2">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                </span>
-                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <span class="relative flex items-center justify-center">
+                                <span class="animate-ping absolute -top-1 -right-1 inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="absolute -top-1 -right-1 inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                                 </svg>
-                                <span>เสียงเตือนเปิด</span>
                             </span>
                         </template>
                         <template x-if="!soundEnabled">
-                            <span class="flex items-center gap-1.5">
-                                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <span class="relative flex items-center justify-center">
+                                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
                                 </svg>
-                                <span>ปิดเสียง</span>
                             </span>
                         </template>
-                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
                     </button>
 
                     <!-- Dropdown Panel -->
@@ -269,7 +262,7 @@
                 <!-- User Dropdown Menu -->
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-xl text-gray-500 bg-white hover:text-gray-700 hover:bg-slate-50 focus:outline-none transition ease-in-out duration-150">
+                        <button class="inline-flex items-center px-2.5 py-1.5 border border-transparent rounded-xl text-gray-500 bg-white hover:text-gray-700 hover:bg-slate-50 focus:outline-none transition ease-in-out duration-150 whitespace-nowrap">
                             <div class="flex flex-col text-left">
                                 <div class="flex items-center gap-2">
                                     <span class="text-sm font-semibold text-gray-800 leading-tight">{{ Auth::user()?->name }}</span>
