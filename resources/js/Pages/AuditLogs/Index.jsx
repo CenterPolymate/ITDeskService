@@ -28,6 +28,16 @@ const KEY_MAP = {
     smtp_from_address: 'อีเมลผู้ส่ง (From Address)',
 };
 
+const ROLE_MAP = {
+    administrator: 'ผู้ดูแลระบบสูงสุด',
+    manager: 'ผู้จัดการ IT',
+    helpdesk: 'ฝ่ายรับเรื่อง (Helpdesk)',
+    team_hardware: 'ช่างฮาร์ดแวร์',
+    team_network: 'ช่างระบบเครือข่าย',
+    team_software: 'โปรแกรมเมอร์/ซอฟต์แวร์',
+    user: 'ผู้ใช้งานทั่วไป',
+};
+
 const IGNORED_KEYS = ['id', 'created_at', 'updated_at', 'deleted_at', 'email_verified_at', 'remember_token', 'password'];
 
 function getActionBadge(action = '') {
@@ -58,7 +68,7 @@ function getActionBadge(action = '') {
     return { label: action, className: 'bg-gray-100 text-gray-800' };
 }
 
-function getTargetInfo(targetType = '', targetId = '') {
+function getTargetInfo(targetType = '', targetId = '', targetUser = null) {
     let text = targetType.split('\\').pop() || targetType;
     if (targetType.includes('categories')) text = 'หมวดหมู่ปัญหา';
     else if (targetType.includes('companies')) text = 'ข้อมูลบริษัท';
@@ -82,7 +92,7 @@ function getTargetInfo(targetType = '', targetId = '') {
         }
     }
 
-    return { text, displayId };
+    return { text, displayId, targetUser };
 }
 
 function formatValue(val, key) {
@@ -103,6 +113,37 @@ function LogChangesDisplay({ log }) {
         if (log.action && log.action.includes('impersonate.leave')) {
             return <span className="text-gray-700 font-medium">กลับสู่บัญชีหลัก (Admin)</span>;
         }
+
+        const tu = log.target_user || (log.changes?.impersonated_user_name ? {
+            name: log.changes.impersonated_user_name,
+            email: log.changes.impersonated_user_email,
+            role: log.changes.impersonated_user_role,
+            department: log.changes.impersonated_user_department,
+        } : null);
+
+        if (tu) {
+            return (
+                <div className="space-y-1">
+                    <div className="text-gray-900 font-semibold flex items-center gap-1.5 flex-wrap">
+                        <span className="text-gray-500 font-normal">เข้าสู่ระบบด้วยสิทธิ์ของ:</span>
+                        <span className="text-indigo-700 font-bold">{tu.name}</span>
+                        {log.target_id && <span className="text-gray-400 font-mono text-[11px]">(ID #{log.target_id})</span>}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600/20">
+                            {ROLE_MAP[tu.role] || tu.role}
+                        </span>
+                        {tu.department && (
+                            <span className="text-gray-600 text-[11px] font-medium">• แผนก {tu.department}</span>
+                        )}
+                        {tu.email && (
+                            <span className="text-gray-400 font-mono text-[11px]">({tu.email})</span>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
         return (
             <span className="text-gray-700">
                 เข้าสู่ระบบด้วยสิทธิ์ของ: <span className="font-bold text-indigo-700">ID #{log.target_id}</span>
@@ -315,7 +356,7 @@ export default function Index({ logs, users = [], filters = {} }) {
                                 <div className="md:hidden divide-y divide-gray-100">
                                     {logs.data.map((log) => {
                                         const badge = getActionBadge(log.action);
-                                        const target = getTargetInfo(log.target_type, log.target_id);
+                                        const target = getTargetInfo(log.target_type, log.target_id, log.target_user);
                                         const createdDate = new Date(log.created_at);
                                         const dateStr = createdDate.toLocaleDateString('th-TH', {
                                             day: 'numeric',
@@ -353,7 +394,13 @@ export default function Index({ logs, users = [], filters = {} }) {
                                                     <div className="text-gray-700">
                                                         <span className="text-gray-400">เป้าหมาย: </span>
                                                         <span className="font-semibold">{target.text}</span>
-                                                        {target.displayId && <span className="text-gray-400 font-mono"> #{target.displayId}</span>}
+                                                        {target.targetUser?.name ? (
+                                                            <span className="text-indigo-600 font-medium ml-1">
+                                                                : {target.targetUser.name} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId}</span>
+                                                            </span>
+                                                        ) : target.displayId ? (
+                                                            <span className="text-gray-400 font-mono"> #{target.displayId}</span>
+                                                        ) : null}
                                                     </div>
                                                 </div>
 
@@ -383,7 +430,7 @@ export default function Index({ logs, users = [], filters = {} }) {
                                         <tbody className="bg-white divide-y divide-gray-100 text-sm">
                                             {logs.data.map((log) => {
                                                 const badge = getActionBadge(log.action);
-                                                const target = getTargetInfo(log.target_type, log.target_id);
+                                                const target = getTargetInfo(log.target_type, log.target_id, log.target_user);
                                                 const createdDate = new Date(log.created_at);
                                                 const dateStr = createdDate.toLocaleDateString('th-TH', {
                                                     day: 'numeric',
@@ -418,9 +465,13 @@ export default function Index({ logs, users = [], filters = {} }) {
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <span className="font-bold text-gray-800 text-xs">{target.text}</span>
-                                                            {target.displayId && (
+                                                            {target.targetUser?.name ? (
+                                                                <span className="text-indigo-600 font-medium text-xs ml-1">
+                                                                    : {target.targetUser.name} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId}</span>
+                                                                </span>
+                                                            ) : target.displayId ? (
                                                                 <span className="text-gray-400 font-mono text-xs ml-1">#{target.displayId}</span>
-                                                            )}
+                                                            ) : null}
                                                         </td>
                                                         <td className="px-6 py-4 min-w-[280px]">
                                                             <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100 max-w-xl">

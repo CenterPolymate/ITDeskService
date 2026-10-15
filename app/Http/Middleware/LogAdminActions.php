@@ -98,6 +98,17 @@ class LogAdminActions
 
             $changes = $request->except(['password', 'password_confirmation', '_token', '_method']);
 
+            // กรณีจำลองสิทธิ์ ให้บันทึกข้อมูลของผู้ใช้เป้าหมายไว้ใน changes
+            if ($routeName === 'impersonate' && $targetModel instanceof User) {
+                $changes = [
+                    'impersonated_user_id' => $targetModel->id,
+                    'impersonated_user_name' => $targetModel->name,
+                    'impersonated_user_email' => $targetModel->email,
+                    'impersonated_user_role' => $targetModel->role,
+                    'impersonated_user_department' => $targetModel->department,
+                ];
+            }
+
             // ไฟล์อัปโหลดแปลงเป็น JSON ไม่ได้ ให้บันทึกเป็นชื่อไฟล์แทน
             array_walk_recursive($changes, function (mixed &$value): void {
                 if ($value instanceof UploadedFile) {

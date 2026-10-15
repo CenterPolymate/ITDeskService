@@ -41,6 +41,34 @@ class AuditLogController extends Controller
         }
 
         $logs = $query->paginate($perPage)->appends(request()->query());
+
+        // Eager-load target users for impersonate & user-related actions
+        $targetUserIds = $logs->getCollection()
+            ->filter(function ($log) {
+                return (str_contains($log->target_type, 'impersonate') || str_contains($log->target_type, 'users') || str_contains($log->action, 'impersonate'))
+                    && is_numeric($log->target_id);
+            })
+            ->pluck('target_id')
+            ->unique()
+            ->filter();
+
+        $targetUsers = User::whereIn('id', $targetUserIds)->get()->keyBy('id');
+
+        $logs->getCollection()->transform(function ($log) use ($targetUsers) {
+            if (is_numeric($log->target_id) && isset($targetUsers[$log->target_id])) {
+                $u = $targetUsers[$log->target_id];
+                $log->target_user = [
+                    'id' => $u->id,
+                    'name' => $u->name,
+                    'email' => $u->email,
+                    'role' => $u->role,
+                    'department' => $u->department,
+                ];
+            }
+
+            return $log;
+        });
+
         $users = User::whereIn('role', ['administrator', 'manager'])->orderBy('name')->get(['id', 'name']);
 
         return Inertia::render('AuditLogs/Index', [
