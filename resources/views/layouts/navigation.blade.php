@@ -22,6 +22,12 @@
                     </x-nav-link>
 
                     @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
+                        <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
+                            {{ __('รายงานสถิติ') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
                         <div class="hidden sm:flex sm:items-center sm:ms-6">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
@@ -149,6 +155,12 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
+                <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
+                    {{ __('รายงานสถิติ') }}
+                </x-responsive-nav-link>
+            @endif
 
             @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
                 <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">จัดการผู้ใช้งาน</div>

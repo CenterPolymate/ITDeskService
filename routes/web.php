@@ -17,6 +17,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\ImpersonateController;
 use App\Http\Controllers\NormalUserController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TicketCommentController;
 use App\Http\Controllers\TicketController;
@@ -29,6 +30,7 @@ Route::post('/line/link-account', [LineLiffController::class, 'linkAccount']);
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
     // Ticket Routes
     Route::get('/tickets/create', [TicketController::class, 'create'])->name('tickets.create');

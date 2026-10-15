@@ -174,7 +174,11 @@ class DashboardController extends Controller
                 ->whereColumn('resolved_at', '>', 'sla_due_at')->count(),
 
             // Task 2 Stats
-            'task2_total' => (clone $baseQuery)->where('status', 'closed')->count(),
+            'task2_total' => in_array($user->role, ['manager', 'administrator'])
+                ? (clone $baseQuery)->where('status', 'closed')->where(function ($q) {
+                    $q->whereNull('requires_preventive_measure')->orWhere('requires_preventive_measure', true);
+                })->count()
+                : (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->count(),
             'task2_manager_review' => (clone $baseQuery)->where('status', 'closed')->whereNull('requires_preventive_measure')->count(),
             'task2_assigned' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where(function ($q) {
                 $q->whereNull('preventive_measure')->orWhere('preventive_measure', 'assigned');

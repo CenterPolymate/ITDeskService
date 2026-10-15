@@ -162,4 +162,86 @@ class HelpdeskDashboardTest extends TestCase
             ->where('ticket.location', 'ห้องประชุม 5A')
         );
     }
+
+    /**
+     * Test that Task 2 total and task2_all filter exclude closed cases where requires_preventive_measure is false.
+     */
+    public function test_task2_total_excludes_cases_not_requiring_preventive_measure(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $this->actingAs($manager);
+
+        // Case 1: Closed with requires_preventive_measure = false (Should NOT be in Task 2)
+        HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0001',
+            'title' => 'เคสไม่ต้องการมาตรการป้องกัน',
+            'description' => 'ปิดงานแล้ว และหัวหน้าเลือกไม่ต้องการมาตรการป้องกัน',
+            'category' => 'Hardware',
+            'priority' => 'low',
+            'status' => 'closed',
+            'requires_preventive_measure' => false,
+            'requester_name' => 'ทดสอบ 1',
+            'department' => 'ฝ่ายทดสอบ',
+            'requester_phone' => '080-000-0000',
+            'location' => 'Test Location',
+            'created_at' => now()->subMinutes(3),
+        ]);
+
+        // Case 2: Closed waiting for manager review (requires_preventive_measure IS NULL)
+        HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0002',
+            'title' => 'เคสรอหัวหน้าตรวจ',
+            'description' => 'ปิดงานแล้ว รอหัวหน้าตรวจ',
+            'category' => 'Hardware',
+            'priority' => 'low',
+            'status' => 'closed',
+            'requires_preventive_measure' => null,
+            'requester_name' => 'ทดสอบ 2',
+            'department' => 'ฝ่ายทดสอบ',
+            'requester_phone' => '080-000-0000',
+            'location' => 'Test Location',
+            'created_at' => now()->subMinutes(2),
+        ]);
+
+        // Case 3: Closed requiring preventive measure (requires_preventive_measure = true)
+        HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0003',
+            'title' => 'เคสต้องการมาตรการป้องกัน',
+            'description' => 'ปิดงานแล้ว และต้องการมาตรการป้องกัน',
+            'category' => 'Hardware',
+            'priority' => 'low',
+            'status' => 'closed',
+            'requires_preventive_measure' => true,
+            'preventive_measure' => 'assigned',
+            'requester_name' => 'ทดสอบ 3',
+            'department' => 'ฝ่ายทดสอบ',
+            'requester_phone' => '080-000-0000',
+            'location' => 'Test Location',
+            'created_at' => now()->subMinutes(1),
+        ]);
+
+        $response = $this->get(route('dashboard'));
+        $response->assertStatus(200);
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Dashboard/ItStaffDashboard')
+            ->where('stats.task2_total', 2)
+            ->where('stats.task2_manager_review', 1)
+            ->where('stats.task2_assigned', 1)
+        );
+
+        // Filter status=task2_all
+        $filterResponse = $this->get(route('dashboard', ['status' => 'task2_all']));
+        $filterResponse->assertStatus(200);
+        $filterResponse->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Dashboard/ItStaffDashboard')
+            ->has('cases.data', 2)
+            ->where('cases.data', function ($cases) {
+                $ticketNos = collect($cases)->pluck('ticket_no')->all();
+
+                return in_array('IT-202610-0002', $ticketNos)
+                    && in_array('IT-202610-0003', $ticketNos)
+                    && ! in_array('IT-202610-0001', $ticketNos);
+            })
+        );
+    }
 }

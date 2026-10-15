@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class HelpdeskCase extends Model
 {
@@ -286,7 +287,17 @@ class HelpdeskCase extends Model
                     $query->where('status', 'closed')
                         ->whereNull('requires_preventive_measure');
                 } elseif ($status === 'task2_all') {
-                    $query->where('status', 'closed');
+                    $user = Auth::user();
+                    if (! $user || in_array($user->role, ['manager', 'administrator'])) {
+                        $query->where('status', 'closed')
+                            ->where(function ($q) {
+                                $q->whereNull('requires_preventive_measure')
+                                    ->orWhere('requires_preventive_measure', true);
+                            });
+                    } else {
+                        $query->where('status', 'closed')
+                            ->where('requires_preventive_measure', true);
+                    }
                 } elseif ($status === 'task2_assigned') {
                     $query->where('status', 'closed')
                         ->where('requires_preventive_measure', true)

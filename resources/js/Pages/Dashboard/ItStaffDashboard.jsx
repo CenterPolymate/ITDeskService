@@ -548,6 +548,7 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                                             <option value="approved">รอหัวหน้าปิดใบงาน</option>
                                             <option value="completed">แก้ไขเสร็จ / ปิดใบงาน</option>
                                             <option value="breached">แก้ไขเสร็จเกิน SLA</option>
+                                            <option value="task2_all">เคส Task 2 ทั้งหมด</option>
                                             <option value="task2_manager_review">รอหัวหน้าตรวจมาตรการป้องกัน</option>
                                             <option value="task2_assigned">รอดำเนินการป้องกัน</option>
                                             <option value="task2_in_progress">กำลังดำเนินการป้องกัน</option>

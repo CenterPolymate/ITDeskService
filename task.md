@@ -137,4 +137,15 @@
   - [x] กำหนดและปรับเปลี่ยนคำเรียกสถานะ `resolved` ทั่วทั้งระบบเป็น "รอผู้แจ้งกดรับงาน" (`HelpdeskCase.php`, `Show.jsx`, `ItStaffDashboard.jsx`, `UserDashboard.jsx`)
   - [x] ปรับปรุง SLA Visualizer ให้หยุดนับเวลาถอยหลัง (Timer Stopped) เมื่ออยู่ในสถานะ `resolved`, `approved`, `closed` และแสดงผลสรุปว่าส่งมอบงานทันเวลา (SLA MET) หรือเกินเวลา (SLA BREACHED)
   - [x] เพิ่มชุดทดสอบอัตโนมัติใน `TicketManagementTest.php` ผ่านครบ 8/8 และรันชุดทดสอบทั้งระบบ 97/97 tests ผ่าน 100%
+- [x] พัฒนาระบบรายงานสถิติ (Reports) แบบรายเดือน สำหรับหัวหน้างาน พร้อมกราฟวิเคราะห์สาเหตุ P-CAR 5M:
+  - [x] สร้าง `ReportController.php` รวบรวมข้อมูลสถิติรายเดือน, KPI ภาพรวม, สถิติ 5M, และรายการเคส P-CAR
+  - [x] เพิ่ม Route `/reports` ใน `routes/web.php` และเพิ่มเมนูนำทางใน `resources/views/layouts/navigation.blade.php`
+  - [x] พัฒนาหน้าจอ React Component `resources/js/Pages/Reports/Index.jsx` พร้อมตัวกรองเดือน/ปี/บริษัท/ทีม, การ์ด KPI, กราฟ Interactive SVG Donut & Bar 5M, และโหมดพิมพ์รายงาน
+  - [x] สร้างชุดทดสอบอัตโนมัติ `tests/Feature/ReportTest.php` ครอบคลุมสิทธิ์และการคำนวณสถิติ ผ่านครบ 6/6
+  - [x] รัน Pint, ตรวจสอบ 0 Problems ใน VS Code, Build Frontend และรันชุดทดสอบทั้งระบบผ่าน 100% (103/103 tests, 568 assertions)
+- [x] แก้ไขการแสดงผล Task 2 บน IT Staff Dashboard:
+  - [x] แก้ไขการคำนวณ `task2_total` ใน `DashboardController.php` และตัวกรอง `task2_all` ใน `HelpdeskCase.php` ให้คัดกรองเคสที่ระบุ "ไม่ต้องการมาตรการป้องกัน" (`requires_preventive_measure = false`) ออกจากการ์ดเคสทั้งหมดและรายการเคสของ Task 2
+  - [x] เพิ่มตัวเลือก `task2_all` ใน Select Dropdown ตัวกรองสถานะของ `ItStaffDashboard.jsx`
+  - [x] เพิ่มชุดทดสอบอัตโนมัติใน `HelpdeskDashboardTest.php` ผ่านครบ 100% (104/104 tests ทั้งระบบ)
 - **All current tasks are completed.**
+
