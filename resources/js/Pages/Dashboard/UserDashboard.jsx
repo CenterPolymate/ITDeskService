@@ -1,10 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
+import { sendBrowserNotification } from '@/Utils/webNotification';
 
 export default function UserDashboard({ cases, stats, filters = {} }) {
     const { auth, flash } = usePage().props;
     const [search, setSearch] = useState(filters.search || '');
     const currentStatus = filters.status || 'all';
+    const knownCasesRef = useRef(null);
+
+    // Watch for ticket status changes and notify
+    useEffect(() => {
+        const ticketList = cases?.data || (Array.isArray(cases) ? cases : []);
+
+        if (knownCasesRef.current === null) {
+            knownCasesRef.current = new Map(ticketList.map(c => [c.id, c.status]));
+            return;
+        }
+
+        ticketList.forEach(t => {
+            const prevStatus = knownCasesRef.current.get(t.id);
+            if (prevStatus && prevStatus !== t.status) {
+                let title = `📌 ใบงาน #${t.ticket_no} มีการอัปเดต`;
+                let body = `สถานะปัจจุบัน: ${t.status}`;
+
+                if (t.status === 'in_progress') {
+                    title = `⚙️ ช่างกำลังดำเนินการแก้ไข: #${t.ticket_no}`;
+                    body = `${t.title || 'กำลังดำเนินการ'}\nช่างเฉพาะทางกำลังดำเนินการแก้ไขปัญหาของคุณ`;
+                } else if (t.status === 'resolved') {
+                    title = `🎉 ช่างส่งมอบงานแล้ว: #${t.ticket_no}`;
+                    body = `${t.title || 'ส่งมอบงานแล้ว'}\nกรุณาตรวจสอบและกดยืนยันรับงาน (Accept Resolution)`;
+                } else if (t.status === 'closed') {
+                    title = `✅ ใบงาน #${t.ticket_no} ปิดเรียบร้อยแล้ว`;
+                    body = `${t.title || 'ปิดงานแล้ว'}\nขอบคุณที่ใช้บริการ`;
+                } else if (t.status === 'cancelled') {
+                    title = `❌ ใบงาน #${t.ticket_no} ถูกยกเลิก`;
+                    body = `${t.title || 'ยกเลิก'}`;
+                }
+
+                sendBrowserNotification(title, {
+                    body,
+                    tag: `user-ticket-${t.id}-${t.status}`,
+                    onClick: () => {
+                        window.location.href = route('tickets.show', t.id);
+                    },
+                });
+            }
+            knownCasesRef.current.set(t.id, t.status);
+        });
+    }, [cases]);
 
     // Auto-polling updates every 15 seconds
     useEffect(() => {

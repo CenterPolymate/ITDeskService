@@ -96,7 +96,177 @@
                 </div>
             </div>
 
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden sm:flex sm:items-center sm:gap-2.5 sm:ms-6">
+                <!-- Sound Notification Control Dropdown (Desktop) -->
+                <div x-data="{
+                    dropdownOpen: false,
+                    soundEnabled: true,
+                    permission: 'default',
+                    init() {
+                        this.syncState();
+                        window.addEventListener('itdesk:sound-toggled', (e) => {
+                            this.soundEnabled = !!e.detail.enabled;
+                        });
+                    },
+                    syncState() {
+                        if (window.ITDeskNotification) {
+                            this.soundEnabled = window.ITDeskNotification.isSoundEnabled();
+                            this.permission = window.ITDeskNotification.getNotificationPermission();
+                        } else {
+                            const stored = localStorage.getItem('itdesk_sound_enabled');
+                            this.soundEnabled = stored === null ? true : stored === 'true';
+                            this.permission = (typeof Notification !== 'undefined') ? Notification.permission : 'denied';
+                        }
+                    },
+                    toggle() {
+                        if (window.ITDeskNotification) {
+                            this.soundEnabled = window.ITDeskNotification.toggleSound();
+                        } else {
+                            this.soundEnabled = !this.soundEnabled;
+                            localStorage.setItem('itdesk_sound_enabled', this.soundEnabled ? 'true' : 'false');
+                            window.dispatchEvent(new CustomEvent('itdesk:sound-toggled', { detail: { enabled: this.soundEnabled } }));
+                        }
+                    },
+                    testSound() {
+                        if (window.ITDeskNotification) {
+                            window.ITDeskNotification.playNotificationChime(true);
+                        }
+                    },
+                    async requestPermission() {
+                        if (window.ITDeskNotification) {
+                            this.permission = await window.ITDeskNotification.requestNotificationPermission();
+                        } else if (typeof Notification !== 'undefined') {
+                            this.permission = await Notification.requestPermission();
+                        }
+                    }
+                }" @click.outside="dropdownOpen = false" class="relative">
+                    <button
+                        type="button"
+                        @click="dropdownOpen = !dropdownOpen; syncState();"
+                        :title="soundEnabled ? 'เสียงแจ้งเตือน: เปิดอยู่ (คลิกเพื่อตั้งค่า/ทดสอบเสียง)' : 'เสียงแจ้งเตือน: ปิดอยู่ (คลิกเพื่อเปิด)'"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all duration-200 shadow-xs focus:outline-none"
+                        :class="soundEnabled 
+                            ? 'bg-emerald-50/90 text-emerald-800 border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400' 
+                            : 'bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200 hover:text-slate-800'"
+                    >
+                        <template x-if="soundEnabled">
+                            <span class="flex items-center gap-1.5">
+                                <span class="relative flex h-2 w-2">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                </span>
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                <span>เสียงเตือนเปิด</span>
+                            </span>
+                        </template>
+                        <template x-if="!soundEnabled">
+                            <span class="flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                                </svg>
+                                <span>ปิดเสียง</span>
+                            </span>
+                        </template>
+                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Panel -->
+                    <div
+                        x-show="dropdownOpen"
+                        x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 z-50 text-slate-800"
+                        style="display: none;"
+                    >
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                                    <span>🔔 ระบบเสียงแจ้งเตือน</span>
+                                </h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5">แจ้งเตือนเคสตามบทบาทและแชทใหม่</p>
+                            </div>
+                            <button type="button" @click="dropdownOpen = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- Toggle Switch -->
+                        <div class="py-3 flex items-center justify-between gap-3 border-b border-slate-100">
+                            <div>
+                                <div class="text-xs font-bold text-slate-800">เสียงแจ้งเตือนทุกระบบ</div>
+                                <div class="text-[11px] text-slate-500">เปิดเป็นค่าเริ่มต้นทุกผู้ใช้งาน</div>
+                            </div>
+                            <button
+                                type="button"
+                                @click="toggle()"
+                                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                                :class="soundEnabled ? 'bg-emerald-600' : 'bg-slate-300'"
+                            >
+                                <span
+                                    class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                                    :class="soundEnabled ? 'translate-x-5' : 'translate-x-0'"
+                                ></span>
+                            </button>
+                        </div>
+
+                        <!-- Test Sound Button -->
+                        <div class="py-3 border-b border-slate-100">
+                            <button
+                                type="button"
+                                @click="testSound()"
+                                class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl border border-indigo-200 transition"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                </svg>
+                                <span>🔊 ทดสอบเสียง (Two-tone Chime)</span>
+                            </button>
+                        </div>
+
+                        <!-- Browser Push Notification Card -->
+                        <div class="pt-3">
+                            <div class="text-[11px] text-slate-600 mb-2">
+                                <span class="font-bold">การแจ้งเตือนป๊อปอัป (Browser):</span>
+                            </div>
+                            <template x-if="permission === 'granted'">
+                                <div class="flex items-center gap-1.5 p-2 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-medium">
+                                    <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span>อนุญาตการแจ้งเตือนป๊อปอัปแล้ว</span>
+                                </div>
+                            </template>
+                            <template x-if="permission === 'default'">
+                                <button
+                                    type="button"
+                                    @click="requestPermission()"
+                                    class="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-xs"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                    </svg>
+                                    <span>เปิดรับการแจ้งเตือนบนหน้าจอ</span>
+                                </button>
+                            </template>
+                            <template x-if="permission === 'denied'">
+                                <div class="p-2 bg-slate-50 border border-slate-200 text-slate-500 rounded-xl text-[11px]">
+                                    ⚠️ เบราว์เซอร์ถูกบล็อกแจ้งเตือน (สามารถกดอนุญาตได้ที่รูปกุญแจ 🔒 หน้ารายการ URL)
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Dropdown Menu -->
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-xl text-gray-500 bg-white hover:text-gray-700 hover:bg-slate-50 focus:outline-none transition ease-in-out duration-150">
@@ -137,8 +307,60 @@
                 </x-dropdown>
             </div>
 
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
+            <!-- Hamburger & Mobile Sound Control -->
+            <div class="-me-2 flex items-center gap-1.5 sm:hidden">
+                <!-- Mobile Sound Toggle Button -->
+                <div x-data="{
+                    soundEnabled: true,
+                    init() {
+                        this.syncState();
+                        window.addEventListener('itdesk:sound-toggled', (e) => {
+                            this.soundEnabled = !!e.detail.enabled;
+                        });
+                    },
+                    syncState() {
+                        if (window.ITDeskNotification) {
+                            this.soundEnabled = window.ITDeskNotification.isSoundEnabled();
+                        } else {
+                            const stored = localStorage.getItem('itdesk_sound_enabled');
+                            this.soundEnabled = stored === null ? true : stored === 'true';
+                        }
+                    },
+                    toggle() {
+                        if (window.ITDeskNotification) {
+                            this.soundEnabled = window.ITDeskNotification.toggleSound();
+                            window.ITDeskNotification.playNotificationChime(true);
+                        } else {
+                            this.soundEnabled = !this.soundEnabled;
+                            localStorage.setItem('itdesk_sound_enabled', this.soundEnabled ? 'true' : 'false');
+                            window.dispatchEvent(new CustomEvent('itdesk:sound-toggled', { detail: { enabled: this.soundEnabled } }));
+                        }
+                    }
+                }" class="relative">
+                    <button
+                        type="button"
+                        @click="toggle()"
+                        :title="soundEnabled ? 'ระบบเสียงแจ้งเตือน: เปิดอยู่ (แตะเพื่อสลับ)' : 'ระบบเสียงแจ้งเตือน: ปิดอยู่ (แตะเพื่อสลับ)'"
+                        class="p-2 rounded-lg border text-xs font-semibold transition shadow-xs focus:outline-none"
+                        :class="soundEnabled ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-slate-100 text-slate-500 border-slate-300'"
+                    >
+                        <template x-if="soundEnabled">
+                            <span class="relative flex items-center justify-center">
+                                <span class="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75"></span>
+                                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                            </span>
+                        </template>
+                        <template x-if="!soundEnabled">
+                            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                            </svg>
+                        </template>
+                    </button>
+                </div>
+
                 <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />

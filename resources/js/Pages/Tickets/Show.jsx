@@ -1362,7 +1362,7 @@ export default function Show({ ticket }) {
                                         notificationPermission === 'granted' ? (
                                             <button
                                                 type="button"
-                                                onClick={playNotificationChime}
+                                                onClick={() => playNotificationChime(true)}
                                                 title="คลิกเพื่อทดสอบเสียงแจ้งเตือน"
                                                 className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 rounded-full text-xs font-semibold transition cursor-pointer shadow-sm"
                                             >

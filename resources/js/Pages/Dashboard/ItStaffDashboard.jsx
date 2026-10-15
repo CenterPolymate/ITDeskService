@@ -37,34 +37,61 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
         }
     };
 
-    // Watch for new urgent tickets during polling
+    const knownTicketsMapRef = useRef(null);
+
+    // Watch for new tickets and status changes during polling
     useEffect(() => {
         const ticketList = cases?.data || (Array.isArray(cases) ? cases : []);
-        const urgentTickets = ticketList.filter(
-            c => c.priority === 'urgent' && !['closed', 'cancelled'].includes(c.status)
-        );
 
-        // First load: memorize existing urgent ticket IDs
-        if (knownUrgentIdsRef.current === null) {
-            knownUrgentIdsRef.current = new Set(urgentTickets.map(c => c.id));
+        // First load: memorize existing tickets and statuses
+        if (knownTicketsMapRef.current === null) {
+            knownTicketsMapRef.current = new Map(ticketList.map(c => [c.id, c.status]));
             return;
         }
 
-        // On subsequent polls, check for new urgent tickets
-        const newlyArrived = urgentTickets.filter(c => !knownUrgentIdsRef.current.has(c.id));
-        if (newlyArrived.length > 0) {
-            newlyArrived.forEach(t => {
-                knownUrgentIdsRef.current.add(t.id);
-                sendBrowserNotification(`🚨 มีเคสด่วนที่สุดใหม่: #${t.ticket_no}`, {
-                    body: `${t.title || 'เคสด่วนที่สุด'}\nผู้แจ้ง: ${t.requester_name || '-'} (${t.department || '-'})`,
-                    tag: `urgent-ticket-${t.id}`,
+        // On subsequent polls, check for new tickets or status updates
+        ticketList.forEach(t => {
+            const isKnown = knownTicketsMapRef.current.has(t.id);
+            const prevStatus = knownTicketsMapRef.current.get(t.id);
+
+            if (!isKnown) {
+                // Brand new ticket arrived for this user's scope
+                let title = `🔔 มีเคสใหม่เข้ามา: #${t.ticket_no}`;
+                let body = `${t.title || 'เคสใหม่'}\nผู้แจ้ง: ${t.requester_name || '-'} (${t.department || '-'})`;
+
+                if (t.priority === 'urgent') {
+                    title = `🚨 เคสด่วนที่สุดใหม่: #${t.ticket_no}`;
+                } else if (userRole.startsWith('team_')) {
+                    title = `🛠️ มีเคสใหม่ส่งถึงทีมคุณ: #${t.ticket_no}`;
+                } else if (userRole === 'helpdesk') {
+                    title = `📥 มีเคสใหม่รอคัดกรอง (Triage): #${t.ticket_no}`;
+                } else if (userRole === 'manager') {
+                    title = `📋 มีเคสใหม่ในระบบ: #${t.ticket_no}`;
+                }
+
+                sendBrowserNotification(title, {
+                    body,
+                    tag: `staff-ticket-new-${t.id}`,
                     onClick: () => {
                         window.location.href = route('tickets.show', t.id);
                     },
                 });
-            });
-        }
-    }, [cases]);
+            } else if (prevStatus && prevStatus !== t.status) {
+                // Ticket status changed
+                if (t.status === 'resolved') {
+                    sendBrowserNotification(`🎉 เคส #${t.ticket_no} ส่งมอบงานแล้ว`, {
+                        body: `รอผู้แจ้งตรวจสอบและกดยืนยันรับงาน`,
+                        tag: `staff-ticket-status-${t.id}-${t.status}`,
+                        onClick: () => {
+                            window.location.href = route('tickets.show', t.id);
+                        },
+                    });
+                }
+            }
+
+            knownTicketsMapRef.current.set(t.id, t.status);
+        });
+    }, [cases, userRole]);
 
     // Live polling updates every 15 seconds (paused if user is typing or focusing on inputs)
     useEffect(() => {
@@ -318,12 +345,12 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                                 notificationPermission === 'granted' ? (
                                     <button
                                         type="button"
-                                        onClick={playNotificationChime}
+                                        onClick={() => playNotificationChime(true)}
                                         title="คลิกเพื่อทดสอบเสียงแจ้งเตือน"
                                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 rounded-full text-xs font-semibold transition cursor-pointer shadow-sm"
                                     >
                                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                        <span>🔔 แจ้งเตือนเคสด่วนเปิดอยู่ (ทดสอบเสียง)</span>
+                                        <span>🔔 แจ้งเตือนเปิดอยู่ (ทดสอบเสียง)</span>
                                     </button>
                                 ) : notificationPermission === 'denied' ? (
                                     <span

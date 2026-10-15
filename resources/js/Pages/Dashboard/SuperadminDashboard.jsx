@@ -1,9 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, Link, usePage } from '@inertiajs/react';
+import { sendBrowserNotification } from '@/Utils/webNotification';
 
 export default function SuperadminDashboard({ stats, chartLabels = [], chartData = [], latestBackup = null }) {
     const { auth, flash } = usePage().props;
     const [hoveredSegment, setHoveredSegment] = useState(null);
+    const prevStatsRef = useRef(null);
+
+    // Watch for new tickets or SLA breaches during polling
+    useEffect(() => {
+        if (prevStatsRef.current === null) {
+            prevStatsRef.current = stats;
+            return;
+        }
+
+        if (stats?.total_tickets > prevStatsRef.current?.total_tickets) {
+            const diff = stats.total_tickets - prevStatsRef.current.total_tickets;
+            sendBrowserNotification(`📥 มีเคสเปิดใหม่ในระบบ (+${diff})`, {
+                body: `จำนวนใบงานทั้งหมดในระบบ: ${stats.total_tickets}`,
+            });
+        } else if (stats?.breached_tickets > prevStatsRef.current?.breached_tickets) {
+            const diff = stats.breached_tickets - prevStatsRef.current.breached_tickets;
+            sendBrowserNotification(`🚨 มีเคสเกินกำหนดเวลา SLA เพิ่มขึ้น (+${diff})`, {
+                body: `จำนวนเคสที่ Breached SLA: ${stats.breached_tickets}`,
+            });
+        }
+
+        prevStatsRef.current = stats;
+    }, [stats]);
 
     // Auto-polling updates every 15 seconds
     useEffect(() => {

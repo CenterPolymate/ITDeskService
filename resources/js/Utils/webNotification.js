@@ -1,7 +1,44 @@
 /**
- * Web Audio API synthesizer for notification sound (two-tone chime).
+ * Check if sound notifications are enabled.
+ * Default is TRUE for all users and roles if not explicitly disabled.
  */
-export function playNotificationChime() {
+export function isSoundEnabled() {
+    if (typeof window === 'undefined') return true;
+    try {
+        const stored = localStorage.getItem('itdesk_sound_enabled');
+        return stored === null ? true : stored === 'true';
+    } catch {
+        return true;
+    }
+}
+
+/**
+ * Enable or disable sound notifications.
+ */
+export function setSoundEnabled(enabled) {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem('itdesk_sound_enabled', enabled ? 'true' : 'false');
+        window.dispatchEvent(new CustomEvent('itdesk:sound-toggled', { detail: { enabled: !!enabled } }));
+    } catch {}
+}
+
+/**
+ * Toggle sound notifications on/off.
+ */
+export function toggleSound() {
+    const next = !isSoundEnabled();
+    setSoundEnabled(next);
+    return next;
+}
+
+/**
+ * Web Audio API synthesizer for notification sound (two-tone chime).
+ * @param {boolean} force - If true, plays regardless of isSoundEnabled (used for testing).
+ */
+export function playNotificationChime(force = false) {
+    if (!force && !isSoundEnabled()) return;
+
     try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return;
@@ -60,7 +97,7 @@ export async function requestNotificationPermission() {
     try {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-            playNotificationChime();
+            playNotificationChime(true);
         }
         return permission;
     } catch (e) {
@@ -72,13 +109,14 @@ export async function requestNotificationPermission() {
  * Trigger a browser notification and chime.
  */
 export function sendBrowserNotification(title, options = {}) {
+    // Always play chime if sound is enabled
+    playNotificationChime(false);
+
     if (!isNotificationSupported() || Notification.permission !== 'granted') {
         return null;
     }
 
     try {
-        playNotificationChime();
-
         const notif = new Notification(title, {
             icon: '/favicon.ico',
             badge: '/favicon.ico',
@@ -97,4 +135,18 @@ export function sendBrowserNotification(title, options = {}) {
     } catch (e) {
         return null;
     }
+}
+
+// Expose globally on window for Blade/Alpine.js access
+if (typeof window !== 'undefined') {
+    window.ITDeskNotification = {
+        isSoundEnabled,
+        setSoundEnabled,
+        toggleSound,
+        playNotificationChime,
+        isNotificationSupported,
+        getNotificationPermission,
+        requestNotificationPermission,
+        sendBrowserNotification,
+    };
 }
