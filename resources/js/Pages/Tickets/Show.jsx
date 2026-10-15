@@ -296,7 +296,7 @@ export default function Show({ ticket }) {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            {user.role !== 'user' && (
+                            {user.role !== 'user' && Boolean(ticket.pcar_no || ticket.requires_preventive_measure) && (
                                 <a
                                     href={route('tickets.print', ticket.id)}
                                     target="_blank"
