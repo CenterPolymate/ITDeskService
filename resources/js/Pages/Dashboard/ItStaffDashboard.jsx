@@ -246,12 +246,12 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
         <>
             <Head title="แดชบอร์ดฝ่าย IT - ITDeskService" />
 
-            <div className="min-h-screen pb-12 pt-6 bg-slate-50">
-                <div id="dashboard-content" className="w-full px-4 sm:px-6 lg:px-8 mx-auto xl:max-w-[95%] space-y-6">
+            <div className="min-h-screen pb-10 pt-3.5 bg-slate-50">
+                <div id="dashboard-content" className="w-full px-4 sm:px-6 lg:px-8 mx-auto xl:max-w-[95%] space-y-4">
 
                     {/* Flash Success */}
                     {flash?.success && (
-                        <div className="bg-emerald-50 border border-emerald-400 text-emerald-800 px-4 py-3 rounded-xl shadow-sm flex items-center justify-between">
+                        <div className="bg-emerald-50 border border-emerald-400 text-emerald-800 px-4 py-2.5 rounded-xl shadow-xs flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
@@ -261,253 +261,252 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                         </div>
                     )}
 
-                    {/* Urgent Banner */}
-                    {stats.urgent > 0 && (
-                        <div className="bg-gradient-to-r from-red-600 to-red-500 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between text-white overflow-hidden relative border border-red-400">
-                            <div className="flex items-center gap-4 z-10 w-full sm:w-auto mb-3 sm:mb-0">
-                                <div className="bg-white/20 p-2.5 rounded-xl animate-bounce shrink-0">
-                                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    {/* Task 1 Container with compact vertical spacing (space-y-2.5) */}
+                    <div className="space-y-2.5">
+                        {/* Header Section */}
+                        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
+                            <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">สถานะการแจ้งซ่อม</h2>
+                            <div className="text-xs text-gray-500 flex items-center gap-2">
+                                <span>อัปเดตล่าสุด {currentTime}</span>
+                                <span>·</span>
+                                <button
+                                    type="button"
+                                    onClick={() => handleQuickFilter('all')}
+                                    className="text-gray-600 underline hover:text-blue-600 transition cursor-pointer"
+                                >
+                                    ดูรายการทั้งหมด {Number(stats.total).toLocaleString()} เคส
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Merged Sleek Alert Banner (Active Overdue / Urgent) */}
+                        {(Number(stats.sla_overdue) > 0 || Number(stats.urgent) > 0) && (
+                            <div className="bg-[#8b181b] text-white rounded-xl px-4 py-2 sm:py-2.5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                                <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                                    <div className="w-5 h-5 rounded-full border-2 border-white/90 flex items-center justify-center shrink-0 text-white font-black text-[11px]">
+                                        !
+                                    </div>
+                                    <span className="font-bold text-xs sm:text-sm tracking-wide">
+                                        {Number(stats.sla_overdue) > 0 && Number(stats.urgent) > 0 ? (
+                                            <>
+                                                มี <span className="underline decoration-white/60">{Number(stats.sla_overdue).toLocaleString()} เคสเกิน SLA</span> และ <span className="underline decoration-white/60">{Number(stats.urgent).toLocaleString()} เคสด่วนที่สุด</span> ที่ต้องดำเนินการทันที
+                                            </>
+                                        ) : Number(stats.sla_overdue) > 0 ? (
+                                            `มี ${Number(stats.sla_overdue).toLocaleString()} เคสเกิน SLA ต้องดำเนินการทันที`
+                                        ) : (
+                                            `พบ ${Number(stats.urgent).toLocaleString()} เคสระดับ "ด่วนที่สุด" ที่ต้องจัดการทันที`
+                                        )}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end">
+                                    {Number(stats.urgent) > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setFormFilters(prev => ({ ...prev, priority: 'urgent', status: 'not_closed' }));
+                                                router.get(route('dashboard'), { priority: 'urgent', status: 'not_closed' }, { preserveState: true, preserveScroll: true });
+                                            }}
+                                            className="flex-1 sm:flex-initial bg-red-700/90 hover:bg-red-700 text-white border border-red-400/40 font-bold px-3 py-1.5 rounded-lg text-xs shadow-xs transition active:scale-95 text-center cursor-pointer"
+                                        >
+                                            ดูเคสด่วน ({Number(stats.urgent).toLocaleString()})
+                                        </button>
+                                    )}
+                                    {Number(stats.sla_overdue) > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleQuickFilter('sla_overdue')}
+                                            className="flex-1 sm:flex-initial bg-white text-[#8b181b] hover:bg-red-50 font-bold px-3.5 py-1.5 rounded-lg text-xs shadow-xs transition active:scale-95 text-center cursor-pointer"
+                                        >
+                                            ดูเคสที่เกิน SLA ({Number(stats.sla_overdue).toLocaleString()})
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 3 Overview Cards Row (Compact Height: 105px) */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {/* 1. Open Cases */}
+                            <div
+                                onClick={() => handleQuickFilter('not_closed')}
+                                className="bg-[#fcf8ee] border border-[#edd9b6] rounded-xl p-3 sm:px-4 sm:py-2.5 relative overflow-hidden flex flex-col justify-between h-[100px] sm:h-[105px] shadow-2xs hover:shadow-sm transition cursor-pointer group"
+                            >
+                                {/* Watermark Puzzle Outline */}
+                                <div className="absolute right-1 -bottom-1 text-amber-700/15 pointer-events-none select-none">
+                                    <svg className="w-16 h-16 stroke-current fill-none" strokeWidth="1.6" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.75.75 0 01-.75.75H4.5A2.25 2.25 0 002.25 9v1.5a.75.75 0 00.75.75h0c.355 0 .676.186.959.401.29.221.634.349 1.003.349 1.036 0 1.875 1.007 1.875 2.25s-.84 2.25-1.875 2.25c-.369 0-.713.128-1.003.349-.283.215-.604.401-.959.401h0a.75.75 0 00-.75.75V19.5A2.25 2.25 0 004.5 21.75h5.25a.75.75 0 00.75-.75v0c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036 1.007-1.875 2.25-1.875s2.25.84 2.25 1.875c0 .369-.128.713-.349 1.003-.215.283-.401.604-.401.959v0a.75.75 0 00.75.75h5.25a2.25 2.25 0 002.25-2.25v-5.25a.75.75 0 00-.75-.75h0c-.355 0-.676-.186-.959-.401-.29-.221-.634-.349-1.003-.349-1.036 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401h0a.75.75 0 00.75-.75V9a2.25 2.25 0 00-2.25-2.25h-5.25a.75.75 0 01-.75-.75v0z" />
                                     </svg>
                                 </div>
-                                <div>
-                                    <h3 className="text-base sm:text-lg font-bold tracking-wide">แจ้งเตือนด่วน! มีเคสระดับ "ด่วนที่สุด"</h3>
-                                    <p className="text-red-100 text-xs sm:text-sm mt-0.5">
-                                        พบจำนวน <span className="font-black px-1.5 py-0.5 bg-white/20 rounded mx-1">{Number(stats.urgent).toLocaleString()}</span> รายการที่รอการแก้ไขทันที
-                                    </p>
+                                <span className="text-xs font-bold text-amber-900/80">งานค้าง (ยังไม่ปิด)</span>
+                                <div className="z-10 -my-0.5">
+                                    <span className="text-3xl font-black text-slate-900 leading-none tracking-tight">
+                                        {Number(stats.open_total || 0).toLocaleString()}
+                                    </span>
+                                </div>
+                                <div className="z-10 text-[11px] text-amber-900/70 font-medium truncate">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleQuickFilter('pending');
+                                        }}
+                                        className="hover:underline hover:text-amber-950 cursor-pointer"
+                                    >
+                                        ยังไม่มอบหมาย {Number(stats.pending || 0).toLocaleString()}
+                                    </button>
+                                    {' · '}
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleQuickFilter('active');
+                                        }}
+                                        className="hover:underline hover:text-amber-950 cursor-pointer"
+                                    >
+                                        กำลังทำ {Number((stats.analyzing || 0) + (stats.in_progress || 0) + (stats.testing || 0)).toLocaleString()}
+                                    </button>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => {
-                                    setFormFilters(prev => ({ ...prev, priority: 'urgent', status: 'not_closed' }));
-                                    router.get(route('dashboard'), { priority: 'urgent', status: 'not_closed' }, { preserveState: true, preserveScroll: true });
-                                }}
-                                className="w-full sm:w-auto bg-white text-red-600 font-bold py-2 px-5 rounded-xl shadow-sm hover:bg-gray-50 transition cursor-pointer text-sm shrink-0"
-                            >
-                                ดูเคสด่วนทั้งหมด
-                            </button>
-                        </div>
-                    )}
 
-                    {/* Header Section */}
-                    <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 pt-2">
-                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">สถานะการแจ้งซ่อม</h2>
-                        <div className="text-xs text-gray-500 flex items-center gap-2">
-                            <span>อัปเดตล่าสุด {currentTime}</span>
-                            <span>·</span>
-                            <button
-                                type="button"
-                                onClick={() => handleQuickFilter('all')}
-                                className="text-gray-600 underline hover:text-blue-600 transition cursor-pointer"
-                            >
-                                ดูรายการทั้งหมด {Number(stats.total).toLocaleString()} เคส
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* SLA Urgent Alert Banner (Active Overdue) */}
-                    {Number(stats.sla_overdue) > 0 && (
-                        <div className="bg-[#8b181b] text-white rounded-2xl px-5 py-3.5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <div className="flex items-center gap-3.5 w-full sm:w-auto">
-                                <div className="w-6 h-6 rounded-full border-2 border-white/90 flex items-center justify-center shrink-0 text-white font-black text-xs">
-                                    !
-                                </div>
-                                <span className="font-bold text-sm sm:text-base tracking-wide">
-                                    มี {Number(stats.sla_overdue).toLocaleString()} เคสเกิน SLA ต้องดำเนินการทันที
-                                </span>
-                            </div>
-                            <button
-                                type="button"
+                            {/* 2. Overdue SLA */}
+                            <div
                                 onClick={() => handleQuickFilter('sla_overdue')}
-                                className="w-full sm:w-auto bg-white text-[#8b181b] hover:bg-red-50 font-bold px-6 py-2 rounded-xl text-sm shadow-sm transition active:scale-95 shrink-0 text-center cursor-pointer"
+                                className="bg-[#fff1f2] border border-[#fecdd3] rounded-xl p-3 sm:px-4 sm:py-2.5 relative overflow-hidden flex flex-col justify-between h-[100px] sm:h-[105px] shadow-2xs hover:shadow-sm transition cursor-pointer group"
                             >
-                                ดูเคสที่เกิน SLA
-                            </button>
-                        </div>
-                    )}
-
-                    {/* 3 Overview Cards Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* 1. Open Cases */}
-                        <div
-                            onClick={() => handleQuickFilter('not_closed')}
-                            className="bg-[#fcf8ee] border border-[#edd9b6] rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between min-h-[140px] shadow-xs hover:shadow-md transition cursor-pointer group"
-                        >
-                            {/* Watermark Puzzle Outline */}
-                            <div className="absolute right-1 -bottom-2 text-amber-700/15 pointer-events-none select-none">
-                                <svg className="w-24 h-24 stroke-current fill-none" strokeWidth="1.6" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.75.75 0 01-.75.75H4.5A2.25 2.25 0 002.25 9v1.5a.75.75 0 00.75.75h0c.355 0 .676.186.959.401.29.221.634.349 1.003.349 1.036 0 1.875 1.007 1.875 2.25s-.84 2.25-1.875 2.25c-.369 0-.713.128-1.003.349-.283.215-.604.401-.959.401h0a.75.75 0 00-.75.75V19.5A2.25 2.25 0 004.5 21.75h5.25a.75.75 0 00.75-.75v0c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036 1.007-1.875 2.25-1.875s2.25.84 2.25 1.875c0 .369-.128.713-.349 1.003-.215.283-.401.604-.401.959v0a.75.75 0 00.75.75h5.25a2.25 2.25 0 002.25-2.25v-5.25a.75.75 0 00-.75-.75h0c-.355 0-.676-.186-.959-.401-.29-.221-.634-.349-1.003-.349-1.036 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401h0a.75.75 0 00.75-.75V9a2.25 2.25 0 00-2.25-2.25h-5.25a.75.75 0 01-.75-.75v0z" />
-                                </svg>
+                                <span className="text-xs font-bold text-rose-700">เกิน SLA</span>
+                                <div className="z-10 -my-0.5">
+                                    <span className="text-3xl font-black text-rose-700 leading-none tracking-tight">
+                                        {Number(stats.sla_overdue || 0).toLocaleString()}
+                                    </span>
+                                </div>
+                                <div className="z-10 flex items-center gap-1.5 text-[11px] font-semibold text-amber-800 truncate">
+                                    <span className="text-amber-500">⚠</span>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleQuickFilter('sla_warning');
+                                        }}
+                                        className="hover:underline hover:text-amber-950 cursor-pointer"
+                                    >
+                                        ใกล้ครบ SLA: {Number(stats.sla_warning || 0).toLocaleString()} เคส
+                                    </button>
+                                </div>
                             </div>
-                            <span className="text-xs sm:text-sm font-bold text-amber-900/80">งานค้าง (ยังไม่ปิด)</span>
-                            <div className="z-10 my-1">
-                                <span className="text-4xl sm:text-5xl font-black text-slate-900 leading-none tracking-tight">
-                                    {Number(stats.open_total || 0).toLocaleString()}
+
+                            {/* 3. Closed Today */}
+                            <div
+                                onClick={() => handleQuickFilter('closed_today')}
+                                className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-xl p-3 sm:px-4 sm:py-2.5 relative overflow-hidden flex flex-col justify-between h-[100px] sm:h-[105px] shadow-2xs hover:shadow-sm transition cursor-pointer group"
+                            >
+                                {/* Watermark Flag Outline */}
+                                <div className="absolute right-1 -bottom-1 text-emerald-600/20 pointer-events-none select-none">
+                                    <svg className="w-16 h-16 stroke-current fill-none" strokeWidth="1.6" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                                    </svg>
+                                </div>
+                                <span className="text-xs font-bold text-emerald-800">ปิดงานวันนี้</span>
+                                <div className="z-10 -my-0.5">
+                                    <span className="text-3xl font-black text-emerald-700 leading-none tracking-tight">
+                                        {Number(stats.closed_today || 0).toLocaleString()}
+                                    </span>
+                                </div>
+                                <div className="z-10 text-[11px] text-slate-500 font-medium truncate">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleQuickFilter('cancelled');
+                                        }}
+                                        className="hover:underline hover:text-slate-800 cursor-pointer"
+                                    >
+                                        ยกเลิก {Number(stats.cancelled_today || stats.cancelled || 0).toLocaleString()} เคส
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Stepper Workflow Pipeline Card (Compact) */}
+                        <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/90 shadow-2xs space-y-2.5">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-2">
+                                <h3 className="text-sm font-bold text-slate-800 tracking-tight">งานที่เปิดอยู่ แยกตามขั้นตอน</h3>
+                                <span className="text-xs text-slate-400 font-medium">
+                                    {Number(stats.open_total || 0).toLocaleString()} เคส · กดขั้นตอนเพื่อกรองรายการ
                                 </span>
                             </div>
-                            <div className="z-10 text-xs text-amber-900/70 font-medium">
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleQuickFilter('pending');
-                                    }}
-                                    className="hover:underline hover:text-amber-950 cursor-pointer"
-                                >
-                                    ยังไม่มอบหมาย {Number(stats.pending || 0).toLocaleString()}
-                                </button>
-                                {' · '}
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleQuickFilter('active');
-                                    }}
-                                    className="hover:underline hover:text-amber-950 cursor-pointer"
-                                >
-                                    กำลังทำ {Number((stats.analyzing || 0) + (stats.in_progress || 0) + (stats.testing || 0)).toLocaleString()}
-                                </button>
-                            </div>
-                        </div>
 
-                        {/* 2. Overdue SLA */}
-                        <div
-                            onClick={() => handleQuickFilter('sla_overdue')}
-                            className="bg-[#fff1f2] border border-[#fecdd3] rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between min-h-[140px] shadow-xs hover:shadow-md transition cursor-pointer group"
-                        >
-                            <span className="text-xs sm:text-sm font-bold text-rose-700">เกิน SLA</span>
-                            <div className="z-10 my-1">
-                                <span className="text-4xl sm:text-5xl font-black text-rose-700 leading-none tracking-tight">
-                                    {Number(stats.sla_overdue || 0).toLocaleString()}
-                                </span>
-                            </div>
-                            <div className="z-10 flex items-center gap-1.5 text-xs font-semibold text-amber-800">
-                                <span className="text-amber-500">⚠</span>
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleQuickFilter('sla_warning');
-                                    }}
-                                    className="hover:underline hover:text-amber-950 cursor-pointer"
-                                >
-                                    ใกล้ครบ SLA: {Number(stats.sla_warning || 0).toLocaleString()} เคส
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* 3. Closed Today */}
-                        <div
-                            onClick={() => handleQuickFilter('closed_today')}
-                            className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between min-h-[140px] shadow-xs hover:shadow-md transition cursor-pointer group"
-                        >
-                            {/* Watermark Flag Outline */}
-                            <div className="absolute right-1 -bottom-1 text-emerald-600/20 pointer-events-none select-none">
-                                <svg className="w-24 h-24 stroke-current fill-none" strokeWidth="1.6" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
-                                </svg>
-                            </div>
-                            <span className="text-xs sm:text-sm font-bold text-emerald-800">ปิดงานวันนี้</span>
-                            <div className="z-10 my-1">
-                                <span className="text-4xl sm:text-5xl font-black text-emerald-700 leading-none tracking-tight">
-                                    {Number(stats.closed_today || 0).toLocaleString()}
-                                </span>
-                            </div>
-                            <div className="z-10 text-xs text-slate-500 font-medium">
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleQuickFilter('cancelled');
-                                    }}
-                                    className="hover:underline hover:text-slate-800 cursor-pointer"
-                                >
-                                    ยกเลิก {Number(stats.cancelled_today || stats.cancelled || 0).toLocaleString()} เคส
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Stepper Workflow Pipeline Card */}
-                    <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm space-y-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-4">
-                            <h3 className="text-base font-bold text-slate-800 tracking-tight">งานที่เปิดอยู่ แยกตามขั้นตอน</h3>
-                            <span className="text-xs text-slate-400 font-medium">
-                                {Number(stats.open_total || 0).toLocaleString()} เคส · กดขั้นตอนเพื่อกรองรายการ
-                            </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 lg:flex lg:flex-row lg:items-center lg:justify-between gap-4">
-                            {pipelineSteps.map((step, idx) => {
-                                const isBottleneck = step.key === bottleneckStepKey;
-                                return (
-                                    <React.Fragment key={step.key}>
-                                        <div
-                                            onClick={() => handleQuickFilter(step.key)}
-                                            className="flex-1 p-3 rounded-2xl hover:bg-slate-50/80 transition cursor-pointer flex flex-col group"
-                                        >
-                                            {/* Step Icon Box with Circular Number Badge */}
-                                            <div className="relative w-12 h-12 mb-3">
-                                                <div
-                                                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
-                                                        isBottleneck
-                                                            ? 'bg-[#a16207] text-white shadow-md'
-                                                            : 'bg-white text-slate-700 border border-slate-200 shadow-xs group-hover:border-slate-300'
-                                                    }`}
-                                                >
-                                                    {step.icon}
-                                                </div>
-                                                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-900 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
-                                                    {step.num}
-                                                </span>
-                                            </div>
-
-                                            {/* Label */}
-                                            <p className="text-xs sm:text-sm font-semibold text-slate-700 leading-snug line-clamp-1 mb-1">
-                                                {step.label}
-                                            </p>
-
-                                            {/* Count & % */}
-                                            <div className="flex items-baseline gap-1 my-1">
-                                                <span className="text-2xl font-black text-slate-900 leading-none">
-                                                    {step.count}
-                                                </span>
-                                                <span className="text-xs text-slate-400 font-medium">
-                                                    เคส · {step.percent}%
-                                                </span>
-                                            </div>
-
-                                            {/* Progress Bar */}
-                                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mt-2">
-                                                <div
-                                                    className={`h-full rounded-full transition-all duration-500 ${
-                                                        isBottleneck ? 'bg-amber-600' : 'bg-slate-400'
-                                                    }`}
-                                                    style={{ width: `${Math.min(step.percent, 100)}%` }}
-                                                />
-                                            </div>
-
-                                            {/* Bottleneck Badge */}
-                                            <div className="min-h-[28px] mt-2 flex items-center">
-                                                {isBottleneck && (
-                                                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#fef3c7] text-[#92400e] border border-amber-200 shadow-2xs">
-                                                        งานกองมากสุด
+                            <div className="grid grid-cols-2 lg:flex lg:flex-row lg:items-center lg:justify-between gap-2.5">
+                                {pipelineSteps.map((step, idx) => {
+                                    const isBottleneck = step.key === bottleneckStepKey;
+                                    return (
+                                        <React.Fragment key={step.key}>
+                                            <div
+                                                onClick={() => handleQuickFilter(step.key)}
+                                                className="flex-1 p-2 sm:p-2.5 rounded-xl hover:bg-slate-50/80 transition cursor-pointer flex flex-col group"
+                                            >
+                                                {/* Step Icon Box with Circular Number Badge */}
+                                                <div className="relative w-9 h-9 mb-1.5">
+                                                    <div
+                                                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                                                            isBottleneck
+                                                                ? 'bg-[#a16207] text-white shadow-xs'
+                                                                : 'bg-white text-slate-700 border border-slate-200 shadow-2xs group-hover:border-slate-300'
+                                                        }`}
+                                                    >
+                                                        {step.icon}
+                                                    </div>
+                                                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-slate-900 text-white text-[9px] font-bold flex items-center justify-center shadow-2xs">
+                                                        {step.num}
                                                     </span>
-                                                )}
-                                            </div>
-                                        </div>
+                                                </div>
 
-                                        {/* Arrow between steps (only on lg: desktop) */}
-                                        {idx < pipelineSteps.length - 1 && (
-                                            <div className="hidden lg:flex items-center text-slate-300 shrink-0 self-center -mt-6">
-                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                                                </svg>
+                                                {/* Label */}
+                                                <p className="text-xs font-semibold text-slate-700 leading-snug line-clamp-1 mb-0.5">
+                                                    {step.label}
+                                                </p>
+
+                                                {/* Count & % */}
+                                                <div className="flex items-baseline gap-1 my-0.5">
+                                                    <span className="text-lg sm:text-xl font-black text-slate-900 leading-none">
+                                                        {step.count}
+                                                    </span>
+                                                    <span className="text-[11px] text-slate-400 font-medium">
+                                                        เคส · {step.percent}%
+                                                    </span>
+                                                </div>
+
+                                                {/* Progress Bar */}
+                                                <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden mt-1">
+                                                    <div
+                                                        className={`h-full rounded-full transition-all duration-500 ${
+                                                            isBottleneck ? 'bg-amber-600' : 'bg-slate-400'
+                                                        }`}
+                                                        style={{ width: `${Math.min(step.percent, 100)}%` }}
+                                                    />
+                                                </div>
+
+                                                {/* Bottleneck Badge */}
+                                                <div className="min-h-[20px] mt-1 flex items-center">
+                                                    {isBottleneck && (
+                                                        <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#fef3c7] text-[#92400e] border border-amber-200 shadow-2xs">
+                                                            งานกองมากสุด
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
-                                        )}
-                                    </React.Fragment>
-                                );
-                            })}
+
+                                            {/* Arrow between steps (only on lg: desktop) */}
+                                            {idx < pipelineSteps.length - 1 && (
+                                                <div className="hidden lg:flex items-center text-slate-300 shrink-0 self-center -mt-4">
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
 
