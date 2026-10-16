@@ -37,7 +37,7 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
             if (!isKnown) {
                 // Brand new ticket arrived for this user's scope
                 let title = `🔔 มีเคสใหม่เข้ามา: #${t.ticket_no}`;
-                let body = `${t.title || 'เคสใหม่'}\nผู้แจ้ง: ${t.requester_name || '-'} (${t.department || '-'})`;
+                let body = `${t.title || 'เคสใหม่'}\nผู้แจ้ง: ${t.requester_name || '-'} (${t.department || '-'})${t.actual_user_name ? ` (แจ้งแทน: ${t.actual_user_name})` : ''}`;
 
                 if (t.priority === 'urgent') {
                     title = `🚨 เคสด่วนที่สุดใหม่: #${t.ticket_no}`;
@@ -713,8 +713,16 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                                         </div>
 
                                         <h4 className="text-base font-semibold text-gray-900 mb-1 leading-tight">{caseItem.title}</h4>
-                                        <div className="text-xs text-gray-500 mb-3">
-                                            โดย: {caseItem.requester_name} ({caseItem.department || '-'})
+                                        <div className="text-xs text-gray-500 mb-3 flex flex-wrap items-center gap-1.5">
+                                            <span>โดย: {caseItem.requester_name} ({caseItem.department || '-'})</span>
+                                            {caseItem.actual_user_name && (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                                    <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                    </svg>
+                                                    แจ้งแทน: {caseItem.actual_user_name}
+                                                </span>
+                                            )}
                                         </div>
 
                                         <div className="flex justify-between items-center text-xs mt-3 pt-3 border-t border-gray-100">
@@ -781,8 +789,16 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
 
                                                 <td className="px-6 py-4">
                                                     <div className="text-sm font-semibold text-gray-900">{caseItem.title}</div>
-                                                    <div className="text-xs text-gray-500 mt-0.5">
-                                                        โดย: {caseItem.requester_name} ({caseItem.department || '-'})
+                                                    <div className="text-xs text-gray-500 mt-1 flex flex-wrap items-center gap-1.5">
+                                                        <span>โดย: {caseItem.requester_name} ({caseItem.department || '-'})</span>
+                                                        {caseItem.actual_user_name && (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                                                <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                                </svg>
+                                                                แจ้งแทน: {caseItem.actual_user_name}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </td>
 

@@ -403,9 +403,19 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
                                                     {getStatusBadge(c.status, c.status_label)}
                                                 </div>
 
-                                                <h4 className="text-base font-semibold text-gray-900 mb-2 leading-tight">
+                                                <h4 className="text-base font-semibold text-gray-900 mb-1 leading-tight">
                                                     {c.title}
                                                 </h4>
+                                                {c.actual_user_name && (
+                                                    <div className="mb-2">
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                                            <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                            </svg>
+                                                            แจ้งแทน: {c.actual_user_name}
+                                                        </span>
+                                                    </div>
+                                                )}
 
                                                 <div className="flex justify-between items-center text-xs text-gray-500 pt-3 border-t border-gray-100">
                                                     <span className="flex items-center gap-1">
@@ -461,8 +471,18 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
                                                                 #{c.ticket_no}
                                                             </a>
                                                         </td>
-                                                        <td className="px-5 py-3.5 text-sm text-gray-900 font-medium max-w-md truncate">
-                                                            {c.title}
+                                                        <td className="px-5 py-3.5 text-sm text-gray-900 font-medium max-w-md">
+                                                            <div className="truncate">{c.title}</div>
+                                                            {c.actual_user_name && (
+                                                                <div className="mt-1">
+                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                                                        <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                                        </svg>
+                                                                        แจ้งแทน: {c.actual_user_name}
+                                                                    </span>
+                                                                </div>
+                                                            )}
                                                         </td>
                                                         <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-500">
                                                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 text-xs">

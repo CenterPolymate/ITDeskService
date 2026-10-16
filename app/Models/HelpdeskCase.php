@@ -255,6 +255,7 @@ class HelpdeskCase extends Model
                     $q->where('ticket_no', 'like', "%{$search}%")
                         ->orWhere('title', 'like', "%{$search}%")
                         ->orWhere('requester_name', 'like', "%{$search}%")
+                        ->orWhere('actual_user_name', 'like', "%{$search}%")
                         ->orWhere('department', 'like', "%{$search}%")
                         ->orWhere('assigned_to', 'like', "%{$search}%");
                 });
