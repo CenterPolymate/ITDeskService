@@ -148,14 +148,29 @@ class DashboardController extends Controller
         }
 
         // คำนวณ KPI Cards ให้ครบทุกขั้นตอนตาม Data Scope ของ User นั้นๆ (ก่อนนำไปกรองตาม Filter URL)
+        $today = now()->timezone('Asia/Bangkok')->toDateString();
+
         $stats = [
             'total' => (clone $baseQuery)->count(),
+            'open_total' => (clone $baseQuery)->whereNotIn('status', ['closed', 'cancelled'])->count(),
             'pending' => (clone $baseQuery)->whereIn('status', ['pending', 'assigned'])->count(),
             'analyzing' => (clone $baseQuery)->where('status', 'analyzing')->count(),
             'in_progress' => (clone $baseQuery)->where('status', 'in_progress')->count(),
             'testing' => (clone $baseQuery)->whereIn('status', ['resolved', 'approved'])->count(),
             'closed' => (clone $baseQuery)->where('status', 'closed')->count(),
+            'closed_today' => (clone $baseQuery)->where('status', 'closed')->where(function ($q) use ($today) {
+                $q->whereDate('closed_at', $today)
+                    ->orWhere(function ($sq) use ($today) {
+                        $sq->whereNull('closed_at')->whereDate('updated_at', $today);
+                    });
+            })->count(),
             'cancelled' => (clone $baseQuery)->where('status', 'cancelled')->count(),
+            'cancelled_today' => (clone $baseQuery)->where('status', 'cancelled')->where(function ($q) use ($today) {
+                $q->whereDate('cancelled_at', $today)
+                    ->orWhere(function ($sq) use ($today) {
+                        $sq->whereNull('cancelled_at')->whereDate('updated_at', $today);
+                    });
+            })->count(),
             'completed' => (clone $baseQuery)->whereIn('status', ['closed', 'cancelled'])->count(),
             'preventive_pending' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where(function ($q) {
                 $q->whereNull('preventive_measure')->orWhereIn('preventive_measure', ['in_progress', 'pending_review']);
@@ -194,7 +209,14 @@ class DashboardController extends Controller
 
         $cases = $query->orderBy('created_at', 'desc')->paginate(10);
 
-        // คำนวณเปอร์เซ็นต์
+        // คำนวณเปอร์เซ็นต์สำหรับ Pipeline แยกตามขั้นตอน (อิงจากงานค้างที่เปิดอยู่ open_total)
+        $openTotal = $stats['open_total'];
+        $stats['percent_open_pending'] = $openTotal > 0 ? round(($stats['pending'] / $openTotal) * 100) : 0;
+        $stats['percent_open_analyzing'] = $openTotal > 0 ? round(($stats['analyzing'] / $openTotal) * 100) : 0;
+        $stats['percent_open_in_progress'] = $openTotal > 0 ? round(($stats['in_progress'] / $openTotal) * 100) : 0;
+        $stats['percent_open_testing'] = $openTotal > 0 ? round(($stats['testing'] / $openTotal) * 100) : 0;
+
+        // คำนวณเปอร์เซ็นต์เดิม
         $stats['percent_pending'] = $stats['total'] > 0 ? round(($stats['pending'] / $stats['total']) * 100) : 0;
         $stats['percent_analyzing'] = $stats['total'] > 0 ? round(($stats['analyzing'] / $stats['total']) * 100) : 0;
         $stats['percent_in_progress'] = $stats['total'] > 0 ? round(($stats['in_progress'] / $stats['total']) * 100) : 0;

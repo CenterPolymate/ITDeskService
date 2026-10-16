@@ -184,6 +184,64 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
         );
     };
 
+    const [currentTime] = useState(() => {
+        return new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' น.';
+    });
+
+    const pipelineSteps = [
+        {
+            num: 1,
+            key: 'pending',
+            label: 'รอดำเนินการ / มอบหมาย',
+            count: Number(stats.pending || 0),
+            percent: Number(stats.percent_open_pending || 0),
+            icon: (
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                </svg>
+            ),
+        },
+        {
+            num: 2,
+            key: 'analyzing',
+            label: 'สืบสภาพ / วิเคราะห์สาเหตุ',
+            count: Number(stats.analyzing || 0),
+            percent: Number(stats.percent_open_analyzing || 0),
+            icon: (
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+            ),
+        },
+        {
+            num: 3,
+            key: 'in_progress',
+            label: 'ดำเนินการแก้ไข',
+            count: Number(stats.in_progress || 0),
+            percent: Number(stats.percent_open_in_progress || 0),
+            icon: (
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.012l1.69 1.69m-3.433-1.678l-1.07-1.07a4.5 4.5 0 00-6.364 0l-1.06 1.06" />
+                </svg>
+            ),
+        },
+        {
+            num: 4,
+            key: 'testing',
+            label: 'ทดสอบ / ส่งมอบ',
+            count: Number(stats.testing || 0),
+            percent: Number(stats.percent_open_testing || 0),
+            icon: (
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+                </svg>
+            ),
+        },
+    ];
+
+    const maxStepCount = Math.max(...pipelineSteps.map(s => s.count));
+    const bottleneckStepKey = maxStepCount > 0 ? pipelineSteps.find(s => s.count === maxStepCount)?.key : null;
+
     return (
         <>
             <Head title="แดชบอร์ดฝ่าย IT - ITDeskService" />
@@ -203,262 +261,280 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                         </div>
                     )}
 
-                    {/* SLA Warning / Overdue Banner */}
-                    {(Number(stats.sla_warning) > 0 || Number(stats.sla_overdue) > 0) && (
-                        <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between text-white overflow-hidden relative border border-orange-400">
-                            <div className="absolute right-0 top-0 w-48 h-48 bg-white opacity-10 rounded-full mix-blend-overlay filter blur-2xl translate-x-12 -translate-y-12 pointer-events-none" />
-                            <div className="absolute left-0 bottom-0 w-32 h-32 bg-yellow-300 opacity-20 rounded-full mix-blend-overlay filter blur-xl -translate-x-10 translate-y-10 pointer-events-none" />
-                            <div className="flex items-center gap-5 z-10 w-full sm:w-auto mb-4 sm:mb-0">
-                                <div className="bg-white/20 p-3 rounded-xl animate-pulse shrink-0">
-                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold tracking-wide">แจ้งเตือน SLA: พบใบงานที่ต้องเร่งดำเนินการ</h3>
-                                    <p className="text-orange-100 text-sm mt-1">
-                                        {Number(stats.sla_warning) > 0 && (
-                                            <span>
-                                                ใกล้หมดเวลา SLA (&lt; 1 ชม.): <span className="font-black text-lg px-1.5 py-0.5 bg-white/20 rounded mx-1">{Number(stats.sla_warning).toLocaleString()}</span> รายการ
-                                            </span>
-                                        )}
-                                        {Number(stats.sla_warning) > 0 && Number(stats.sla_overdue) > 0 && <span> | </span>}
-                                        {Number(stats.sla_overdue) > 0 && (
-                                            <span className="text-rose-100 font-bold">
-                                                เกินกำหนดเวลา SLA แล้ว: <span className="font-black text-lg px-1.5 py-0.5 bg-rose-900/50 rounded mx-1 text-white">{Number(stats.sla_overdue).toLocaleString()}</span> รายการ
-                                            </span>
-                                        )}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="z-10 w-full sm:w-auto flex flex-wrap gap-2 text-center shrink-0">
-                                {Number(stats.sla_warning) > 0 && (
-                                    <button
-                                        onClick={() => handleQuickFilter('sla_warning')}
-                                        className="flex-1 sm:flex-initial bg-white text-amber-800 font-bold py-2 px-4 rounded-xl shadow-md hover:bg-amber-50 hover:shadow-lg transform transition hover:-translate-y-0.5 cursor-pointer text-sm"
-                                    >
-                                        ดูเคสใกล้หมดเวลา
-                                    </button>
-                                )}
-                                {Number(stats.sla_overdue) > 0 && (
-                                    <button
-                                        onClick={() => handleQuickFilter('sla_overdue')}
-                                        className="flex-1 sm:flex-initial bg-rose-900 text-white font-bold py-2 px-4 rounded-xl shadow-md hover:bg-rose-950 hover:shadow-lg transform transition hover:-translate-y-0.5 cursor-pointer text-sm"
-                                    >
-                                        ดูเคสเกินกำหนด SLA
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
                     {/* Urgent Banner */}
                     {stats.urgent > 0 && (
-                        <div className="bg-gradient-to-r from-red-600 to-red-500 rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between text-white overflow-hidden relative border border-red-400">
-                            <div className="absolute right-0 top-0 w-48 h-48 bg-white opacity-10 rounded-full mix-blend-overlay filter blur-2xl translate-x-12 -translate-y-12 pointer-events-none" />
-                            <div className="absolute left-0 bottom-0 w-32 h-32 bg-yellow-300 opacity-20 rounded-full mix-blend-overlay filter blur-xl -translate-x-10 translate-y-10 pointer-events-none" />
-                            <div className="flex items-center gap-5 z-10 w-full sm:w-auto mb-4 sm:mb-0">
-                                <div className="bg-white/20 p-3 rounded-xl animate-bounce shrink-0">
-                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="bg-gradient-to-r from-red-600 to-red-500 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between text-white overflow-hidden relative border border-red-400">
+                            <div className="flex items-center gap-4 z-10 w-full sm:w-auto mb-3 sm:mb-0">
+                                <div className="bg-white/20 p-2.5 rounded-xl animate-bounce shrink-0">
+                                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold tracking-wide">แจ้งเตือนด่วน! มีเคสที่ต้องจัดการทันที</h3>
-                                    <p className="text-red-100 text-sm mt-1">
-                                        พบใบงานระดับความเร่งด่วน "ด่วนที่สุด" จำนวน <span className="font-black text-lg px-1.5 py-0.5 bg-white/20 rounded mx-1">{Number(stats.urgent).toLocaleString()}</span> รายการที่รอการแก้ไข
+                                    <h3 className="text-base sm:text-lg font-bold tracking-wide">แจ้งเตือนด่วน! มีเคสระดับ "ด่วนที่สุด"</h3>
+                                    <p className="text-red-100 text-xs sm:text-sm mt-0.5">
+                                        พบจำนวน <span className="font-black px-1.5 py-0.5 bg-white/20 rounded mx-1">{Number(stats.urgent).toLocaleString()}</span> รายการที่รอการแก้ไขทันที
                                     </p>
                                 </div>
                             </div>
-                            <div className="z-10 w-full sm:w-auto text-center shrink-0">
-                                <button
-                                    onClick={() => {
-                                        setFormFilters(prev => ({ ...prev, priority: 'urgent', status: 'not_closed' }));
-                                        router.get(route('dashboard'), { priority: 'urgent', status: 'not_closed' }, { preserveState: true, preserveScroll: true });
-                                    }}
-                                    className="w-full sm:w-auto bg-white text-red-600 font-bold py-2.5 px-6 rounded-xl shadow-md hover:bg-gray-50 hover:shadow-lg transform transition hover:-translate-y-0.5 cursor-pointer"
-                                >
-                                    ดูเคสด่วนทั้งหมด
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => {
+                                    setFormFilters(prev => ({ ...prev, priority: 'urgent', status: 'not_closed' }));
+                                    router.get(route('dashboard'), { priority: 'urgent', status: 'not_closed' }, { preserveState: true, preserveScroll: true });
+                                }}
+                                className="w-full sm:w-auto bg-white text-red-600 font-bold py-2 px-5 rounded-xl shadow-sm hover:bg-gray-50 transition cursor-pointer text-sm shrink-0"
+                            >
+                                ดูเคสด่วนทั้งหมด
+                            </button>
                         </div>
                     )}
 
-                    {/* Manager Approval Banner */}
+                    {/* Header Section */}
+                    <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 pt-2">
+                        <h2 className="text-2xl font-black text-gray-900 tracking-tight">สถานะการแจ้งซ่อม</h2>
+                        <div className="text-xs text-gray-500 flex items-center gap-2">
+                            <span>อัปเดตล่าสุด {currentTime}</span>
+                            <span>·</span>
+                            <button
+                                type="button"
+                                onClick={() => handleQuickFilter('all')}
+                                className="text-gray-600 underline hover:text-blue-600 transition cursor-pointer"
+                            >
+                                ดูรายการทั้งหมด {Number(stats.total).toLocaleString()} เคส
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* SLA Urgent Alert Banner (Active Overdue) */}
+                    {Number(stats.sla_overdue) > 0 && (
+                        <div className="bg-[#8b181b] text-white rounded-2xl px-5 py-3.5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center gap-3.5 w-full sm:w-auto">
+                                <div className="w-6 h-6 rounded-full border-2 border-white/90 flex items-center justify-center shrink-0 text-white font-black text-xs">
+                                    !
+                                </div>
+                                <span className="font-bold text-sm sm:text-base tracking-wide">
+                                    มี {Number(stats.sla_overdue).toLocaleString()} เคสเกิน SLA ต้องดำเนินการทันที
+                                </span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => handleQuickFilter('sla_overdue')}
+                                className="w-full sm:w-auto bg-white text-[#8b181b] hover:bg-red-50 font-bold px-6 py-2 rounded-xl text-sm shadow-sm transition active:scale-95 shrink-0 text-center cursor-pointer"
+                            >
+                                ดูเคสที่เกิน SLA
+                            </button>
+                        </div>
+                    )}
+
+                    {/* 3 Overview Cards Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* 1. Open Cases */}
+                        <div
+                            onClick={() => handleQuickFilter('not_closed')}
+                            className="bg-[#fcf8ee] border border-[#edd9b6] rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between min-h-[140px] shadow-xs hover:shadow-md transition cursor-pointer group"
+                        >
+                            {/* Watermark Puzzle Outline */}
+                            <div className="absolute right-1 -bottom-2 text-amber-700/15 pointer-events-none select-none">
+                                <svg className="w-24 h-24 stroke-current fill-none" strokeWidth="1.6" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.75.75 0 01-.75.75H4.5A2.25 2.25 0 002.25 9v1.5a.75.75 0 00.75.75h0c.355 0 .676.186.959.401.29.221.634.349 1.003.349 1.036 0 1.875 1.007 1.875 2.25s-.84 2.25-1.875 2.25c-.369 0-.713.128-1.003.349-.283.215-.604.401-.959.401h0a.75.75 0 00-.75.75V19.5A2.25 2.25 0 004.5 21.75h5.25a.75.75 0 00.75-.75v0c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036 1.007-1.875 2.25-1.875s2.25.84 2.25 1.875c0 .369-.128.713-.349 1.003-.215.283-.401.604-.401.959v0a.75.75 0 00.75.75h5.25a2.25 2.25 0 002.25-2.25v-5.25a.75.75 0 00-.75-.75h0c-.355 0-.676-.186-.959-.401-.29-.221-.634-.349-1.003-.349-1.036 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401h0a.75.75 0 00.75-.75V9a2.25 2.25 0 00-2.25-2.25h-5.25a.75.75 0 01-.75-.75v0z" />
+                                </svg>
+                            </div>
+                            <span className="text-xs sm:text-sm font-bold text-amber-900/80">งานค้าง (ยังไม่ปิด)</span>
+                            <div className="z-10 my-1">
+                                <span className="text-4xl sm:text-5xl font-black text-slate-900 leading-none tracking-tight">
+                                    {Number(stats.open_total || 0).toLocaleString()}
+                                </span>
+                            </div>
+                            <div className="z-10 text-xs text-amber-900/70 font-medium">
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleQuickFilter('pending');
+                                    }}
+                                    className="hover:underline hover:text-amber-950 cursor-pointer"
+                                >
+                                    ยังไม่มอบหมาย {Number(stats.pending || 0).toLocaleString()}
+                                </button>
+                                {' · '}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleQuickFilter('active');
+                                    }}
+                                    className="hover:underline hover:text-amber-950 cursor-pointer"
+                                >
+                                    กำลังทำ {Number((stats.analyzing || 0) + (stats.in_progress || 0) + (stats.testing || 0)).toLocaleString()}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* 2. Overdue SLA */}
+                        <div
+                            onClick={() => handleQuickFilter('sla_overdue')}
+                            className="bg-[#fff1f2] border border-[#fecdd3] rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between min-h-[140px] shadow-xs hover:shadow-md transition cursor-pointer group"
+                        >
+                            <span className="text-xs sm:text-sm font-bold text-rose-700">เกิน SLA</span>
+                            <div className="z-10 my-1">
+                                <span className="text-4xl sm:text-5xl font-black text-rose-700 leading-none tracking-tight">
+                                    {Number(stats.sla_overdue || 0).toLocaleString()}
+                                </span>
+                            </div>
+                            <div className="z-10 flex items-center gap-1.5 text-xs font-semibold text-amber-800">
+                                <span className="text-amber-500">⚠</span>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleQuickFilter('sla_warning');
+                                    }}
+                                    className="hover:underline hover:text-amber-950 cursor-pointer"
+                                >
+                                    ใกล้ครบ SLA: {Number(stats.sla_warning || 0).toLocaleString()} เคส
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* 3. Closed Today */}
+                        <div
+                            onClick={() => handleQuickFilter('closed_today')}
+                            className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between min-h-[140px] shadow-xs hover:shadow-md transition cursor-pointer group"
+                        >
+                            {/* Watermark Flag Outline */}
+                            <div className="absolute right-1 -bottom-1 text-emerald-600/20 pointer-events-none select-none">
+                                <svg className="w-24 h-24 stroke-current fill-none" strokeWidth="1.6" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                                </svg>
+                            </div>
+                            <span className="text-xs sm:text-sm font-bold text-emerald-800">ปิดงานวันนี้</span>
+                            <div className="z-10 my-1">
+                                <span className="text-4xl sm:text-5xl font-black text-emerald-700 leading-none tracking-tight">
+                                    {Number(stats.closed_today || 0).toLocaleString()}
+                                </span>
+                            </div>
+                            <div className="z-10 text-xs text-slate-500 font-medium">
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleQuickFilter('cancelled');
+                                    }}
+                                    className="hover:underline hover:text-slate-800 cursor-pointer"
+                                >
+                                    ยกเลิก {Number(stats.cancelled_today || stats.cancelled || 0).toLocaleString()} เคส
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Stepper Workflow Pipeline Card */}
+                    <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm space-y-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-4">
+                            <h3 className="text-base font-bold text-slate-800 tracking-tight">งานที่เปิดอยู่ แยกตามขั้นตอน</h3>
+                            <span className="text-xs text-slate-400 font-medium">
+                                {Number(stats.open_total || 0).toLocaleString()} เคส · กดขั้นตอนเพื่อกรองรายการ
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 lg:flex lg:flex-row lg:items-center lg:justify-between gap-4">
+                            {pipelineSteps.map((step, idx) => {
+                                const isBottleneck = step.key === bottleneckStepKey;
+                                return (
+                                    <React.Fragment key={step.key}>
+                                        <div
+                                            onClick={() => handleQuickFilter(step.key)}
+                                            className="flex-1 p-3 rounded-2xl hover:bg-slate-50/80 transition cursor-pointer flex flex-col group"
+                                        >
+                                            {/* Step Icon Box with Circular Number Badge */}
+                                            <div className="relative w-12 h-12 mb-3">
+                                                <div
+                                                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                                                        isBottleneck
+                                                            ? 'bg-[#a16207] text-white shadow-md'
+                                                            : 'bg-white text-slate-700 border border-slate-200 shadow-xs group-hover:border-slate-300'
+                                                    }`}
+                                                >
+                                                    {step.icon}
+                                                </div>
+                                                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-900 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
+                                                    {step.num}
+                                                </span>
+                                            </div>
+
+                                            {/* Label */}
+                                            <p className="text-xs sm:text-sm font-semibold text-slate-700 leading-snug line-clamp-1 mb-1">
+                                                {step.label}
+                                            </p>
+
+                                            {/* Count & % */}
+                                            <div className="flex items-baseline gap-1 my-1">
+                                                <span className="text-2xl font-black text-slate-900 leading-none">
+                                                    {step.count}
+                                                </span>
+                                                <span className="text-xs text-slate-400 font-medium">
+                                                    เคส · {step.percent}%
+                                                </span>
+                                            </div>
+
+                                            {/* Progress Bar */}
+                                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mt-2">
+                                                <div
+                                                    className={`h-full rounded-full transition-all duration-500 ${
+                                                        isBottleneck ? 'bg-amber-600' : 'bg-slate-400'
+                                                    }`}
+                                                    style={{ width: `${Math.min(step.percent, 100)}%` }}
+                                                />
+                                            </div>
+
+                                            {/* Bottleneck Badge */}
+                                            <div className="min-h-[28px] mt-2 flex items-center">
+                                                {isBottleneck && (
+                                                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#fef3c7] text-[#92400e] border border-amber-200 shadow-2xs">
+                                                        งานกองมากสุด
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Arrow between steps (only on lg: desktop) */}
+                                        {idx < pipelineSteps.length - 1 && (
+                                            <div className="hidden lg:flex items-center text-slate-300 shrink-0 self-center -mt-6">
+                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                                </svg>
+                                            </div>
+                                        )}
+                                    </React.Fragment>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Manager Approval Banner (Task 2) */}
                     {userRole === 'manager' && stats.task2_manager_review > 0 && (
-                        <div className="bg-gradient-to-r from-amber-600 to-amber-500 rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between text-white overflow-hidden relative border border-amber-400">
-                            <div className="absolute right-0 top-0 w-48 h-48 bg-white opacity-10 rounded-full mix-blend-overlay filter blur-2xl translate-x-12 -translate-y-12 pointer-events-none" />
-                            <div className="absolute left-0 bottom-0 w-32 h-32 bg-yellow-300 opacity-20 rounded-full mix-blend-overlay filter blur-xl -translate-x-10 translate-y-10 pointer-events-none" />
-                            <div className="flex items-center gap-5 z-10 w-full sm:w-auto mb-4 sm:mb-0">
-                                <div className="bg-white/20 p-3 rounded-xl animate-pulse shrink-0">
-                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="bg-gradient-to-r from-amber-600 to-amber-500 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between text-white overflow-hidden relative border border-amber-400">
+                            <div className="flex items-center gap-4 z-10 w-full sm:w-auto mb-3 sm:mb-0">
+                                <div className="bg-white/20 p-2.5 rounded-xl animate-pulse shrink-0">
+                                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold tracking-wide">แจ้งเตือน: งานรอหัวหน้าตรวจสอบ</h3>
-                                    <p className="text-amber-100 text-sm mt-1">
-                                        พบใบงานสถานะ "ปิดใบงานแล้ว" จำนวน <span className="font-black text-lg px-1.5 py-0.5 bg-white/20 rounded mx-1">{Number(stats.task2_manager_review).toLocaleString()}</span> รายการที่รอการตรวจสอบมาตรการป้องกัน
+                                    <h3 className="text-base sm:text-lg font-bold tracking-wide">แจ้งเตือน: งานรอหัวหน้าตรวจสอบ</h3>
+                                    <p className="text-amber-100 text-xs sm:text-sm mt-0.5">
+                                        พบใบงานสถานะ "ปิดใบงานแล้ว" จำนวน <span className="font-black px-1.5 py-0.5 bg-white/20 rounded mx-1">{Number(stats.task2_manager_review).toLocaleString()}</span> รายการที่รอการตรวจสอบมาตรการป้องกัน
                                     </p>
                                 </div>
                             </div>
-                            <div className="z-10 w-full sm:w-auto text-center shrink-0">
-                                <button
-                                    onClick={() => handleQuickFilter('task2_manager_review')}
-                                    className="w-full sm:w-auto bg-white text-amber-600 font-bold py-2.5 px-6 rounded-xl shadow-md hover:bg-gray-50 hover:shadow-lg transform transition hover:-translate-y-0.5 cursor-pointer"
-                                >
-                                    ดูเคสรอตรวจสอบทั้งหมด
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => handleQuickFilter('task2_manager_review')}
+                                className="w-full sm:w-auto bg-white text-amber-600 font-bold py-2 px-5 rounded-xl shadow-sm hover:bg-gray-50 transition cursor-pointer text-sm shrink-0"
+                            >
+                                ดูเคสรอตรวจสอบทั้งหมด
+                            </button>
                         </div>
                     )}
-
-                    {/* Task 1 Section Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-                        <div className="flex items-center">
-                            <div className="bg-blue-600 w-1.5 h-6 rounded-full mr-3" />
-                            <h2 className="text-xl font-bold text-gray-800">Task 1: สถานะการแจ้งซ่อม (Ticketing)</h2>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="hidden lg:inline-flex text-xs font-semibold px-2.5 py-1 bg-white text-gray-500 rounded-full border border-gray-200">
-                                คลิกที่การ์ดเพื่อกรองตามสถานะ
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Task 1 KPI Cards Row */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 auto-rows-fr">
-                        {/* 1. Total Cases */}
-                        <div
-                            onClick={() => handleQuickFilter('all')}
-                            className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-blue-200 hover:border-blue-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                        >
-                            <div className="absolute right-0 top-0 w-24 h-24 bg-blue-50 rounded-full mix-blend-multiply filter blur-xl opacity-70 translate-x-8 -translate-y-8" />
-                            <p className="text-sm font-bold text-blue-800 mb-2 leading-tight group-hover:text-blue-900">เคสทั้งหมด</p>
-                            <div className="flex items-end justify-between mt-auto">
-                                <span className="text-4xl font-black text-gray-900 leading-none">{Number(stats.total).toLocaleString()}</span>
-                                <svg className="w-7 h-7 text-blue-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        {/* 2. Pending Cases */}
-                        <div
-                            onClick={() => handleQuickFilter('pending')}
-                            className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-yellow-200 hover:border-yellow-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                        >
-                            <div className="absolute right-0 top-0 w-24 h-24 bg-yellow-50 rounded-full mix-blend-multiply filter blur-xl opacity-70 translate-x-8 -translate-y-8" />
-                            <p className="text-sm font-bold text-yellow-800 mb-2 leading-tight group-hover:text-yellow-900">รอดำเนินการ / มอบหมาย</p>
-                            <div className="flex items-end justify-between mt-auto">
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl font-black text-yellow-600 leading-none">{Number(stats.pending).toLocaleString()}</span>
-                                    <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_pending}%</span>
-                                </div>
-                                <svg className="w-7 h-7 text-yellow-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        {/* 3. Analyzing Cases */}
-                        <div
-                            onClick={() => handleQuickFilter('analyzing')}
-                            className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-purple-200 hover:border-purple-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                        >
-                            <div className="absolute right-0 top-0 w-24 h-24 bg-purple-50 rounded-full mix-blend-multiply filter blur-xl opacity-70 translate-x-8 -translate-y-8" />
-                            <p className="text-sm font-bold text-purple-800 mb-2 leading-tight group-hover:text-purple-900">สืบสภาพ / วิเคราะห์สาเหตุ</p>
-                            <div className="flex items-end justify-between mt-auto">
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl font-black text-purple-600 leading-none">{Number(stats.analyzing).toLocaleString()}</span>
-                                    <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_analyzing}%</span>
-                                </div>
-                                <svg className="w-7 h-7 text-purple-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        {/* 4. In Progress Cases */}
-                        <div
-                            onClick={() => handleQuickFilter('in_progress')}
-                            className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-indigo-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                        >
-                            <div className="absolute right-0 top-0 w-24 h-24 bg-indigo-50 rounded-full mix-blend-multiply filter blur-xl opacity-70 translate-x-8 -translate-y-8" />
-                            <p className="text-sm font-bold text-indigo-800 mb-2 leading-tight group-hover:text-indigo-900">ดำเนินการแก้ไข</p>
-                            <div className="flex items-end justify-between mt-auto">
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl font-black text-indigo-600 leading-none">{Number(stats.in_progress).toLocaleString()}</span>
-                                    <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_in_progress}%</span>
-                                </div>
-                                <svg className="w-7 h-7 text-indigo-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        {/* 5. Testing & Delivery */}
-                        <div
-                            onClick={() => handleQuickFilter('testing')}
-                            className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-cyan-200 hover:border-cyan-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                        >
-                            <div className="absolute right-0 top-0 w-24 h-24 bg-cyan-50 rounded-full mix-blend-multiply filter blur-xl opacity-70 translate-x-8 -translate-y-8" />
-                            <p className="text-sm font-bold text-cyan-800 mb-2 leading-tight group-hover:text-cyan-900">ทดสอบและส่งมอบ</p>
-                            <div className="flex items-end justify-between mt-auto">
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl font-black text-cyan-600 leading-none">{Number(stats.testing).toLocaleString()}</span>
-                                    <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_testing}%</span>
-                                </div>
-                                <svg className="w-7 h-7 text-cyan-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        {/* 6. Completed Cases (Closed + Cancelled) */}
-                        <div
-                            onClick={() => handleQuickFilter('completed')}
-                            className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-emerald-200 hover:border-emerald-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                        >
-                            <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-50 rounded-full mix-blend-multiply filter blur-xl opacity-70 translate-x-8 -translate-y-8" />
-                            <p className="text-sm font-bold text-emerald-800 mb-2 leading-tight group-hover:text-emerald-900">แก้ไขเสร็จ / ปิดใบงาน</p>
-                            <div className="flex items-end justify-between mt-auto">
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl font-black text-emerald-600 leading-none">{Number(stats.completed).toLocaleString()}</span>
-                                    <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_completed}%</span>
-                                </div>
-                                <div className="flex flex-col gap-1 items-end">
-                                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded flex items-center gap-1">
-                                        ปิดงาน {Number(stats.closed).toLocaleString()}
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                    </span>
-                                    <span className="text-[10px] font-bold text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded flex items-center gap-1">
-                                        ยกเลิก {Number(stats.cancelled).toLocaleString()}
-                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 7. Breached SLA Cases */}
-                        <div
-                            onClick={() => handleQuickFilter('breached')}
-                            className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-red-200 hover:border-red-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                        >
-                            <div className="absolute right-0 top-0 w-24 h-24 bg-red-50 rounded-full mix-blend-multiply filter blur-xl opacity-70 translate-x-8 -translate-y-8" />
-                            <p className="text-sm font-bold text-red-800 mb-2 leading-tight group-hover:text-red-900">ซ่อมเสร็จเกิน SLA</p>
-                            <div className="flex items-end justify-between mt-auto">
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl font-black text-red-600 leading-none">{Number(stats.breached || 0).toLocaleString()}</span>
-                                    <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_breached || 0}%</span>
-                                </div>
-                                <svg className="w-7 h-7 text-red-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
 
                     {/* Task 2 Section (Preventive Action) - Hidden for Helpdesk */}
                     {userRole !== 'helpdesk' && (
@@ -603,7 +679,11 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                                             <option value="sla_warning">⏰ ใกล้หมดเวลา SLA (&lt; 1 ชม.)</option>
                                             <option value="sla_overdue">⚠️ เกินกำหนดเวลา SLA แล้ว</option>
                                             <option value="not_closed">ยังไม่ปิดใบงาน</option>
-                                            <option value="pending">รอดำเนินการ</option>
+                                            <option value="pending">รอดำเนินการ / มอบหมาย</option>
+                                            <option value="analyzing">สืบสภาพ / วิเคราะห์สาเหตุ</option>
+                                            <option value="in_progress">ดำเนินการแก้ไข</option>
+                                            <option value="testing">ทดสอบและส่งมอบ</option>
+                                            <option value="closed_today">ปิดงานวันนี้</option>
                                             <option value="active">กำลังทำ (Assigned/Analyzing/In Progress)</option>
                                             <option value="resolved">รอผู้แจ้งกดรับงาน</option>
                                             <option value="approved">รอหัวหน้าปิดใบงาน</option>

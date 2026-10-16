@@ -269,6 +269,24 @@ class HelpdeskCase extends Model
                     $query->whereNotIn('status', ['closed', 'cancelled']);
                 } elseif ($status === 'completed') {
                     $query->whereIn('status', ['closed', 'cancelled']);
+                } elseif ($status === 'closed_today') {
+                    $today = now()->timezone('Asia/Bangkok')->toDateString();
+                    $query->where('status', 'closed')
+                        ->where(function ($q) use ($today) {
+                            $q->whereDate('closed_at', $today)
+                                ->orWhere(function ($sq) use ($today) {
+                                    $sq->whereNull('closed_at')->whereDate('updated_at', $today);
+                                });
+                        });
+                } elseif ($status === 'cancelled_today') {
+                    $today = now()->timezone('Asia/Bangkok')->toDateString();
+                    $query->where('status', 'cancelled')
+                        ->where(function ($q) use ($today) {
+                            $q->whereDate('cancelled_at', $today)
+                                ->orWhere(function ($sq) use ($today) {
+                                    $sq->whereNull('cancelled_at')->whereDate('updated_at', $today);
+                                });
+                        });
                 } elseif ($status === 'breached') {
                     $query->whereIn('status', ['resolved', 'closed'])
                         ->whereNotNull('sla_due_at')
