@@ -163,55 +163,56 @@ export default function Create({ categories = [] }) {
                                 ข้อมูลอุปกรณ์ / เครื่องจักร
                             </h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 items-start">
-                                <div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-5 items-start">
+                                <div className="md:col-span-2">
                                     <div className="flex items-center justify-between mb-2 h-5">
-                                        <label htmlFor="actual_user_name" className="block font-bold text-sm text-slate-700">
-                                            แจ้งแทนผู้อื่น (ระบุชื่อผู้ใช้งานจริง)
+                                        <label htmlFor="machine_name" className="block font-bold text-sm text-slate-700">
+                                            ชื่ออุปกรณ์
                                         </label>
                                     </div>
                                     <input
-                                        id="actual_user_name"
+                                        id="machine_name"
                                         type="text"
-                                        value={data.actual_user_name}
-                                        onChange={(e) => setData('actual_user_name', e.target.value)}
-                                        placeholder="ปล่อยว่างหากแจ้งให้ตนเอง"
+                                        value={data.machine_name}
+                                        onChange={(e) => setData('machine_name', e.target.value)}
+                                        placeholder="เช่น PC-01, Notebook Dell, ปริ้นเตอร์ HP แผนกบัญชี"
                                         className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
                                     />
-                                    <InputError message={errors.actual_user_name} className="mt-2" />
+                                    <InputError message={errors.machine_name} className="mt-2" />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <div className="flex items-center justify-between mb-2 h-5">
-                                            <label htmlFor="machine_name" className="block font-bold text-sm text-slate-700">
-                                                ชื่ออุปกรณ์
-                                            </label>
-                                        </div>
-                                        <input
-                                            id="machine_name"
-                                            type="text"
-                                            value={data.machine_name}
-                                            onChange={(e) => setData('machine_name', e.target.value)}
-                                            placeholder="เช่น PC-01"
-                                            className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
-                                        />
+                                <div className="md:col-span-1">
+                                    <div className="flex items-center justify-between mb-2 h-5">
+                                        <label htmlFor="machine_code" className="block font-bold text-sm text-slate-700">
+                                            รหัสทรัพย์สิน
+                                        </label>
                                     </div>
-                                    <div>
-                                        <div className="flex items-center justify-between mb-2 h-5">
-                                            <label htmlFor="machine_code" className="block font-bold text-sm text-slate-700">
-                                                รหัสทรัพย์สิน
-                                            </label>
-                                        </div>
-                                        <input
-                                            id="machine_code"
-                                            type="text"
-                                            value={data.machine_code}
-                                            onChange={(e) => setData('machine_code', e.target.value)}
-                                            placeholder="เช่น MCH-01"
-                                            className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
-                                        />
-                                    </div>
+                                    <input
+                                        id="machine_code"
+                                        type="text"
+                                        value={data.machine_code}
+                                        onChange={(e) => setData('machine_code', e.target.value)}
+                                        placeholder="เช่น MCH-01, IT-2026-001"
+                                        className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
+                                    />
+                                    <InputError message={errors.machine_code} className="mt-2" />
                                 </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <div className="flex items-center justify-between mb-2 h-5">
+                                    <label htmlFor="actual_user_name" className="block font-bold text-sm text-slate-700">
+                                        แจ้งแทนผู้อื่น (ระบุชื่อผู้ใช้งานจริง)
+                                    </label>
+                                </div>
+                                <input
+                                    id="actual_user_name"
+                                    type="text"
+                                    value={data.actual_user_name}
+                                    onChange={(e) => setData('actual_user_name', e.target.value)}
+                                    placeholder="ปล่อยว่างหากแจ้งให้ตนเอง"
+                                    className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
+                                />
+                                <InputError message={errors.actual_user_name} className="mt-2" />
                             </div>
 
                             {/* Machine Status Cards */}
