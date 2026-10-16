@@ -39,7 +39,7 @@ class TicketController extends Controller
             'category' => 'nullable|string|max:100',
             'description' => 'required|string|max:400',
             'location' => 'required|string|max:255',
-            'requester_phone' => ['required', 'string', 'regex:/^0[0-9]{1,2}-?[0-9]{3}-?[0-9]{4}$/'],
+            'requester_phone' => ['required', 'string', 'regex:/^(0[0-9]{9}|0[0-9]{2}-[0-9]{3}-[0-9]{4})$/'],
             'actual_user_name' => 'nullable|string|max:100',
             'machine_name' => 'nullable|string|max:100',
             'machine_code' => 'nullable|string|max:50',
@@ -49,7 +49,7 @@ class TicketController extends Controller
         ], [
             'location.required' => 'กรุณาระบุสถานที่/จุดที่เกิดปัญหา',
             'requester_phone.required' => 'กรุณากรอกเบอร์โทรศัพท์ติดต่อกลับ',
-            'requester_phone.regex' => 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (เช่น 081-123-4567 หรือ 0811234567)',
+            'requester_phone.regex' => 'กรุณากรอกเบอร์โทรศัพท์ตัวเลข 10 หลัก (เช่น 0812345678)',
             'is_machine_stopped.required' => 'กรุณาระบุสถานะเครื่องจักร ณ ปัจจุบัน',
             'attachments.max' => 'แนบรูปภาพได้สูงสุด 2 รูปเท่านั้น',
         ]);

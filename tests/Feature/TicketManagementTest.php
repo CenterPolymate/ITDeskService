@@ -77,6 +77,68 @@ class TicketManagementTest extends TestCase
         ]);
     }
 
+    public function test_user_can_create_ticket_with_exact_10_digit_numeric_phone(): void
+    {
+        $user = User::factory()->create(['role' => 'user', 'email' => 'user10@example.com']);
+        Company::firstOrCreate(['name' => 'Polymate'], [
+            'code' => 'PM',
+            'sla_type' => '8x5',
+            'is_active' => true,
+        ]);
+
+        $payload = [
+            'title' => 'ทดสอบเบอร์โทร 10 หลัก',
+            'category' => 'Hardware',
+            'description' => 'รายละเอียดทดสอบ',
+            'location' => 'อาคาร 1 ชั้น 2',
+            'requester_phone' => '0812345678',
+            'is_machine_stopped' => 0,
+        ];
+
+        $response = $this->actingAs($user)->post(route('tickets.store'), $payload);
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertDatabaseHas('helpdesk_cases', [
+            'title' => 'ทดสอบเบอร์โทร 10 หลัก',
+            'requester_phone' => '0812345678',
+        ]);
+    }
+
+    public function test_ticket_creation_rejects_invalid_phone_number_length_or_format(): void
+    {
+        $user = User::factory()->create(['role' => 'user', 'email' => 'userinv@example.com']);
+
+        // Case 1: 11 digits (เกิน 10 หลัก)
+        $response11 = $this->actingAs($user)->post(route('tickets.store'), [
+            'title' => 'ทดสอบเบอร์เกิน 10 หลัก',
+            'description' => 'รายละเอียดทดสอบ',
+            'location' => 'อาคาร 1',
+            'requester_phone' => '08123456789',
+            'is_machine_stopped' => 0,
+        ]);
+        $response11->assertSessionHasErrors('requester_phone');
+
+        // Case 2: 9 digits (ไม่ครบ 10 หลัก)
+        $response9 = $this->actingAs($user)->post(route('tickets.store'), [
+            'title' => 'ทดสอบเบอร์ไม่ครบ 10 หลัก',
+            'description' => 'รายละเอียดทดสอบ',
+            'location' => 'อาคาร 1',
+            'requester_phone' => '081234567',
+            'is_machine_stopped' => 0,
+        ]);
+        $response9->assertSessionHasErrors('requester_phone');
+
+        // Case 3: Letters included (มีตัวอักษร)
+        $responseChar = $this->actingAs($user)->post(route('tickets.store'), [
+            'title' => 'ทดสอบมีตัวอักษร',
+            'description' => 'รายละเอียดทดสอบ',
+            'location' => 'อาคาร 1',
+            'requester_phone' => '081234567a',
+            'is_machine_stopped' => 0,
+        ]);
+        $responseChar->assertSessionHasErrors('requester_phone');
+    }
+
     public function test_helpdesk_can_triage_and_assign_ticket(): void
     {
         $helpdesk = User::factory()->create(['role' => 'helpdesk']);

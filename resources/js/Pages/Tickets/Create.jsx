@@ -134,6 +134,13 @@ export default function Create({ categories = [] }) {
                                         <label htmlFor="requester_phone" className="block font-bold text-sm text-slate-700">
                                             เบอร์โทรติดต่อกลับ <span className="text-rose-500">*</span>
                                         </label>
+                                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
+                                            data.requester_phone.length === 10
+                                                ? 'text-emerald-700 bg-emerald-100/80 font-mono'
+                                                : 'text-slate-400 bg-slate-100 font-mono'
+                                        }`}>
+                                            {data.requester_phone.length}/10
+                                        </span>
                                     </div>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -143,12 +150,19 @@ export default function Create({ categories = [] }) {
                                         </div>
                                         <input
                                             id="requester_phone"
-                                            type="text"
+                                            type="tel"
+                                            inputMode="numeric"
                                             value={data.requester_phone}
-                                            onChange={(e) => setData('requester_phone', e.target.value)}
+                                            onChange={(e) => {
+                                                const numericOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                setData('requester_phone', numericOnly);
+                                            }}
                                             required
-                                            pattern="^0[0-9]{1,2}-?[0-9]{3}-?[0-9]{4}$"
-                                            placeholder="081-123-4567"
+                                            minLength={10}
+                                            maxLength={10}
+                                            pattern="^0[0-9]{9}$"
+                                            placeholder="0812345678"
+                                            title="กรุณากรอกเบอร์โทรศัพท์ตัวเลข 10 หลัก (เช่น 0812345678)"
                                             className="block w-full pl-12 h-12 py-2.5 bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
                                         />
                                     </div>
