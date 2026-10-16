@@ -147,6 +147,12 @@ class TicketController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Tier 2 technicians should not see CSAT rating and feedback
+        $tier2Roles = ['team_hardware', 'team_network', 'team_software'];
+        if (in_array($user->role, $tier2Roles)) {
+            $ticket->makeHidden(['rating', 'feedback']);
+        }
+
         return Inertia::render('Tickets/Show', compact('ticket'));
     }
 

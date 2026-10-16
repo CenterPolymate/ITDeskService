@@ -245,6 +245,52 @@ class TicketManagementTest extends TestCase
         $this->assertEquals('ช่างบริการรวดเร็วและสุภาพมาก ขอบคุณครับ', $case->feedback);
     }
 
+    public function test_tier2_cannot_see_csat_rating_and_feedback(): void
+    {
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0103',
+            'title' => 'เคสที่มีการประเมินแล้ว',
+            'description' => 'ช่างเข้าซ่อมเสร็จแล้ว',
+            'category' => 'Hardware',
+            'priority' => 'low',
+            'status' => 'closed',
+            'rating' => 4,
+            'feedback' => 'บริการดีมาก',
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-000-1111',
+            'location' => 'ชั้น 1',
+        ]);
+
+        $tier2Hardware = User::factory()->create(['role' => 'team_hardware']);
+        $tier2Network = User::factory()->create(['role' => 'team_network']);
+        $tier2Software = User::factory()->create(['role' => 'team_software']);
+
+        foreach ([$tier2Hardware, $tier2Network, $tier2Software] as $tech) {
+            $response = $this->actingAs($tech)->get(route('tickets.show', $case->id));
+            $response->assertOk();
+            $response->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Tickets/Show')
+                ->missing('ticket.rating')
+                ->missing('ticket.feedback')
+            );
+        }
+
+        // Helpdesk and Manager CAN see rating and feedback
+        $helpdesk = User::factory()->create(['role' => 'helpdesk']);
+        $manager = User::factory()->create(['role' => 'manager']);
+
+        foreach ([$helpdesk, $manager] as $staff) {
+            $response = $this->actingAs($staff)->get(route('tickets.show', $case->id));
+            $response->assertOk();
+            $response->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Tickets/Show')
+                ->where('ticket.rating', 4)
+                ->where('ticket.feedback', 'บริการดีมาก')
+            );
+        }
+    }
+
     public function test_user_can_add_comment_to_ticket(): void
     {
         $user = User::factory()->create(['role' => 'user', 'email' => 'user@example.com']);

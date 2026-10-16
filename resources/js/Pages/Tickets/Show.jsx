@@ -1340,8 +1340,8 @@ export default function Show({ ticket }) {
                             </div>
                         </div>
 
-                        {/* 7. CSAT Feedback Card */}
-                        {ticket.rating && (
+                        {/* 7. CSAT Feedback Card (Hidden from Tier 2 technicians) */}
+                        {ticket.rating && !isTier2 && (
                             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-yellow-400 border-x border-b border-slate-200">
                                 <h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
                                     <span className="text-yellow-500">⭐</span> ผลการประเมินความพึงพอใจ (CSAT)
