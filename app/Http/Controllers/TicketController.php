@@ -10,6 +10,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -247,35 +248,85 @@ class TicketController extends Controller
         ]);
 
         if ($request->action === 'start_analyzing') {
-            $ticket->update([
-                'status' => 'analyzing',
-                'analyzing_at' => now(),
-                'analyzing_by' => Auth::id(),
-            ]);
+            return DB::transaction(function () use ($id) {
+                $ticket = HelpdeskCase::where('id', $id)->lockForUpdate()->firstOrFail();
+                $user = Auth::user();
 
-            return redirect()->route('tickets.show', $id)->with('success', 'เริ่มดำเนินการสืบสภาพแล้ว');
+                // 1. Permission check: Check team / role
+                if ($ticket->escalated_to_team) {
+                    $teamMap = [
+                        'team_hardware' => 'Hardware',
+                        'team_network' => 'Network',
+                        'team_software' => 'Software',
+                    ];
+                    $userTeam = $teamMap[$user->role] ?? null;
+                    if ($userTeam !== $ticket->escalated_to_team && ! in_array($user->role, ['administrator', 'manager'])) {
+                        return redirect()->route('tickets.show', $id)
+                            ->with('error', 'ไม่อนุญาต: ใบงานนี้ถูกมอบหมายให้ทีม '.$ticket->escalated_to_team.' เท่านั้น');
+                    }
+                } else {
+                    if (! in_array($user->role, ['helpdesk', 'administrator', 'manager'])) {
+                        return redirect()->route('tickets.show', $id)
+                            ->with('error', 'ไม่อนุญาต: ใบงานนี้อยู่ในความรับผิดชอบของ Helpdesk');
+                    }
+                }
+
+                // 2. Status guard: Must be in 'assigned' status
+                if ($ticket->status !== 'assigned') {
+                    $investigator = $ticket->analyzingBy?->name ?? 'เจ้าหน้าที่ท่านอื่น';
+
+                    return redirect()->route('tickets.show', $id)
+                        ->with('error', "ไม่สามารถเริ่มสืบสภาพได้ เนื่องจากใบงานนี้อยู่ในสถานะ \"{$ticket->status_label}\" แล้ว (ผู้ดำเนินการ: {$investigator})");
+                }
+
+                // 3. Ownership guard: Check if analyzing_by is already set
+                if (! empty($ticket->analyzing_by)) {
+                    $investigator = $ticket->analyzingBy?->name ?? 'เจ้าหน้าที่ท่านอื่น';
+
+                    return redirect()->route('tickets.show', $id)
+                        ->with('error', "ใบงานนี้มีผู้เริ่มดำเนินการสืบสภาพแล้ว โดยคุณ {$investigator}");
+                }
+
+                $ticket->update([
+                    'status' => 'analyzing',
+                    'analyzing_at' => now(),
+                    'analyzing_by' => $user->id,
+                ]);
+
+                return redirect()->route('tickets.show', $id)->with('success', 'เริ่มดำเนินการสืบสภาพแล้ว');
+            });
         } elseif ($request->action === 'update_analysis') {
-            $updateData = [
-                'why_1' => $request->why_1,
-                'why_2' => $request->why_2,
-                'why_3' => $request->why_3,
-                'root_cause_detail' => $request->root_cause_detail,
-                'analyzing_by' => Auth::id(),
-            ];
+            return DB::transaction(function () use ($id, $request) {
+                $ticket = HelpdeskCase::where('id', $id)->lockForUpdate()->firstOrFail();
 
-            // If root cause is filled, automatically transition to in_progress
-            if (! empty($request->root_cause_detail)) {
-                $updateData['status'] = 'in_progress';
-                $updateData['in_progress_at'] = now();
-                $updateData['in_progress_by'] = Auth::id();
-                $message = 'บันทึกสาเหตุรากเหง้าเรียบร้อย ระบบได้เริ่มนับเวลาการแก้ไขแล้ว';
-            } else {
-                $message = 'บันทึกข้อมูลสืบสภาพเบื้องต้นแล้ว (กรุณาระบุสาเหตุรากเหง้าเพื่อเริ่มการแก้ไข)';
-            }
+                if ($ticket->status !== 'analyzing') {
+                    return redirect()->route('tickets.show', $id)
+                        ->with('error', "ไม่สามารถบันทึกการสืบสภาพได้ เนื่องจากใบงานไม่ได้อยู่ในสถานะสืบสภาพ (สถานะปัจจุบัน: {$ticket->status_label})");
+                }
 
-            $ticket->update($updateData);
+                $updateData = [
+                    'why_1' => $request->why_1,
+                    'why_2' => $request->why_2,
+                    'why_3' => $request->why_3,
+                    'root_cause_detail' => $request->root_cause_detail,
+                    // Preserve the initial investigator! Only fallback to Auth::id() if never set
+                    'analyzing_by' => $ticket->analyzing_by ?: Auth::id(),
+                ];
 
-            return redirect()->route('tickets.show', $id)->with('success', $message);
+                // If root cause is filled, automatically transition to in_progress
+                if (! empty($request->root_cause_detail)) {
+                    $updateData['status'] = 'in_progress';
+                    $updateData['in_progress_at'] = now();
+                    $updateData['in_progress_by'] = Auth::id();
+                    $message = 'บันทึกสาเหตุรากเหง้าเรียบร้อย ระบบได้เริ่มนับเวลาการแก้ไขแล้ว';
+                } else {
+                    $message = 'บันทึกข้อมูลสืบสภาพเบื้องต้นแล้ว (กรุณาระบุสาเหตุรากเหง้าเพื่อเริ่มการแก้ไข)';
+                }
+
+                $ticket->update($updateData);
+
+                return redirect()->route('tickets.show', $id)->with('success', $message);
+            });
         } elseif ($request->action === 'save_notes') {
             $ticket->update([
                 'resolution_notes' => $request->resolution_notes,

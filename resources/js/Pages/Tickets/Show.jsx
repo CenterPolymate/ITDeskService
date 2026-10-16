@@ -186,6 +186,7 @@ export default function Show({ ticket }) {
     const [showCsatModal, setShowCsatModal] = useState(false);
     const [showHandoverModal, setShowHandoverModal] = useState(false);
     const [isSavingNotes, setIsSavingNotes] = useState(false);
+    const [isStartingAnalyzing, setIsStartingAnalyzing] = useState(false);
     const [csatRating, setCsatRating] = useState(5);
     const [csatHover, setCsatHover] = useState(0);
     const [csatFeedback, setCsatFeedback] = useState('');
@@ -255,6 +256,18 @@ export default function Show({ ticket }) {
             {
                 preserveScroll: true,
                 onFinish: () => setIsSavingNotes(false),
+            }
+        );
+    };
+
+    const handleStartAnalyzing = () => {
+        setIsStartingAnalyzing(true);
+        router.put(
+            route('tickets.updateStatus', ticket.id),
+            { action: 'start_analyzing' },
+            {
+                preserveScroll: true,
+                onFinish: () => setIsStartingAnalyzing(false),
             }
         );
     };
@@ -748,10 +761,21 @@ export default function Show({ ticket }) {
                                         </p>
                                         <button
                                             type="button"
-                                            onClick={() => router.put(route('tickets.updateStatus', ticket.id), { action: 'start_analyzing' })}
-                                            className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-2xl shadow-md transition-all duration-200"
+                                            disabled={isStartingAnalyzing}
+                                            onClick={handleStartAnalyzing}
+                                            className="px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-bold rounded-2xl shadow-md transition-all duration-200 inline-flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
                                         >
-                                            🔍 เริ่มดำเนินการสืบสภาพ
+                                            {isStartingAnalyzing ? (
+                                                <>
+                                                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                                    </svg>
+                                                    กำลังเริ่มดำเนินการ...
+                                                </>
+                                            ) : (
+                                                <>🔍 เริ่มดำเนินการสืบสภาพ</>
+                                            )}
                                         </button>
                                     </div>
                                 )}
@@ -765,6 +789,21 @@ export default function Show({ ticket }) {
                                         }}
                                         className="space-y-4"
                                     >
+                                        {/* Investigator Info Banner */}
+                                        <div className="flex items-center gap-2.5 p-3.5 bg-purple-50 border border-purple-200 text-purple-900 rounded-2xl text-xs sm:text-sm font-semibold">
+                                            <span className="p-1.5 bg-purple-200/80 rounded-lg text-purple-800 text-base shrink-0">🔍</span>
+                                            <div>
+                                                <p className="font-bold text-purple-950">
+                                                    ผู้รับผิดชอบการสืบสภาพ: {ticket.analyzing_by?.name || ticket.analyzingBy?.name || 'ช่างผู้รับมอบหมาย'}
+                                                </p>
+                                                {ticket.analyzing_at && (
+                                                    <p className="text-[11px] text-purple-700 mt-0.5 font-normal">
+                                                        เริ่มดำเนินการเมื่อ: {formatThaiDateTime(ticket.analyzing_at)}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+
                                         <div className="p-4 bg-purple-50/50 rounded-2xl border border-purple-100 space-y-3">
                                             <h4 className="font-bold text-purple-900 text-sm border-b border-purple-200 pb-2">
                                                 การวิเคราะห์หาสาเหตุ (Why-Why Analysis)

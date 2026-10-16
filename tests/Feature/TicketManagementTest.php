@@ -359,4 +359,62 @@ class TicketManagementTest extends TestCase
         $case->refresh();
         $this->assertEquals('in_progress', $case->preventive_measure);
     }
+
+    public function test_technician_a_can_start_analyzing_and_technician_b_cannot_overwrite(): void
+    {
+        $techA = User::factory()->create(['name' => 'ช่าง A', 'role' => 'team_hardware', 'email' => 'techA@example.com']);
+        $techB = User::factory()->create(['name' => 'ช่าง B', 'role' => 'team_hardware', 'email' => 'techB@example.com']);
+
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0108',
+            'title' => 'เคสทดสอบการเริ่มสืบสภาพพร้อมกัน',
+            'description' => 'รายละเอียดเคส',
+            'category' => 'Hardware',
+            'status' => 'assigned',
+            'escalated_to_team' => 'Hardware',
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-000-1111',
+            'location' => 'ชั้น 1',
+        ]);
+
+        // Tech A starts analyzing first
+        $responseA = $this->actingAs($techA)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'start_analyzing',
+        ]);
+
+        $responseA->assertRedirect(route('tickets.show', $case->id));
+        $responseA->assertSessionHas('success');
+
+        $case->refresh();
+        $this->assertEquals('analyzing', $case->status);
+        $this->assertEquals($techA->id, $case->analyzing_by);
+        $this->assertNotNull($case->analyzing_at);
+
+        // Tech B tries to start analyzing the same ticket afterwards
+        $responseB = $this->actingAs($techB)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'start_analyzing',
+        ]);
+
+        $responseB->assertRedirect(route('tickets.show', $case->id));
+        $responseB->assertSessionHas('error');
+
+        // Confirm Tech A remains the investigator and was NOT overwritten
+        $case->refresh();
+        $this->assertEquals('analyzing', $case->status);
+        $this->assertEquals($techA->id, $case->analyzing_by);
+
+        // If Tech B submits RCA, analyzing_by remains Tech A
+        $responseRca = $this->actingAs($techB)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'update_analysis',
+            'why_1' => 'ตรวจพบปัญหา',
+            'root_cause_detail' => 'สายไฟหลวม',
+        ]);
+
+        $responseRca->assertRedirect(route('tickets.show', $case->id));
+        $case->refresh();
+        $this->assertEquals('in_progress', $case->status);
+        $this->assertEquals($techA->id, $case->analyzing_by, 'Initial investigator Tech A must be preserved');
+        $this->assertEquals($techB->id, $case->in_progress_by);
+    }
 }
