@@ -113,23 +113,28 @@ export default function Create({ categories = [] }) {
                     <form onSubmit={submit} className="space-y-6 sm:space-y-8">
                         {/* Section 1: User Info */}
                         <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-sm border border-slate-200/80 group hover:border-indigo-200 transition-colors duration-300">
-                            <div className="flex flex-col md:flex-row gap-6 md:items-center">
-                                <div className="flex items-center gap-5 flex-1">
-                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-100 to-indigo-100 border border-white shadow-inner flex items-center justify-center text-indigo-600 font-black text-2xl group-hover:scale-105 transition-transform duration-300">
-                                        {user.name ? user.name.charAt(0) : 'U'}
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">ผู้แจ้งปัญหา</p>
-                                        <h4 className="text-xl font-bold text-slate-800">{user.name}</h4>
-                                        <p className="text-sm text-slate-500">
-                                            {user.department || 'ไม่ระบุแผนก'} • {user.email}
-                                        </p>
-                                    </div>
+                            {/* Profile Header */}
+                            <div className="flex items-center gap-5 mb-6">
+                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-100 to-indigo-100 border border-white shadow-inner flex items-center justify-center text-indigo-600 font-black text-2xl group-hover:scale-105 transition-transform duration-300 shrink-0">
+                                    {user.name ? user.name.charAt(0) : 'U'}
                                 </div>
-                                <div className="w-full md:w-72">
-                                    <label htmlFor="requester_phone" className="block font-bold text-sm text-slate-700 mb-2">
-                                        เบอร์โทรติดต่อกลับ <span className="text-rose-500">*</span>
-                                    </label>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">ผู้แจ้งปัญหา</p>
+                                    <h4 className="text-xl font-bold text-slate-800 truncate">{user.name}</h4>
+                                    <p className="text-sm text-slate-500 truncate">
+                                        {user.department || 'ไม่ระบุแผนก'} • {user.email}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Contact & On Behalf Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100 items-start">
+                                <div>
+                                    <div className="flex items-center justify-between mb-2 h-5">
+                                        <label htmlFor="requester_phone" className="block font-bold text-sm text-slate-700">
+                                            เบอร์โทรติดต่อกลับ <span className="text-rose-500">*</span>
+                                        </label>
+                                    </div>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                             <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
@@ -149,6 +154,30 @@ export default function Create({ categories = [] }) {
                                     </div>
                                     <InputError message={errors.requester_phone} className="mt-2" />
                                 </div>
+
+                                <div>
+                                    <div className="flex items-center justify-between mb-2 h-5">
+                                        <label htmlFor="actual_user_name" className="block font-bold text-sm text-slate-700">
+                                            แจ้งแทนผู้อื่น <span className="text-slate-400 font-normal text-xs">(ระบุชื่อผู้ใช้งานจริง)</span>
+                                        </label>
+                                    </div>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                            </svg>
+                                        </div>
+                                        <input
+                                            id="actual_user_name"
+                                            type="text"
+                                            value={data.actual_user_name}
+                                            onChange={(e) => setData('actual_user_name', e.target.value)}
+                                            placeholder="ปล่อยว่างหากแจ้งให้ตนเอง"
+                                            className="block w-full pl-12 h-12 py-2.5 bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
+                                        />
+                                    </div>
+                                    <InputError message={errors.actual_user_name} className="mt-2" />
+                                </div>
                             </div>
                         </div>
 
@@ -163,7 +192,7 @@ export default function Create({ categories = [] }) {
                                 ข้อมูลอุปกรณ์ / เครื่องจักร
                             </h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-5 items-start">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 items-start">
                                 <div className="md:col-span-2">
                                     <div className="flex items-center justify-between mb-2 h-5">
                                         <label htmlFor="machine_name" className="block font-bold text-sm text-slate-700">
@@ -196,23 +225,6 @@ export default function Create({ categories = [] }) {
                                     />
                                     <InputError message={errors.machine_code} className="mt-2" />
                                 </div>
-                            </div>
-
-                            <div className="mb-6">
-                                <div className="flex items-center justify-between mb-2 h-5">
-                                    <label htmlFor="actual_user_name" className="block font-bold text-sm text-slate-700">
-                                        แจ้งแทนผู้อื่น (ระบุชื่อผู้ใช้งานจริง)
-                                    </label>
-                                </div>
-                                <input
-                                    id="actual_user_name"
-                                    type="text"
-                                    value={data.actual_user_name}
-                                    onChange={(e) => setData('actual_user_name', e.target.value)}
-                                    placeholder="ปล่อยว่างหากแจ้งให้ตนเอง"
-                                    className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
-                                />
-                                <InputError message={errors.actual_user_name} className="mt-2" />
                             </div>
 
                             {/* Machine Status Cards */}
