@@ -77,6 +77,7 @@ class TeamController extends Controller
 
         $eligibleMembers = User::whereIn('role', ['technician', 'team_hardware', 'team_network', 'team_software'])
             ->where('is_active', true)
+            ->with(['teams:id,name,code'])
             ->orderBy('name')
             ->get(['id', 'name', 'email', 'role']);
 
@@ -143,6 +144,7 @@ class TeamController extends Controller
 
         $eligibleMembers = User::whereIn('role', ['technician', 'team_hardware', 'team_network', 'team_software'])
             ->where('is_active', true)
+            ->with(['teams:id,name,code'])
             ->orderBy('name')
             ->get(['id', 'name', 'email', 'role']);
 

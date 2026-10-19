@@ -15,6 +15,18 @@ export default function Edit({ team, managers = [], technicians = [], currentMem
         member_ids: currentMemberIds || [],
     });
 
+    const [memberSearch, setMemberSearch] = React.useState('');
+
+    const filteredTechnicians = React.useMemo(() => {
+        if (!memberSearch.trim()) {
+            return technicians;
+        }
+        const q = memberSearch.toLowerCase();
+        return technicians.filter(
+            (t) => t.name?.toLowerCase().includes(q) || t.email?.toLowerCase().includes(q)
+        );
+    }, [technicians, memberSearch]);
+
     const handleMemberToggle = (id) => {
         const currentMembers = Array.isArray(data.member_ids) ? data.member_ids : [];
         const nextMembers = currentMembers.includes(id)
@@ -147,26 +159,45 @@ export default function Edit({ team, managers = [], technicians = [], currentMem
 
                             {/* Technicians / Members */}
                             <div>
-                                <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center justify-between mb-1">
                                     <InputLabel value="สมาชิกในทีมผู้รับผิดชอบ (Team Members)" />
                                     <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
                                         เลือกแล้ว {(Array.isArray(data.member_ids) ? data.member_ids : []).length} คน
                                     </span>
                                 </div>
+                                <p className="text-xs text-gray-500 mb-2.5">
+                                    💡 ตามมาตรฐานสากล (ITSM) สมาชิก 1 คนสามารถสังกัดได้หลายทีมพร้อมกันตามทักษะความเชี่ยวชาญ
+                                </p>
+
+                                {technicians.length > 5 && (
+                                    <div className="mb-2">
+                                        <input
+                                            type="text"
+                                            value={memberSearch}
+                                            onChange={(e) => setMemberSearch(e.target.value)}
+                                            placeholder="🔍 ค้นหาชื่อ หรืออีเมลสมาชิก..."
+                                            className="w-full text-xs rounded-xl border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-3"
+                                        />
+                                    </div>
+                                )}
 
                                 {technicians.length === 0 ? (
                                     <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-xs text-gray-500 text-center">
                                         ยังไม่มีรายชื่อสมาชิกในระบบ
                                     </div>
+                                ) : filteredTechnicians.length === 0 ? (
+                                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-xs text-gray-500 text-center">
+                                        ไม่พบสมาชิกที่ตรงกับคำค้นหา "{memberSearch}"
+                                    </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto p-2 bg-gray-50/60 rounded-xl border border-gray-200">
-                                        {technicians.map((tech) => {
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto p-2 bg-gray-50/60 rounded-xl border border-gray-200">
+                                        {filteredTechnicians.map((tech) => {
                                             const memberIds = Array.isArray(data.member_ids) ? data.member_ids : [];
                                             const isSelected = memberIds.includes(tech.id);
                                             return (
                                                 <label
                                                     key={tech.id}
-                                                    className={`flex items-center gap-2.5 p-2.5 rounded-lg border transition cursor-pointer ${
+                                                    className={`flex items-start gap-2.5 p-2.5 rounded-lg border transition cursor-pointer ${
                                                         isSelected
                                                             ? 'bg-indigo-50/90 border-indigo-300 ring-1 ring-indigo-200'
                                                             : 'bg-white border-gray-200 hover:bg-gray-100/70'
@@ -176,7 +207,7 @@ export default function Edit({ team, managers = [], technicians = [], currentMem
                                                         type="checkbox"
                                                         checked={isSelected}
                                                         onChange={() => handleMemberToggle(tech.id)}
-                                                        className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                                                        className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4"
                                                     />
                                                     <div className="min-w-0 flex-1">
                                                         <div className="text-xs font-bold text-gray-900 truncate">
@@ -185,6 +216,33 @@ export default function Edit({ team, managers = [], technicians = [], currentMem
                                                         <div className="text-[11px] text-gray-500 truncate">
                                                             {tech.email}
                                                         </div>
+                                                        {tech.teams && tech.teams.length > 0 ? (
+                                                            <div className="flex items-center gap-1 flex-wrap mt-1">
+                                                                <span className="text-[10px] text-gray-400">สังกัดอยู่:</span>
+                                                                {tech.teams.map((t) => {
+                                                                    const isThisTeam = t.id === team.id;
+                                                                    return (
+                                                                        <span
+                                                                            key={t.id}
+                                                                            className={`inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border ${
+                                                                                isThisTeam
+                                                                                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200 font-bold'
+                                                                                    : 'bg-slate-100 text-slate-700 border-slate-200'
+                                                                            }`}
+                                                                        >
+                                                                            {t.code} - {t.name}
+                                                                            {isThisTeam && ' (ทีมนี้)'}
+                                                                        </span>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="mt-1">
+                                                                <span className="inline-flex items-center text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                                                    ยังไม่สังกัดทีมใด
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </label>
                                             );
