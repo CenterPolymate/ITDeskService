@@ -190,6 +190,7 @@
   - [x] เพิ่มตัวกรองช่าง (`technician_id`) ในแบบฟอร์มค้นหา Dashboard
   - [x] ให้สิทธิ์ Tier 3 Manager เข้าถึงและจัดการ บริษัท, หมวดหมู่, วันหยุด, Audit Logs และส่งต่องานในทุกสถานะงาน
   - [x] รันชุดทดสอบ `HelpdeskDashboardTest.php` และ Build Frontend ผ่าน 100%
+- [x] นำคอลัมน์ "บริษัท" ออกจากตารางและมุมมองการ์ดของหน้า "จัดการผู้ใช้งานทีม IT" (`resources/js/Pages/Users/Index.jsx`) ตามความต้องการของผู้ใช้ เพื่อความกระชับและไม่ซ้ำซ้อน
 - **All current tasks are completed.**
 
 
