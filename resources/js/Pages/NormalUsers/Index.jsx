@@ -81,6 +81,14 @@ export default function Index({ users, filters = {} }) {
         }
     };
 
+    const handleForceResetPassword = (user) => {
+        if (confirm(`ระบบจะส่งลิงก์ตั้งรหัสผ่านใหม่ไปยังอีเมล "${user.email}" ยืนยันหรือไม่?`)) {
+            router.post(route('normal_users.force_reset_password', user.id), {}, {
+                preserveScroll: true,
+            });
+        }
+    };
+
     const handleImpersonate = (userId) => {
         router.post(route('impersonate', userId));
     };
@@ -254,12 +262,21 @@ export default function Index({ users, filters = {} }) {
                                                         Login As
                                                     </button>
                                                 )}
-                                                <Link
-                                                    href={route('normal_users.edit', user.id)}
-                                                    className="flex-1 text-center text-xs text-indigo-700 font-medium hover:text-indigo-900 transition-colors px-2 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-100"
+                                                {auth.user?.role === 'administrator' && (
+                                                    <Link
+                                                        href={route('normal_users.edit', user.id)}
+                                                        className="flex-1 text-center text-xs text-indigo-700 font-medium hover:text-indigo-900 transition-colors px-2 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-100"
+                                                    >
+                                                        แก้ไข
+                                                    </Link>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleForceResetPassword(user)}
+                                                    className="flex-1 text-center text-xs text-amber-700 font-medium hover:text-amber-900 transition-colors px-2 py-2 bg-amber-50 hover:bg-amber-100 rounded-lg border border-amber-100"
                                                 >
-                                                    แก้ไข
-                                                </Link>
+                                                    รีเซ็ตรหัสผ่าน
+                                                </button>
                                                 {auth.user?.id !== user.id && (
                                                     <button
                                                         type="button"
@@ -355,7 +372,7 @@ export default function Index({ users, filters = {} }) {
                                                         </div>
                                                     </td>
                                                     <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">
-                                                        <div className="flex items-center justify-end gap-3">
+                                                        <div className="flex items-center justify-end gap-2">
                                                             {auth.user?.role === 'administrator' && (
                                                                 <button
                                                                     type="button"
@@ -365,12 +382,22 @@ export default function Index({ users, filters = {} }) {
                                                                     Login As
                                                                 </button>
                                                             )}
-                                                            <Link
-                                                                href={route('normal_users.edit', user.id)}
-                                                                className="text-indigo-600 hover:text-indigo-900 transition-colors px-2 py-1 bg-indigo-50 hover:bg-indigo-100 rounded-md"
+                                                            {auth.user?.role === 'administrator' && (
+                                                                <Link
+                                                                    href={route('normal_users.edit', user.id)}
+                                                                    className="text-indigo-600 hover:text-indigo-900 transition-colors px-2 py-1 bg-indigo-50 hover:bg-indigo-100 rounded-md"
+                                                                >
+                                                                    แก้ไข
+                                                                </Link>
+                                                            )}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleForceResetPassword(user)}
+                                                                title="ส่งลิงก์ตั้งรหัสผ่านใหม่ไปยังอีเมล"
+                                                                className="text-amber-700 hover:text-amber-900 transition-colors px-2 py-1 bg-amber-50 hover:bg-amber-100 rounded-md"
                                                             >
-                                                                แก้ไข
-                                                            </Link>
+                                                                รีเซ็ตรหัสผ่าน
+                                                            </button>
                                                             {auth.user?.id !== user.id && (
                                                                 <button
                                                                     type="button"

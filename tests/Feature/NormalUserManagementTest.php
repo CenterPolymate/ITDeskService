@@ -167,5 +167,48 @@ class NormalUserManagementTest extends TestCase
         $admin = User::factory()->create(['role' => 'administrator']);
         $this->actingAs($admin)->get(route('normal_users.export'))->assertOk();
     }
+
+    public function test_non_admin_cannot_edit_or_update_normal_user(): void
+    {
+        $helpdesk = User::factory()->create(['role' => 'helpdesk']);
+        $manager = User::factory()->create(['role' => 'manager']);
+        $company = Company::create(['name' => 'Acme Corp', 'sla_type' => '8x5', 'is_active' => true]);
+        $target = User::factory()->create(['role' => 'user', 'company' => $company->name]);
+
+        // Helpdesk cannot edit or update
+        $this->actingAs($helpdesk)->get(route('normal_users.edit', $target->id))->assertForbidden();
+        $this->actingAs($helpdesk)->put(route('normal_users.update', $target->id), [
+            'name' => 'Attempted Name',
+            'email' => $target->email,
+            'company' => $company->name,
+            'role' => 'user',
+        ])->assertForbidden();
+
+        // Manager cannot edit or update
+        $this->actingAs($manager)->get(route('normal_users.edit', $target->id))->assertForbidden();
+        $this->actingAs($manager)->put(route('normal_users.update', $target->id), [
+            'name' => 'Attempted Name Manager',
+            'email' => $target->email,
+            'company' => $company->name,
+            'role' => 'user',
+        ])->assertForbidden();
+    }
+
+    public function test_helpdesk_can_force_reset_password_and_delete_normal_user(): void
+    {
+        $helpdesk = User::factory()->create(['role' => 'helpdesk']);
+        $target = User::factory()->create(['role' => 'user']);
+
+        // Helpdesk can send password reset link
+        $this->actingAs($helpdesk)
+            ->post(route('normal_users.force_reset_password', $target->id))
+            ->assertSessionHasNoErrors();
+
+        // Helpdesk can delete user
+        $this->actingAs($helpdesk)
+            ->delete(route('normal_users.destroy', $target->id))
+            ->assertRedirect(route('normal_users.index'));
+    }
 }
+
 

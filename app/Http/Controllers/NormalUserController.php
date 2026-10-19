@@ -119,7 +119,7 @@ class NormalUserController extends Controller
 
     public function edit(User $normal_user): Response
     {
-        $this->authorizeNormalUserManagers();
+        $this->authorizeAdministratorOnly();
         if ($normal_user->role !== 'user') {
             abort(404);
         }
@@ -134,7 +134,7 @@ class NormalUserController extends Controller
 
     public function update(Request $request, User $normal_user)
     {
-        $this->authorizeNormalUserManagers();
+        $this->authorizeAdministratorOnly();
         if ($normal_user->role !== 'user') {
             abort(404);
         }
