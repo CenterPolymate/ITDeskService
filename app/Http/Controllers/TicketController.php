@@ -21,8 +21,12 @@ class TicketController extends Controller
     /**
      * Show the form for creating a new ticket.
      */
-    public function create(): Response
+    public function create(): Response|RedirectResponse
     {
+        if (Auth::user()->role !== 'user') {
+            return redirect()->route('dashboard')->with('error', 'เฉพาะผู้ใช้งานทั่วไป (User) เท่านั้นที่มีสิทธิ์เปิดใบงานแจ้งซ่อม');
+        }
+
         return Inertia::render('Tickets/Create');
     }
 
@@ -31,6 +35,10 @@ class TicketController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        if (Auth::user()->role !== 'user') {
+            abort(403, 'เฉพาะผู้ใช้งานทั่วไป (User) เท่านั้นที่มีสิทธิ์เปิดใบงานแจ้งซ่อม');
+        }
+
         $request->validate([
             'title' => 'required|string|max:100',
             'description' => 'required|string|max:400',

@@ -528,4 +528,35 @@ class TicketManagementTest extends TestCase
         $this->assertEquals($techA->id, $case->analyzing_by, 'Initial investigator Tech A must be preserved');
         $this->assertEquals($techB->id, $case->in_progress_by);
     }
+
+    public function test_non_user_roles_cannot_access_create_ticket_page(): void
+    {
+        $roles = ['technician', 'helpdesk', 'manager', 'administrator'];
+
+        foreach ($roles as $role) {
+            $user = User::factory()->create(['role' => $role]);
+
+            $response = $this->actingAs($user)->get(route('tickets.create'));
+
+            $response->assertRedirect(route('dashboard'));
+            $response->assertSessionHas('error', 'เฉพาะผู้ใช้งานทั่วไป (User) เท่านั้นที่มีสิทธิ์เปิดใบงานแจ้งซ่อม');
+        }
+    }
+
+    public function test_non_user_roles_cannot_store_ticket(): void
+    {
+        $technician = User::factory()->create(['role' => 'technician']);
+
+        $response = $this->actingAs($technician)->post(route('tickets.store'), [
+            'title' => 'ทดสอบเปิดเคสโดยช่าง',
+            'description' => 'อาการเสียเบื้องต้น',
+            'location' => 'ตึก IT',
+            'requester_phone' => '0812345678',
+            'is_machine_stopped' => false,
+        ]);
+
+        $response->assertForbidden();
+        $this->assertEquals(0, HelpdeskCase::count());
+    }
 }
+

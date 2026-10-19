@@ -98,6 +98,13 @@ class LineWebhookController extends Controller
                 return;
             }
 
+            if ($user->role !== 'user') {
+                $replyText = "⚠️ ขออภัยครับ บัญชีของคุณมีบทบาทเป็นทีมงานไอที/ผู้ดูแลระบบ เฉพาะผู้ใช้งานทั่วไป (User) เท่านั้นที่มีสิทธิ์เปิดใบงานแจ้งซ่อม";
+                $this->bot->replyMessage($replyToken, new TextMessageBuilder($replyText));
+
+                return;
+            }
+
             $data = $this->parseCaseData(array_slice($lines, 1));
 
             // Validate required fields

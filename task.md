@@ -232,6 +232,11 @@
     - [x] ปรับเมนูส่งต่องาน (Triage & Manager Task 2) และตัวกรองใน Dashboard/Report เป็นไดนามิก ดึงจากตาราง `teams` อัตโนมัติ
   - [ ] Sprint 14.3: Dynamic Ticket Routing เชื่อมโยงหมวดหมู่ปัญหากับทีมรับผิดชอบเริ่มต้น
   - [ ] Sprint 14.4: White-Labeling & Corporate Branding Settings (อัปโหลดโลโก้, ชื่อระบบ, ข้อมูลติดต่อ)
+- [x] มาตรการแบ่งแยกหน้าที่และความรับผิดชอบ (Separation of Duties - Option 1):
+  - [x] จำกัดสิทธิ์การเปิดเคสแจ้งซ่อม (`/tickets/create`, `POST /tickets`, และ LINE OA) ให้เฉพาะผู้ใช้งานทั่วไป (Role `user`) เท่านั้น
+  - [x] ป้องกันผลประโยชน์ทับซ้อน (Conflict of Interest) โดยห้ามทีมงานไอที (Tier 1-3) และ Administrator เปิดเคสเอง
+  - [x] หากพยายามเข้าหน้าเปิดเคส จะถูก Redirect ไปยัง Dashboard พร้อมข้อความแจ้งเตือน หรือปฏิเสธคำขอด้วย HTTP 403 Forbidden
+  - [x] เพิ่มชุดทดสอบอัตโนมัติใน `TicketManagementTest.php` ครอบคลุมทุกบทบาท
 
 
 
