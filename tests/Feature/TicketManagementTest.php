@@ -157,12 +157,14 @@ class TicketManagementTest extends TestCase
         ]);
 
         $response = $this->actingAs($helpdesk)->put(route('tickets.assign', $case->id), [
+            'category' => 'Hardware',
             'priority' => 'high',
             'escalated_to_team' => 'Hardware',
         ]);
 
         $response->assertRedirect(route('tickets.show', $case->id));
         $case->refresh();
+        $this->assertEquals('Hardware', $case->category);
         $this->assertEquals('high', $case->priority);
         $this->assertEquals('Hardware', $case->escalated_to_team);
         $this->assertEquals('assigned', $case->status);

@@ -37,7 +37,7 @@ function formatThaiDateOnly(dateStr) {
     }
 }
 
-export default function Show({ ticket }) {
+export default function Show({ ticket, categories = [] }) {
     const user = usePage().props.auth.user;
     const flash = usePage().props.flash || {};
 
@@ -194,8 +194,17 @@ export default function Show({ ticket }) {
     const [cancelReason, setCancelReason] = useState('');
     const [previewImage, setPreviewImage] = useState(null);
 
+    const defaultCategories = [
+        { id: 'Hardware', name: 'อุปกรณ์ Hardware' },
+        { id: 'Software', name: 'โปรแกรม Software' },
+        { id: 'Network', name: 'ระบบ Network' },
+        { id: 'Other', name: 'อื่นๆ' },
+    ];
+    const categoryList = categories && categories.length > 0 ? categories : defaultCategories;
+
     // Triage Form
-    const { data: triageData, setData: setTriageData, put: putTriage, processing: triageProcessing } = useForm({
+    const { data: triageData, setData: setTriageData, put: putTriage, processing: triageProcessing, errors: triageErrors } = useForm({
+        category: ticket.status !== 'pending' && ticket.category !== 'Other' ? (ticket.category || '') : '',
         priority: ticket.status !== 'pending' ? (ticket.priority || '') : '',
         escalated_to_team: ticket.status !== 'pending' ? (ticket.escalated_to_team || 'None') : '',
     });
@@ -1527,6 +1536,28 @@ export default function Show({ ticket }) {
                                 <form onSubmit={submitTriage} className="space-y-4">
                                     <div>
                                         <label className="block text-xs font-bold text-slate-700 mb-1">
+                                            หมวดหมู่ปัญหา (Category) <span className="text-rose-500">*</span>
+                                        </label>
+                                        <select
+                                            required
+                                            value={triageData.category}
+                                            onChange={(e) => setTriageData('category', e.target.value)}
+                                            className="w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        >
+                                            <option value="" disabled>-- เลือกหมวดหมู่ปัญหา --</option>
+                                            {categoryList.map((cat) => (
+                                                <option key={cat.id || cat.name} value={cat.name}>
+                                                    {cat.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {triageErrors?.category && (
+                                            <p className="text-xs text-rose-500 mt-1">{triageErrors.category}</p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1">
                                             ระดับความเร่งด่วน (Priority) <span className="text-rose-500">*</span>
                                         </label>
                                         <select
@@ -1541,6 +1572,9 @@ export default function Show({ ticket }) {
                                             <option value="high">สูง (High)</option>
                                             <option value="urgent">ด่วนที่สุด (Urgent)</option>
                                         </select>
+                                        {triageErrors?.priority && (
+                                            <p className="text-xs text-rose-500 mt-1">{triageErrors.priority}</p>
+                                        )}
                                     </div>
 
                                     <div>
@@ -1562,6 +1596,9 @@ export default function Show({ ticket }) {
                                         <p className="text-[11px] text-slate-400 mt-1">
                                             * เมื่อกดส่งต่อ สถานะจะเปลี่ยนเป็น "มอบหมายแล้ว" โดยอัตโนมัติ
                                         </p>
+                                        {triageErrors?.escalated_to_team && (
+                                            <p className="text-xs text-rose-500 mt-1">{triageErrors.escalated_to_team}</p>
+                                        )}
                                     </div>
 
                                     <button
@@ -1577,6 +1614,10 @@ export default function Show({ ticket }) {
                                     <div>
                                         <span className="text-xs text-slate-400 font-bold uppercase block">สถานะใบงาน</span>
                                         <span className="font-bold text-indigo-700">{ticket.status_label}</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-xs text-slate-400 font-bold uppercase block">หมวดหมู่ปัญหา</span>
+                                        <span className="font-bold text-slate-800">{ticket.category || 'อื่นๆ'}</span>
                                     </div>
                                     <div>
                                         <span className="text-xs text-slate-400 font-bold uppercase block">ระดับความเร่งด่วน</span>

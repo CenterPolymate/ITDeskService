@@ -2,12 +2,11 @@ import InputError from '@/Components/InputError';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
-export default function Create({ categories = [] }) {
+export default function Create() {
     const user = usePage().props.auth.user;
 
     const { data, setData, post, processing, errors } = useForm({
         title: '',
-        category: '',
         description: '',
         location: '',
         requester_phone: '',
@@ -20,17 +19,6 @@ export default function Create({ categories = [] }) {
 
     const [previews, setPreviews] = useState([]);
     const [fileError, setFileError] = useState('');
-
-    const defaultCategories = [
-        { id: 'Hardware', name: 'อุปกรณ์ Hardware' },
-        { id: 'Software', name: 'โปรแกรม Software' },
-        { id: 'Network', name: 'ระบบ Network' },
-        { id: 'Other', name: 'อื่นๆ' },
-    ];
-
-    const categoryList = categories && categories.length > 0 
-        ? categories 
-        : defaultCategories;
 
     const handleFileChange = (e) => {
         setFileError('');
@@ -310,36 +298,18 @@ export default function Create({ categories = [] }) {
                                 รายละเอียดปัญหา
                             </h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 items-start">
-                                <div>
-                                    <div className="flex items-center justify-between mb-2 h-5">
-                                        <label htmlFor="category" className="block font-bold text-sm text-slate-700">
-                                            หมวดหมู่ปัญหา <span className="text-slate-400 font-normal text-xs">(ไม่บังคับ)</span>
-                                        </label>
-                                    </div>
-                                    <select
-                                        id="category"
-                                        value={data.category}
-                                        onChange={(e) => setData('category', e.target.value)}
-                                        className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium text-slate-800 leading-normal"
-                                    >
-                                        <option value="">-- ไม่ระบุ (ระบบจะบันทึกเป็น "อื่นๆ" อัตโนมัติ) --</option>
-                                        {categoryList.map((cat) => (
-                                            <option key={cat.id || cat.name} value={cat.name}>
-                                                {cat.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <p className="text-[11px] text-slate-400 mt-1.5">
-                                        หากไม่เลือก ระบบจะบันทึกเป็น "อื่นๆ" ให้อัตโนมัติ
-                                    </p>
-                                    <InputError message={errors.category} className="mt-1" />
+                            <div className="mb-6">
+                                <div className="flex items-center justify-between mb-2 h-5">
+                                    <label htmlFor="location" className="block font-bold text-sm text-slate-700">
+                                        สถานที่ / จุดเกิดปัญหา <span className="text-rose-500">*</span>
+                                    </label>
                                 </div>
-                                <div>
-                                    <div className="flex items-center justify-between mb-2 h-5">
-                                        <label htmlFor="location" className="block font-bold text-sm text-slate-700">
-                                            สถานที่ / จุดเกิดปัญหา <span className="text-rose-500">*</span>
-                                        </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                                        </svg>
                                     </div>
                                     <input
                                         id="location"
@@ -347,11 +317,11 @@ export default function Create({ categories = [] }) {
                                         value={data.location}
                                         onChange={(e) => setData('location', e.target.value)}
                                         required
-                                        placeholder="ระบุอาคาร, ชั้น, แผนก หรือโซน"
-                                        className="block w-full h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
+                                        placeholder="ระบุอาคาร, ชั้น, แผนก หรือโซนที่เกิดปัญหา (เช่น อาคาร 1 ชั้น 2 แผนกจัดซื้อ)"
+                                        className="block w-full pl-12 h-12 py-2.5 px-4 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/20 rounded-2xl shadow-sm transition-all duration-300 font-medium placeholder:text-slate-400 leading-normal"
                                     />
-                                    <InputError message={errors.location} className="mt-2" />
                                 </div>
+                                <InputError message={errors.location} className="mt-2" />
                             </div>
 
                             <div className="mb-6">

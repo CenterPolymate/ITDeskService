@@ -22,11 +22,7 @@ class TicketController extends Controller
      */
     public function create(): Response
     {
-        $categories = Category::where('is_active', true)->get(['id', 'name']);
-
-        return Inertia::render('Tickets/Create', [
-            'categories' => $categories,
-        ]);
+        return Inertia::render('Tickets/Create');
     }
 
     /**
@@ -36,7 +32,6 @@ class TicketController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:100',
-            'category' => 'nullable|string|max:100',
             'description' => 'required|string|max:400',
             'location' => 'required|string|max:255',
             'requester_phone' => ['required', 'string', 'regex:/^(0[0-9]{9}|0[0-9]{2}-[0-9]{3}-[0-9]{4})$/'],
@@ -153,7 +148,9 @@ class TicketController extends Controller
             $ticket->makeHidden(['rating', 'feedback']);
         }
 
-        return Inertia::render('Tickets/Show', compact('ticket'));
+        $categories = Category::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+
+        return Inertia::render('Tickets/Show', compact('ticket', 'categories'));
     }
 
     /**
@@ -188,8 +185,13 @@ class TicketController extends Controller
         }
 
         $request->validate([
+            'category' => 'required|string|max:100',
             'priority' => 'required|in:urgent,high,medium,low',
             'escalated_to_team' => 'required|string',
+        ], [
+            'category.required' => 'กรุณาระบุหมวดหมู่ปัญหา',
+            'priority.required' => 'กรุณาระบุระดับความเร่งด่วน',
+            'escalated_to_team.required' => 'กรุณาเลือกทีมที่รับผิดชอบหรือส่งต่องาน',
         ]);
 
         // Default status update based on team
@@ -201,6 +203,7 @@ class TicketController extends Controller
         }
 
         $updateData = [
+            'category' => $request->category,
             'priority' => $request->priority,
             'escalated_to_team' => $request->escalated_to_team === 'None' ? null : $request->escalated_to_team,
             'status' => $status,
