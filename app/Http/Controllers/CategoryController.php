@@ -10,16 +10,17 @@ use Inertia\Response;
 
 class CategoryController extends Controller
 {
-    private function authorizeAdministrator(): void
+    private function authorizeAdminOrManager(): void
     {
-        if (! request()->user() || request()->user()->role !== 'administrator') {
+        $user = request()->user();
+        if (! $user || ! in_array($user->role, ['administrator', 'manager'], true)) {
             abort(403, 'Unauthorized action.');
         }
     }
 
     public function index(): Response
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $categories = Category::orderBy('name')->get();
 
         return Inertia::render('Categories/Index', compact('categories'));
@@ -27,14 +28,14 @@ class CategoryController extends Controller
 
     public function create(): Response
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
 
         return Inertia::render('Categories/Create');
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
             'description' => 'nullable|string',
@@ -52,14 +53,14 @@ class CategoryController extends Controller
 
     public function edit(Category $category): Response
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
 
         return Inertia::render('Categories/Edit', compact('category'));
     }
 
     public function update(Request $request, Category $category): RedirectResponse
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name,'.$category->id,
             'description' => 'nullable|string',
@@ -77,7 +78,7 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $category->delete();
 
         return redirect()->route('categories.index')->with('success', 'ลบหมวดหมู่สำเร็จ');

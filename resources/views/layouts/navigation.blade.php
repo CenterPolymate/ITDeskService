@@ -55,6 +55,12 @@
                         </div>
                     @endif
 
+                    @if(Auth::user()?->role === 'manager')
+                        <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')" class="whitespace-nowrap">
+                            {{ __('จัดการหมวดหมู่ปัญหา') }}
+                        </x-nav-link>
+                    @endif
+
                     @if(Auth::user()?->role === 'administrator')
                         <div class="hidden sm:flex sm:items-center">
                             <x-dropdown align="left" width="48">
@@ -424,6 +430,12 @@
                         {{ __('ผู้ใช้งานทั่วไป') }}
                     </x-responsive-nav-link>
                 @endif
+            @endif
+
+            @if(Auth::user()?->role === 'manager')
+                <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">
+                    {{ __('จัดการหมวดหมู่ปัญหา') }}
+                </x-responsive-nav-link>
             @endif
 
             @if(Auth::user()?->role === 'administrator')
