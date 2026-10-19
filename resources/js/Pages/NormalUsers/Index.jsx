@@ -284,25 +284,13 @@ export default function Index({ users, filters = {} }) {
                                                 onClick={() => handleSort('name')}
                                                 className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                                             >
-                                                ชื่อ {renderSortIcon('name')}
-                                            </th>
-                                            <th
-                                                onClick={() => handleSort('email')}
-                                                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                            >
-                                                อีเมล {renderSortIcon('email')}
-                                            </th>
-                                            <th
-                                                onClick={() => handleSort('department')}
-                                                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                            >
-                                                แผนก {renderSortIcon('department')}
+                                                ผู้ใช้งาน {renderSortIcon('name')}
                                             </th>
                                             <th
                                                 onClick={() => handleSort('company')}
                                                 className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                                             >
-                                                บริษัท {renderSortIcon('company')}
+                                                สังกัด {renderSortIcon('company')}
                                             </th>
                                             <th
                                                 onClick={() => handleSort('is_active')}
@@ -319,37 +307,46 @@ export default function Index({ users, filters = {} }) {
                                         {users.data && users.data.length > 0 ? (
                                             users.data.map((user) => (
                                                 <tr key={user.id} className={user.is_active ? '' : 'bg-red-50/50'}>
-                                                    <td className="px-4 py-2 whitespace-nowrap">
-                                                        <div className={`text-sm font-medium ${user.is_active ? 'text-gray-900' : 'text-gray-400 line-through'}`}>
-                                                            {user.name}
+                                                    <td className="px-4 py-2.5 whitespace-nowrap">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
+                                                                {user.name ? user.name.charAt(0).toUpperCase() : '?'}
+                                                            </div>
+                                                            <div>
+                                                                <div className={`text-sm font-semibold ${user.is_active ? 'text-gray-900' : 'text-gray-400 line-through'}`}>
+                                                                    {user.name}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500">
+                                                                    {user.email}
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </td>
-                                                    <td className={`px-4 py-2 text-sm ${user.is_active ? 'text-gray-500' : 'text-gray-400'}`}>
-                                                        {user.email}
+                                                    <td className="px-4 py-2.5 whitespace-nowrap">
+                                                        <div className={`text-sm font-medium ${user.is_active ? 'text-gray-900' : 'text-gray-400'}`}>
+                                                            {user.company}
+                                                        </div>
+                                                        <div className={`text-xs ${user.is_active ? 'text-gray-500' : 'text-gray-400'}`}>
+                                                            {user.department || '-'}
+                                                        </div>
                                                     </td>
-                                                    <td className={`px-4 py-2 text-sm ${user.is_active ? 'text-gray-500' : 'text-gray-400'}`}>
-                                                        {user.department || '-'}
-                                                    </td>
-                                                    <td className={`px-4 py-2 text-sm ${user.is_active ? 'text-gray-500' : 'text-gray-400'}`}>
-                                                        {user.company}
-                                                    </td>
-                                                    <td className="px-4 py-2 whitespace-nowrap">
+                                                    <td className="px-4 py-2.5 whitespace-nowrap">
                                                         {!user.is_active ? (
-                                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                            <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 shadow-sm">
                                                                 Inactive
                                                             </span>
                                                         ) : !user.email_verified_at ? (
-                                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                                                            <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800 shadow-sm">
                                                                 รอการยืนยันอีเมล
                                                             </span>
                                                         ) : (
-                                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                            <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 shadow-sm">
                                                                 Active
                                                             </span>
                                                         )}
                                                         <div className="text-[11px] text-gray-400 mt-1 whitespace-nowrap">
                                                             {user.last_login_at ? (
-                                                                <>ใช้งานล่าสุด: <br />{formatThaiDate(user.last_login_at)}</>
+                                                                <>เข้าใช้งาน: {formatThaiDate(user.last_login_at)}</>
                                                             ) : (
                                                                 'ไม่เคยเข้าใช้งาน'
                                                             )}
@@ -387,7 +384,7 @@ export default function Index({ users, filters = {} }) {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan="6" className="px-4 py-6 text-center text-gray-500 text-sm">
+                                                <td colSpan="4" className="px-4 py-6 text-center text-gray-500 text-sm">
                                                     ไม่พบข้อมูลผู้ใช้งาน
                                                 </td>
                                             </tr>
