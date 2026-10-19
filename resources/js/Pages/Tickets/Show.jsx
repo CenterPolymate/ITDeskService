@@ -37,20 +37,32 @@ function formatThaiDateOnly(dateStr) {
     }
 }
 
-export default function Show({ ticket, categories = [] }) {
+export default function Show({ ticket, categories = [], teams = [] }) {
     const user = usePage().props.auth.user;
     const flash = usePage().props.flash || {};
+
+    const availableTeams = teams && teams.length > 0 ? teams : [
+        { id: 1, code: 'HW', name: 'Hardware' },
+        { id: 2, code: 'NET', name: 'Network' },
+        { id: 3, code: 'SW', name: 'Software' },
+    ];
 
     // Determine permissions
     const isRequester = user.email === ticket.requester_email;
     const isHelpdesk = user.role === 'helpdesk';
     const isManager = typeof user.role === 'string' && user.role.includes('manager');
-    const isTier2 = typeof user.role === 'string' && ['team_hardware', 'team_network', 'team_software'].includes(user.role);
+    const isTier2 = (typeof user.role === 'string' && ['team_hardware', 'team_network', 'team_software', 'technician'].includes(user.role)) ||
+        (Array.isArray(user.teams) && user.teams.length > 0);
 
     let isAssignedTeam = false;
-    if (ticket.escalated_to_team && user.role && user.role.startsWith('team_')) {
-        const teamMap = { team_hardware: 'Hardware', team_network: 'Network', team_software: 'Software' };
-        if (teamMap[user.role] === ticket.escalated_to_team) {
+    if (ticket.escalated_to_team) {
+        if (user.role && user.role.startsWith('team_')) {
+            const teamMap = { team_hardware: 'Hardware', team_network: 'Network', team_software: 'Software' };
+            if (teamMap[user.role] === ticket.escalated_to_team) {
+                isAssignedTeam = true;
+            }
+        }
+        if (Array.isArray(user.teams) && user.teams.some(t => t.name === ticket.escalated_to_team || t.code === ticket.escalated_to_team)) {
             isAssignedTeam = true;
         }
     }
@@ -1083,9 +1095,11 @@ export default function Show({ ticket, categories = [] }) {
                                                 className="w-full rounded-xl border-slate-300 text-sm focus:border-slate-800 focus:ring-slate-800"
                                             >
                                                 <option value="" disabled>-- เลือกทีมที่จะมอบหมาย --</option>
-                                                <option value="Hardware">ช่างฮาร์ดแวร์ (Hardware Team)</option>
-                                                <option value="Network">ช่างเครือข่าย (Network Team)</option>
-                                                <option value="Software">ช่างซอฟต์แวร์ (Software Team)</option>
+                                                {availableTeams.map((t) => (
+                                                    <option key={t.id || t.name} value={t.name}>
+                                                        [{t.code}] {t.name}
+                                                    </option>
+                                                ))}
                                             </select>
                                         </div>
                                     )}
@@ -1662,9 +1676,11 @@ export default function Show({ ticket, categories = [] }) {
                                         >
                                             <option value="" disabled>-- เลือกการส่งต่องาน --</option>
                                             <option value="None">ไม่ส่งต่อ (Helpdesk จัดการเอง)</option>
-                                            <option value="Hardware">ทีม Hardware</option>
-                                            <option value="Network">ทีม Network</option>
-                                            <option value="Software">ทีม Software</option>
+                                            {availableTeams.map((t) => (
+                                                <option key={t.id || t.name} value={t.name}>
+                                                    [{t.code}] {t.name}
+                                                </option>
+                                            ))}
                                         </select>
                                         <p className="text-[11px] text-slate-400 mt-1">
                                             * เมื่อกดส่งต่อ สถานะจะเปลี่ยนเป็น "มอบหมายแล้ว" โดยอัตโนมัติ

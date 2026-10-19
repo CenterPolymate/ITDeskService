@@ -173,7 +173,7 @@ export default function Create({ managers = [], technicians = [] }) {
                                         ไม่พบสมาชิกที่ตรงกับคำค้นหา "{memberSearch}"
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto p-2 bg-gray-50/60 rounded-xl border border-gray-200">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[460px] overflow-y-auto p-2 bg-gray-50/60 rounded-xl border border-gray-200">
                                         {filteredTechnicians.map((tech) => {
                                             const memberIds = Array.isArray(data.member_ids) ? data.member_ids : [];
                                             const isSelected = memberIds.includes(tech.id);

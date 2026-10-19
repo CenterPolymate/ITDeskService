@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\HelpdeskCase;
 use App\Models\Sla;
+use App\Models\Team;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -176,6 +177,9 @@ class DashboardController extends Controller
                 'team_software' => 'Software',
             ];
             $baseQuery->where('escalated_to_team', $teamMapping[$user->role]);
+        } elseif ($user->teams()->exists() && ! in_array($user->role, ['administrator', 'manager', 'helpdesk'])) {
+            $userTeamNames = $user->teams()->pluck('name')->toArray();
+            $baseQuery->whereIn('escalated_to_team', $userTeamNames);
         }
 
         // คำนวณ KPI Cards ให้ครบทุกขั้นตอนตาม Data Scope ของ User นั้นๆ (ก่อนนำไปกรองตาม Filter URL)
@@ -388,6 +392,7 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard/ItStaffDashboard', [
             'cases' => $cases,
             'stats' => $stats,
+            'teams' => Team::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']),
             'technician_workload' => $technicianWorkload,
             'filters' => $request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive', 'technician_id', 'tier2_tab', 'manager_tab', 'view']),
         ]);

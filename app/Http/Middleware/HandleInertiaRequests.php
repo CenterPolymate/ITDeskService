@@ -39,7 +39,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? $request->user()->loadMissing('teams') : null,
                 'impersonated_by' => fn () => $request->session()->has('impersonated_by'),
             ],
             'today_thai' => now()->locale('th')->translatedFormat('d F Y'),

@@ -4,11 +4,17 @@ import {
     sendBrowserNotification,
 } from '@/Utils/webNotification';
 
-export default function ItStaffDashboard({ cases, stats, technician_workload = null, filters = {} }) {
+export default function ItStaffDashboard({ cases, stats, teams = [], technician_workload = null, filters = {} }) {
     const { auth, flash } = usePage().props;
     const userRole = auth.user.role;
     const isManager = ['manager', 'manager_software', 'manager_network_hardware'].includes(userRole);
     const isManagerOrAdmin = ['manager', 'manager_software', 'manager_network_hardware', 'administrator'].includes(userRole);
+
+    const availableTeams = teams && teams.length > 0 ? teams : [
+        { id: 1, code: 'HW', name: 'Hardware' },
+        { id: 2, code: 'NET', name: 'Network' },
+        { id: 3, code: 'SW', name: 'Software' },
+    ];
 
     const [managerTab, setManagerTab] = useState(
         filters.status?.startsWith('task2') || filters.manager_tab === 'task2' ? 'task2' : 'task1'
@@ -1221,10 +1227,12 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
                                             onChange={(e) => handleFilterChange('team', e.target.value)}
                                             className="w-full rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
                                         >
-                                            <option value="all">ทุกทีม</option>
-                                            <option value="Hardware">ทีม Hardware</option>
-                                            <option value="Network">ทีม Network</option>
-                                            <option value="Software">ทีม Software</option>
+                                            <option value="all">ทุกทีม (All Teams)</option>
+                                            {availableTeams.map((t) => (
+                                                <option key={t.id || t.name} value={t.name}>
+                                                    [{t.code}] {t.name}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
 

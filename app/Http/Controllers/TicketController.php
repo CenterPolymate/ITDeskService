@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Company;
 use App\Models\HelpdeskCase;
+use App\Models\Team;
 use App\Services\SlaService;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
@@ -149,8 +150,9 @@ class TicketController extends Controller
         }
 
         $categories = Category::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $teams = Team::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']);
 
-        return Inertia::render('Tickets/Show', compact('ticket', 'categories'));
+        return Inertia::render('Tickets/Show', compact('ticket', 'categories', 'teams'));
     }
 
     /**
@@ -282,7 +284,10 @@ class TicketController extends Controller
                         'team_software' => 'Software',
                     ];
                     $userTeam = $teamMap[$user->role] ?? null;
-                    if ($userTeam !== $ticket->escalated_to_team && ! in_array($user->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware'])) {
+                    $userBelongsToTeam = ($userTeam === $ticket->escalated_to_team)
+                        || ($user->teams()->where('name', $ticket->escalated_to_team)->exists());
+
+                    if (! $userBelongsToTeam && ! in_array($user->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware'])) {
                         return redirect()->route('tickets.show', $id)
                             ->with('error', 'ไม่อนุญาต: ใบงานนี้ถูกมอบหมายให้ทีม '.$ticket->escalated_to_team.' เท่านั้น');
                     }
@@ -513,9 +518,10 @@ class TicketController extends Controller
             return redirect()->route('tickets.show', $id)->with('success', 'บันทึกการตรวจสอบและส่งต่องานเรียบร้อยแล้ว');
         } elseif ($request->action === 'start_preventive_measure') {
             $user = Auth::user();
-            $tier2Roles = ['team_hardware', 'team_network', 'team_software'];
+            $tier2Roles = ['team_hardware', 'team_network', 'team_software', 'technician'];
+            $isTier2 = in_array($user->role, $tier2Roles, true) || $user->teams()->exists();
 
-            if (! in_array($user->role, $tier2Roles)) {
+            if (! $isTier2) {
                 return redirect()->route('tickets.show', $id)
                     ->with('error', 'ไม่อนุญาต: สิทธิ์การกดเริ่มดำเนินการ Task 2 เป็นของช่างเฉพาะทาง (Tier 2) เท่านั้น');
             }
@@ -526,7 +532,11 @@ class TicketController extends Controller
                     'team_network' => 'Network',
                     'team_software' => 'Software',
                 ];
-                if (($teamMap[$user->role] ?? null) !== $ticket->escalated_to_team) {
+                $userTeam = $teamMap[$user->role] ?? null;
+                $userBelongsToTeam = ($userTeam === $ticket->escalated_to_team)
+                    || ($user->teams()->where('name', $ticket->escalated_to_team)->exists());
+
+                if (! $userBelongsToTeam && ! in_array($user->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware'])) {
                     return redirect()->route('tickets.show', $id)
                         ->with('error', 'ไม่อนุญาต: ใบงาน Task 2 นี้ถูกมอบหมายให้ทีม '.$ticket->escalated_to_team.' เท่านั้น');
                 }

@@ -211,7 +211,10 @@
   - [x] เชื่อมโยงและส่งข้อมูลครบถ้วนจากทุกหน้าจอ (`Tickets/Show.jsx`, `SuperadminDashboard.jsx`)
 - [ ] Phase 14: ปรับปรุงโครงสร้างสถาปัตยกรรมสู่ Commercial-Ready (ระบบทีมและสายการบังคับบัญชาแบบไดนามิก):
   - [x] Sprint 14.1: สร้างตาราง `teams` และ Pivot `team_user` พร้อมหน้าจัดการทีมงานและสายการบังคับบัญชา (กำหนดหัวหน้าทีมผ่าน UI)
-  - [ ] Sprint 14.2: ยกเลิก Hardcode บทบาท (`manager_software`, `team_software`) ใน Controllers & Policies และปรับใช้วิธีดึงข้อมูลผ่านความสัมพันธ์ทีมจริง
+  - [/] Sprint 14.2: ยกเลิก Hardcode บทบาท (`manager_software`, `team_software`) ใน Controllers & Policies และปรับใช้วิธีดึงข้อมูลผ่านความสัมพันธ์ทีมจริง:
+    - [x] ปรับเมนูส่งต่องาน (Triage & Manager Task 2) เป็นไดนามิก ดึงจากตาราง `teams` อัตโนมัติในรูปแบบสากล `[CODE] Team Name`
+    - [x] รองรับการตรวจสอบสิทธิ์การทำงานของช่าง Tier 2 ผ่านความสัมพันธ์ `user->teams` ควบคู่กับบทบาทเดิม
+    - [x] อัปเดตตัวกรองทีมใน Dashboard ของเจ้าหน้าที่ IT ให้แสดงรายการทีมจริงแบบไดนามิก
   - [ ] Sprint 14.3: Dynamic Ticket Routing เชื่อมโยงหมวดหมู่ปัญหากับทีมรับผิดชอบเริ่มต้น
   - [ ] Sprint 14.4: White-Labeling & Corporate Branding Settings (อัปโหลดโลโก้, ชื่อระบบ, ข้อมูลติดต่อ)
 
