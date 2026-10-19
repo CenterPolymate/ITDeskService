@@ -367,6 +367,23 @@ class HelpdeskCase extends Model
                             ->orWhere('analyzing_by', $technicianId);
                     });
                 }
+            })
+            ->when($filters['tier2_tab'] ?? null, function ($query, $tab) {
+                $user = Auth::user();
+                if (! $user) {
+                    return;
+                }
+
+                if ($tab === 'my_work') {
+                    $query->where(function ($q) use ($user) {
+                        $q->where('in_progress_by', $user->id)
+                            ->orWhere('analyzing_by', $user->id);
+                    })->whereNotIn('status', ['closed', 'cancelled']);
+                } elseif ($tab === 'team_queue') {
+                    $query->where('status', 'assigned')
+                        ->whereNull('in_progress_by')
+                        ->whereNull('analyzing_by');
+                }
             });
     }
 

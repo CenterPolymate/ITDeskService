@@ -1,12 +1,56 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { sendBrowserNotification } from '@/Utils/webNotification';
+import Modal from '@/Components/Modal';
 
-export default function UserDashboard({ cases, stats, filters = {} }) {
+export default function UserDashboard({ cases, stats, active_tickets = [], waiting_tickets = [], filters = {} }) {
     const { auth, flash } = usePage().props;
     const [search, setSearch] = useState(filters.search || '');
     const currentStatus = filters.status || 'all';
     const knownCasesRef = useRef(null);
+
+    // CSAT 1-Click Acceptance States
+    const [showCsatModal, setShowCsatModal] = useState(false);
+    const [selectedTicketForCsat, setSelectedTicketForCsat] = useState(null);
+    const [csatRating, setCsatRating] = useState(5);
+    const [csatHover, setCsatHover] = useState(0);
+    const [csatFeedback, setCsatFeedback] = useState('');
+    const [isSubmittingCsat, setIsSubmittingCsat] = useState(false);
+
+    const handleOpenCsatModal = (ticket) => {
+        setSelectedTicketForCsat(ticket);
+        setCsatRating(5);
+        setCsatHover(0);
+        setCsatFeedback('');
+        setShowCsatModal(true);
+    };
+
+    const handleSubmitCsat = (e) => {
+        e.preventDefault();
+        if (!selectedTicketForCsat) return;
+        setIsSubmittingCsat(true);
+        router.put(
+            route('tickets.updateStatus', selectedTicketForCsat.id),
+            {
+                action: 'accept_resolution',
+                rating: csatRating,
+                feedback: csatFeedback,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setShowCsatModal(false);
+                    setSelectedTicketForCsat(null);
+                    setCsatFeedback('');
+                    setCsatRating(5);
+                    setIsSubmittingCsat(false);
+                },
+                onError: () => {
+                    setIsSubmittingCsat(false);
+                },
+            }
+        );
+    };
 
     // Watch for ticket status changes and notify
     useEffect(() => {
@@ -25,9 +69,9 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
 
                 if (t.status === 'in_progress') {
                     title = `⚙️ ช่างกำลังดำเนินการแก้ไข: #${t.ticket_no}`;
-                    body = `${t.title || 'กำลังดำเนินการ'}\nช่างเฉพาะทางกำลังดำเนินการแก้ไขปัญหาของคุณ`;
+                    body = `${t.title || 'กำลังดำเนินการ'}\nทีมงานกำลังดำเนินการแก้ไขปัญหาของคุณ`;
                 } else if (t.status === 'resolved') {
-                    title = `🎉 ช่างส่งมอบงานแล้ว: #${t.ticket_no}`;
+                    title = `🎉 ซ่อมเสร็จสิ้นแล้ว: #${t.ticket_no}`;
                     body = `${t.title || 'ส่งมอบงานแล้ว'}\nกรุณาตรวจสอบและกดยืนยันรับงาน (Accept Resolution)`;
                 } else if (t.status === 'closed') {
                     title = `✅ ใบงาน #${t.ticket_no} ปิดเรียบร้อยแล้ว`;
@@ -53,7 +97,7 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
     useEffect(() => {
         const interval = setInterval(() => {
             router.reload({
-                only: ['cases', 'stats'],
+                only: ['cases', 'stats', 'active_tickets', 'waiting_tickets'],
                 preserveScroll: true,
                 preserveState: true,
             });
@@ -165,32 +209,140 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
 
                     {/* Waiting for Acceptance Banner */}
                     {stats.waiting_acceptance > 0 && (
-                        <div className="bg-gradient-to-r from-emerald-600 to-teal-500 rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between text-white overflow-hidden relative border border-emerald-400">
-                            <div className="absolute right-0 top-0 w-48 h-48 bg-white opacity-10 rounded-full mix-blend-overlay filter blur-2xl translate-x-12 -translate-y-12 pointer-events-none" />
-                            <div className="absolute left-0 bottom-0 w-32 h-32 bg-yellow-300 opacity-20 rounded-full mix-blend-overlay filter blur-xl -translate-x-10 translate-y-10 pointer-events-none" />
+                        <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 rounded-2xl p-5 sm:p-6 shadow-lg text-white overflow-hidden relative border border-emerald-400">
+                            <div className="absolute right-0 top-0 w-64 h-64 bg-white opacity-10 rounded-full mix-blend-overlay filter blur-2xl translate-x-16 -translate-y-16 pointer-events-none" />
+                            <div className="absolute left-0 bottom-0 w-40 h-40 bg-yellow-300 opacity-20 rounded-full mix-blend-overlay filter blur-xl -translate-x-10 translate-y-10 pointer-events-none" />
 
-                            <div className="flex items-center gap-4 z-10 w-full sm:w-auto mb-4 sm:mb-0">
-                                <div className="bg-white/20 p-3 rounded-xl animate-bounce shrink-0">
-                                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
+                            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 z-10 relative">
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-white/20 p-3 rounded-2xl animate-bounce shrink-0 mt-0.5">
+                                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <h3 className="text-lg sm:text-xl font-black tracking-wide">
+                                                แจ้งเตือน: มีใบงานที่ซ่อมเสร็จแล้ว รอให้คุณตรวจรับ
+                                            </h3>
+                                            <span className="px-2.5 py-0.5 bg-yellow-400 text-yellow-950 font-black text-xs rounded-full shadow-sm">
+                                                {stats.waiting_acceptance} รายการ
+                                            </span>
+                                        </div>
+                                        <p className="text-emerald-100 text-xs sm:text-sm mt-1">
+                                            ทีมงานได้ดำเนินการแก้ไขปัญหาของคุณเสร็จสิ้นแล้ว กรุณาตรวจสอบผลการแก้ไขและกดยืนยันรับงานพร้อมให้คะแนนความพึงพอใจ
+                                        </p>
+
+                                        {/* Direct 1-Click Ticket Buttons */}
+                                        {waiting_tickets && waiting_tickets.length > 0 && (
+                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                {waiting_tickets.map((wt) => (
+                                                    <button
+                                                        key={wt.id}
+                                                        type="button"
+                                                        onClick={() => handleOpenCsatModal(wt)}
+                                                        className="bg-white/15 hover:bg-white/25 border border-white/30 text-white rounded-xl px-3 py-1.5 text-xs font-semibold flex items-center gap-2 transition hover:scale-105 cursor-pointer"
+                                                    >
+                                                        <span className="font-mono font-bold text-yellow-300">#{wt.ticket_no}</span>
+                                                        <span className="truncate max-w-[180px] sm:max-w-[260px]">{wt.title}</span>
+                                                        <span className="bg-white text-emerald-800 font-bold px-2 py-0.5 rounded-lg text-[10px] shrink-0 shadow-xs">
+                                                            ⭐ กดยืนยันรับงาน
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="text-lg sm:text-xl font-bold tracking-wide">แจ้งเตือน: มีใบงานรอให้คุณตรวจสอบ</h3>
-                                    <p className="text-emerald-100 text-xs sm:text-sm mt-0.5">
-                                        ทีมงานได้ทำการแก้ไขใบงานของคุณเสร็จสิ้นแล้ว จำนวน <span className="font-black text-base px-1 bg-white/20 rounded mx-0.5">{stats.waiting_acceptance}</span> รายการ กรุณาเข้าไปตรวจสอบและกดยืนยันรับงาน
-                                    </p>
+
+                                <div className="w-full lg:w-auto flex flex-col sm:flex-row gap-2 shrink-0">
+                                    {waiting_tickets && waiting_tickets.length === 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleOpenCsatModal(waiting_tickets[0])}
+                                            className="w-full sm:w-auto bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-black py-2.5 px-6 rounded-xl shadow-md hover:shadow-lg transform transition hover:-translate-y-0.5 text-sm flex items-center justify-center gap-2 cursor-pointer"
+                                        >
+                                            <span>⭐ กดยืนยันรับงานทันที</span>
+                                        </button>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleFilterStatus('resolved')}
+                                        className="w-full sm:w-auto bg-white/20 hover:bg-white/30 text-white font-bold py-2.5 px-5 rounded-xl border border-white/30 text-sm transition text-center cursor-pointer"
+                                    >
+                                        ดูรายการทั้งหมด ({stats.waiting_acceptance})
+                                    </button>
                                 </div>
                             </div>
+                        </div>
+                    )}
 
-                            <div className="z-10 w-full sm:w-auto text-center shrink-0">
-                                <button
-                                    type="button"
-                                    onClick={() => handleFilterStatus('resolved')}
-                                    className="inline-block w-full sm:w-auto bg-white text-emerald-700 font-bold py-2.5 px-6 rounded-xl shadow-md hover:bg-emerald-50 hover:shadow-lg transform transition hover:-translate-y-0.5 text-sm"
-                                >
-                                    ดูใบงานที่ต้องยืนยัน
-                                </button>
+                    {/* Active Ticket Spotlight (⚡ เคสที่กำลังดำเนินการล่าสุด - ไม่แสดงข้อมูลช่าง) */}
+                    {active_tickets && active_tickets.length > 0 && (
+                        <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-blue-950 rounded-2xl p-5 sm:p-6 text-white shadow-xl relative overflow-hidden border border-indigo-500/30">
+                            <div className="absolute right-0 top-0 w-80 h-80 bg-blue-500 opacity-10 rounded-full blur-3xl pointer-events-none" />
+
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 relative z-10 border-b border-white/10 pb-3">
+                                <div className="flex items-center gap-2.5">
+                                    <span className="flex h-3 w-3 relative">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                                    </span>
+                                    <h3 className="text-base sm:text-lg font-bold tracking-wide">
+                                        เคสที่กำลังดำเนินการอยู่ในขณะนี้ (Active Tickets)
+                                    </h3>
+                                </div>
+                                <span className="text-xs text-blue-200 bg-white/10 px-3 py-1 rounded-full font-medium self-start sm:self-auto">
+                                    ทีมงานกำลังดูแลเคสของคุณอยู่ {active_tickets.length} รายการ
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 relative z-10">
+                                {active_tickets.map((t) => (
+                                    <div
+                                        key={t.id}
+                                        className="bg-white/10 hover:bg-white/15 border border-white/15 rounded-xl p-4 transition-all duration-200 flex flex-col justify-between backdrop-blur-sm group"
+                                    >
+                                        <div>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs font-mono font-bold text-blue-300">
+                                                    #{t.ticket_no}
+                                                </span>
+                                                {t.status === 'in_progress' ? (
+                                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-400/40 flex items-center gap-1.5">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                                                        กำลังดำเนินการแก้ไข
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/20 text-purple-300 border border-purple-400/40 flex items-center gap-1.5">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                                                        กำลังสืบสภาพปัญหา
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <h4 className="text-sm font-bold text-white line-clamp-2 mb-2 group-hover:text-blue-200 transition-colors">
+                                                {t.title}
+                                            </h4>
+                                            <div className="text-xs text-slate-300 flex items-center gap-1.5">
+                                                <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                                </svg>
+                                                <span className="truncate">{t.category || 'อื่นๆ'}</span>
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+                                            <span className="text-[11px] text-slate-400">
+                                                {formatThaiDate(t.created_at)}
+                                            </span>
+                                            <a
+                                                href={route('tickets.show', t.id)}
+                                                className="text-xs text-blue-300 hover:text-white font-semibold flex items-center gap-1 hover:underline cursor-pointer"
+                                            >
+                                                ดูความคืบหน้า →
+                                            </a>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
@@ -431,6 +583,22 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
                                                         {formatThaiDate(c.created_at)}
                                                     </span>
                                                 </div>
+
+                                                {c.status === 'resolved' && (
+                                                    <div className="mt-2.5 pt-2 border-t border-gray-100">
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                handleOpenCsatModal(c);
+                                                            }}
+                                                            className="w-full py-2 px-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl text-xs shadow-sm flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
+                                                        >
+                                                            <span>⭐ ตรวจรับงานและให้คะแนน (Accept)</span>
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </a>
                                         ))}
                                     </div>
@@ -496,15 +664,26 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
                                                             {formatThaiDate(c.created_at)}
                                                         </td>
                                                         <td className="px-5 py-3.5 whitespace-nowrap text-right text-sm font-medium">
-                                                            <a
-                                                                href={route('tickets.show', c.id)}
-                                                                className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition font-medium text-xs"
-                                                            >
-                                                                <span>ดูรายละเอียด</span>
-                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                                                </svg>
-                                                            </a>
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                {c.status === 'resolved' && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleOpenCsatModal(c)}
+                                                                        className="inline-flex items-center gap-1 text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-lg transition font-bold text-xs shadow-xs hover:shadow cursor-pointer"
+                                                                    >
+                                                                        <span>⭐ ยืนยันรับงาน</span>
+                                                                    </button>
+                                                                )}
+                                                                <a
+                                                                    href={route('tickets.show', c.id)}
+                                                                    className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition font-medium text-xs cursor-pointer"
+                                                                >
+                                                                    <span>ดูรายละเอียด</span>
+                                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                                                    </svg>
+                                                                </a>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -529,7 +708,7 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
                                                             link.active
                                                                 ? 'bg-blue-600 text-white border-blue-600 font-bold shadow-sm'
                                                                 : link.url
-                                                                ? 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200'
+                                                                ? 'bg-white text-gray-700 hover:bg-gray-50 border-gray-200 cursor-pointer'
                                                                 : 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
                                                         }`}
                                                     />
@@ -544,6 +723,104 @@ export default function UserDashboard({ cases, stats, filters = {} }) {
 
                 </div>
             </div>
+
+            {/* 1-Click Acceptance CSAT Modal */}
+            <Modal show={showCsatModal} onClose={() => !isSubmittingCsat && setShowCsatModal(false)} maxWidth="md">
+                <div className="p-6 sm:p-8 bg-white rounded-3xl">
+                    <div className="text-center mb-5">
+                        <div className="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                        </div>
+                        <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                            ยืนยันรับงาน & ประเมินความพึงพอใจ
+                        </h3>
+                        {selectedTicketForCsat && (
+                            <div className="mt-2 p-2 bg-slate-50 rounded-xl border border-slate-100 inline-block max-w-full">
+                                <span className="font-mono font-bold text-xs text-blue-600 mr-1.5">#{selectedTicketForCsat.ticket_no}</span>
+                                <span className="text-xs text-slate-700 font-medium truncate">{selectedTicketForCsat.title}</span>
+                            </div>
+                        )}
+                        <p className="text-xs text-slate-500 mt-2">
+                            กรุณาให้คะแนนการให้บริการของเจ้าหน้าที่ เพื่อช่วยให้เราพัฒนาบริการให้ดียิ่งขึ้น
+                        </p>
+                    </div>
+
+                    {/* 5-Star Rating */}
+                    <div className="flex flex-col items-center mb-6">
+                        <div className="flex justify-center gap-2 mb-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() => setCsatRating(star)}
+                                    onMouseEnter={() => setCsatHover(star)}
+                                    onMouseLeave={() => setCsatHover(0)}
+                                    className="focus:outline-none transform hover:scale-115 active:scale-95 transition-all p-1 cursor-pointer"
+                                >
+                                    <svg
+                                        className={`w-10 h-10 transition-colors duration-150 drop-shadow-sm ${
+                                            (csatHover || csatRating) >= star ? 'text-amber-400 fill-current' : 'text-slate-200 fill-current'
+                                        }`}
+                                        viewBox="0 0 20 20"
+                                    >
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                </button>
+                            ))}
+                        </div>
+                        <span className="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                            {csatRating === 5 && '⭐⭐⭐⭐⭐ ยอดเยี่ยมมาก'}
+                            {csatRating === 4 && '⭐⭐⭐⭐ ดีมาก'}
+                            {csatRating === 3 && '⭐⭐⭐ พอใช้'}
+                            {csatRating === 2 && '⭐⭐ ต้องปรับปรุง'}
+                            {csatRating === 1 && '⭐ ไม่พึงพอใจ'}
+                        </span>
+                    </div>
+
+                    {/* Feedback Input */}
+                    <div className="mb-6">
+                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                            ข้อเสนอแนะเพิ่มเติม (ถ้ามี)
+                        </label>
+                        <textarea
+                            rows={3}
+                            value={csatFeedback}
+                            onChange={(e) => setCsatFeedback(e.target.value)}
+                            placeholder="พิมพ์ข้อเสนอแนะ หรือคำชมเชยที่นี่..."
+                            className="w-full rounded-2xl border-slate-300 text-sm focus:border-amber-500 focus:ring-amber-500 leading-normal"
+                        />
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-3 pt-2">
+                        <button
+                            type="button"
+                            disabled={isSubmittingCsat}
+                            onClick={() => setShowCsatModal(false)}
+                            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition cursor-pointer"
+                        >
+                            ยกเลิก
+                        </button>
+                        <button
+                            type="button"
+                            disabled={isSubmittingCsat}
+                            onClick={handleSubmitCsat}
+                            className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl text-sm shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                        >
+                            {isSubmittingCsat ? (
+                                <>
+                                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    <span>กำลังบันทึก...</span>
+                                </>
+                            ) : (
+                                <span>ยืนยันรับงานและส่งคะแนน</span>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </>
     );
 }

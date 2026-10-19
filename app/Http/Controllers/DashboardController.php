@@ -20,69 +20,85 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         if ($user->role === 'administrator') {
-            $totalTickets = HelpdeskCase::count();
-            $resolvedTickets = HelpdeskCase::whereIn('status', ['resolved', 'approved', 'closed', 'cancelled'])->count();
-            $breachedTickets = HelpdeskCase::breached()->count();
+            if ($request->input('view') !== 'it_operations') {
+                $totalTickets = HelpdeskCase::count();
+                $resolvedTickets = HelpdeskCase::whereIn('status', ['resolved', 'approved', 'closed', 'cancelled'])->count();
+                $breachedTickets = HelpdeskCase::breached()->count();
 
-            $stats = [
-                'total_it_users' => User::where('role', '!=', 'user')->count(),
-                'active_it_users' => User::where('role', '!=', 'user')->where('is_active', true)->count(),
-                'total_normal_users' => User::where('role', 'user')->count(),
-                'active_normal_users' => User::where('role', 'user')->where('is_active', true)->count(),
-                'total_companies' => Company::count(),
-                'active_companies' => Company::where('is_active', true)->count(),
-                'total_slas' => Sla::count(),
-                'total_tickets' => $totalTickets,
-                'resolved_tickets' => $resolvedTickets,
-                'breached_tickets' => $breachedTickets,
-                'resolution_rate' => $totalTickets > 0 ? round(($resolvedTickets / $totalTickets) * 100) : 0,
-            ];
+                $stats = [
+                    'total_it_users' => User::where('role', '!=', 'user')->count(),
+                    'active_it_users' => User::where('role', '!=', 'user')->where('is_active', true)->count(),
+                    'total_normal_users' => User::where('role', 'user')->count(),
+                    'active_normal_users' => User::where('role', 'user')->where('is_active', true)->count(),
+                    'total_companies' => Company::count(),
+                    'active_companies' => Company::where('is_active', true)->count(),
+                    'total_slas' => Sla::count(),
+                    'total_tickets' => $totalTickets,
+                    'resolved_tickets' => $resolvedTickets,
+                    'breached_tickets' => $breachedTickets,
+                    'resolution_rate' => $totalTickets > 0 ? round(($resolvedTickets / $totalTickets) * 100) : 0,
+                ];
 
-            // Ticket Status Distribution for Chart
-            $ticketStatuses = HelpdeskCase::select('status', DB::raw('count(*) as total'))
-                ->groupBy('status')
-                ->pluck('total', 'status')
-                ->toArray();
+                // Ticket Status Distribution for Chart
+                $ticketStatuses = HelpdeskCase::select('status', DB::raw('count(*) as total'))
+                    ->groupBy('status')
+                    ->pluck('total', 'status')
+                    ->toArray();
 
-            // Format for Chart.js
-            $statusLabels = [
-                'pending' => 'รอดำเนินการ',
-                'analyzing' => 'วิเคราะห์ปัญหา',
-                'in_progress' => 'กำลังดำเนินการ',
-                'resolved' => 'รอผู้แจ้งยืนยัน',
-                'approved' => 'รอหัวหน้าอนุมัติ',
-                'closed' => 'ปิดใบงาน',
-                'cancelled' => 'ยกเลิก',
-            ];
+                // Format for Chart.js
+                $statusLabels = [
+                    'pending' => 'รอดำเนินการ',
+                    'analyzing' => 'วิเคราะห์ปัญหา',
+                    'in_progress' => 'กำลังดำเนินการ',
+                    'resolved' => 'รอผู้แจ้งยืนยัน',
+                    'approved' => 'รอหัวหน้าอนุมัติ',
+                    'closed' => 'ปิดใบงาน',
+                    'cancelled' => 'ยกเลิก',
+                ];
 
-            $chartLabels = [];
-            $chartData = [];
+                $chartLabels = [];
+                $chartData = [];
 
-            foreach ($statusLabels as $key => $label) {
-                $chartLabels[] = $label;
-                $chartData[] = $ticketStatuses[$key] ?? 0;
-            }
-
-            // Latest Backup
-            $latestBackup = null;
-            try {
-                $disk = Storage::disk(config('backup.backup.destination.disks')[0] ?? 'local');
-                $backupName = config('backup.backup.name');
-                $files = $disk->files($backupName);
-                $files = array_filter($files, fn ($file) => substr($file, -4) === '.zip');
-                if (! empty($files)) {
-                    $latestFile = end($files); // last element is usually the newest if sorted alphabetically by timestamp
-                    $latestBackup = [
-                        'file_name' => str_replace($backupName.'/', '', $latestFile),
-                        'last_modified' => Carbon::createFromTimestamp($disk->lastModified($latestFile))->translatedFormat('d F Y H:i'),
-                        'size' => round($disk->size($latestFile) / 1048576, 2).' MB',
-                    ];
+                foreach ($statusLabels as $key => $label) {
+                    $chartLabels[] = $label;
+                    $chartData[] = $ticketStatuses[$key] ?? 0;
                 }
-            } catch (\Exception $e) {
-                // Ignore error if backup disk is missing or unreadable
-            }
 
-            return Inertia::render('Dashboard/SuperadminDashboard', compact('stats', 'chartLabels', 'chartData', 'latestBackup'));
+                // Latest Backup
+                $latestBackup = null;
+                try {
+                    $disk = Storage::disk(config('backup.backup.destination.disks')[0] ?? 'local');
+                    $backupName = config('backup.backup.name');
+                    $files = $disk->files($backupName);
+                    $files = array_filter($files, fn ($file) => substr($file, -4) === '.zip');
+                    if (! empty($files)) {
+                        $latestFile = end($files); // last element is usually the newest if sorted alphabetically by timestamp
+                        $latestBackup = [
+                            'file_name' => str_replace($backupName.'/', '', $latestFile),
+                            'last_modified' => Carbon::createFromTimestamp($disk->lastModified($latestFile))->translatedFormat('d F Y H:i'),
+                            'size' => round($disk->size($latestFile) / 1048576, 2).' MB',
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    // Ignore error if backup disk is missing or unreadable
+                }
+
+                $recentAuditLogs = \App\Models\AuditLog::with('user:id,name,role')
+                    ->latest()
+                    ->take(5)
+                    ->get()
+                    ->map(fn ($log) => [
+                        'id' => $log->id,
+                        'user_name' => $log->user ? $log->user->name : 'ระบบ',
+                        'user_role' => $log->user ? $log->user->role : '-',
+                        'action' => $log->action,
+                        'target_type' => $log->target_type,
+                        'created_at' => $log->created_at ? $log->created_at->translatedFormat('d F Y H:i') : '-',
+                        'time_ago' => $log->created_at ? $log->created_at->diffForHumans() : '-',
+                    ]);
+
+                return Inertia::render('Dashboard/SuperadminDashboard', compact('stats', 'chartLabels', 'chartData', 'latestBackup', 'recentAuditLogs'));
+            }
         }
 
         // 1. Data Isolation for General Users
@@ -124,9 +140,24 @@ class DashboardController extends Controller
             // ดึงเฉพาะเคสของ User คนนั้นๆ
             $cases = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
 
+            // ดึงเคสที่กำลังดำเนินการล่าสุดสำหรับ Spotlight (ไม่รวมข้อมูลช่างตามความต้องการ)
+            $activeTickets = (clone $baseQuery)
+                ->whereIn('status', ['analyzing', 'in_progress'])
+                ->orderBy('created_at', 'desc')
+                ->take(3)
+                ->get(['id', 'ticket_no', 'title', 'category', 'status', 'created_at']);
+
+            // ดึงเคสที่รอผู้แจ้งตรวจรับงาน (Resolved) สำหรับ 1-Click Acceptance
+            $waitingTickets = (clone $baseQuery)
+                ->where('status', 'resolved')
+                ->orderBy('resolved_at', 'desc')
+                ->get(['id', 'ticket_no', 'title', 'category', 'resolved_at']);
+
             return Inertia::render('Dashboard/UserDashboard', [
                 'cases' => $cases,
                 'stats' => $stats,
+                'active_tickets' => $activeTickets,
+                'waiting_tickets' => $waitingTickets,
                 'filters' => [
                     'status' => $request->input('status', 'all'),
                     'search' => $request->input('search', ''),
@@ -303,9 +334,31 @@ class DashboardController extends Controller
             ];
         }
 
+        // คำนวณสถิติสำหรับ Quick Tabs ของช่าง Tier 2 และ Helpdesk Tier 1
+        $myWorkCount = 0;
+        $teamQueueCount = 0;
+        if (in_array($user->role, ['team_hardware', 'team_network', 'team_software'], true)) {
+            $myWorkCount = (clone $baseQuery)
+                ->where(function ($q) use ($user) {
+                    $q->where('in_progress_by', $user->id)
+                        ->orWhere('analyzing_by', $user->id);
+                })
+                ->whereNotIn('status', ['closed', 'cancelled'])
+                ->count();
+
+            $teamQueueCount = (clone $baseQuery)
+                ->where('status', 'assigned')
+                ->whereNull('in_progress_by')
+                ->whereNull('analyzing_by')
+                ->count();
+        }
+        $stats['my_work_count'] = $myWorkCount;
+        $stats['team_queue_count'] = $teamQueueCount;
+        $stats['pending_triage_count'] = HelpdeskCase::where('status', 'pending')->count();
+
         // กรองข้อมูลตาม Filter จาก URL (ถ้ามี)
         $query = clone $baseQuery;
-        $query->filter($request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive', 'technician_id']));
+        $query->filter($request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive', 'technician_id', 'tier2_tab', 'manager_tab']));
 
         $cases = $query->orderBy('created_at', 'desc')->paginate(10);
 
@@ -336,7 +389,7 @@ class DashboardController extends Controller
             'cases' => $cases,
             'stats' => $stats,
             'technician_workload' => $technicianWorkload,
-            'filters' => $request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive', 'technician_id']),
+            'filters' => $request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive', 'technician_id', 'tier2_tab', 'manager_tab', 'view']),
         ]);
     }
 }

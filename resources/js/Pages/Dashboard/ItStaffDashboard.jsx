@@ -10,11 +10,16 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
     const isManager = ['manager', 'manager_software', 'manager_network_hardware'].includes(userRole);
     const isManagerOrAdmin = ['manager', 'manager_software', 'manager_network_hardware', 'administrator'].includes(userRole);
 
+    const [managerTab, setManagerTab] = useState(
+        filters.status?.startsWith('task2') || filters.manager_tab === 'task2' ? 'task2' : 'task1'
+    );
+
     const [formFilters, setFormFilters] = useState({
         status: filters.status || 'all',
         priority: filters.priority || 'all',
         team: filters.team || 'all',
         technician_id: filters.technician_id || 'all',
+        tier2_tab: filters.tier2_tab || 'all',
         search: filters.search || '',
     });
 
@@ -81,7 +86,7 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
         const interval = setInterval(() => {
             if (!isTyping) {
                 router.reload({
-                    only: ['cases', 'stats'],
+                    only: ['cases', 'stats', 'technician_workload'],
                     preserveScroll: true,
                     preserveState: true,
                 });
@@ -112,6 +117,23 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
         setFormFilters(prev => ({ ...prev, [key]: value }));
     };
 
+    const handleTier2TabChange = (tabKey) => {
+        setFormFilters(prev => ({ ...prev, tier2_tab: tabKey }));
+        router.get(
+            route('dashboard'),
+            {
+                status: formFilters.status !== 'all' ? formFilters.status : undefined,
+                priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
+                team: formFilters.team !== 'all' ? formFilters.team : undefined,
+                technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
+                tier2_tab: tabKey !== 'all' ? tabKey : undefined,
+                search: formFilters.search || undefined,
+                view: filters.view || undefined,
+            },
+            { preserveState: true, preserveScroll: true }
+        );
+    };
+
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         router.get(
@@ -121,19 +143,30 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
                 priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
                 team: formFilters.team !== 'all' ? formFilters.team : undefined,
                 technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
+                tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
                 search: formFilters.search || undefined,
+                view: filters.view || undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
     };
 
     const handleClearFilters = () => {
-        const cleared = { status: 'all', priority: 'all', team: 'all', technician_id: 'all', search: '' };
+        const cleared = { status: 'all', priority: 'all', team: 'all', technician_id: 'all', tier2_tab: 'all', search: '' };
         setFormFilters(cleared);
-        router.get(route('dashboard'), {}, { preserveState: true, preserveScroll: true });
+        router.get(
+            route('dashboard'),
+            filters.view ? { view: filters.view } : {},
+            { preserveState: true, preserveScroll: true }
+        );
     };
 
     const handleQuickFilter = (statusKey) => {
+        if (statusKey.startsWith('task2')) {
+            setManagerTab('task2');
+        } else if (['pending', 'analyzing', 'in_progress', 'testing', 'not_closed', 'active', 'closed_today', 'sla_warning', 'sla_overdue'].includes(statusKey)) {
+            setManagerTab('task1');
+        }
         setFormFilters(prev => ({ ...prev, status: statusKey }));
         router.get(
             route('dashboard'),
@@ -142,7 +175,9 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
                 priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
                 team: formFilters.team !== 'all' ? formFilters.team : undefined,
                 technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
+                tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
                 search: formFilters.search || undefined,
+                view: filters.view || undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -164,7 +199,9 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
                 priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
                 team: formFilters.team !== 'all' ? formFilters.team : undefined,
                 technician_id: newTechId !== 'all' ? newTechId : undefined,
+                tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
                 search: formFilters.search || undefined,
+                view: filters.view || undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -174,6 +211,69 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
         if (el) {
             el.scrollIntoView({ behavior: 'smooth' });
         }
+    };
+
+    const renderSlaStatus = (caseItem) => {
+        if (['closed', 'cancelled'].includes(caseItem.status)) {
+            return null;
+        }
+
+        if (caseItem.status === 'resolved') {
+            if (caseItem.sla_due_at && caseItem.resolved_at) {
+                const resolvedTime = new Date(caseItem.resolved_at).getTime();
+                const dueTime = new Date(caseItem.sla_due_at).getTime();
+                if (resolvedTime > dueTime) {
+                    return (
+                        <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700">
+                            เกิน SLA
+                        </span>
+                    );
+                }
+            }
+            return (
+                <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700">
+                    ตาม SLA
+                </span>
+            );
+        }
+
+        if (!caseItem.sla_due_at) return null;
+
+        const due = new Date(caseItem.sla_due_at);
+        const now = new Date();
+        const diffMs = due.getTime() - now.getTime();
+        const isOverdue = diffMs < 0;
+        const absMinutes = Math.floor(Math.abs(diffMs) / (1000 * 60));
+        const hours = Math.floor(absMinutes / 60);
+        const minutes = absMinutes % 60;
+        const timeText = hours > 0 ? `${hours} ชม. ${minutes} นาที` : `${minutes} นาที`;
+
+        if (isOverdue) {
+            return (
+                <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 border border-rose-200 animate-pulse">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                    เกิน {timeText}
+                </span>
+            );
+        }
+
+        if (absMinutes <= 60) {
+            return (
+                <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200 animate-pulse">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    เหลืออีก {timeText}
+                </span>
+            );
+        }
+
+        return (
+            <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-medium rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                เหลือ {timeText}
+            </span>
+        );
     };
 
     const getPriorityBadge = (priority, label) => {
@@ -276,6 +376,26 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
             <div className="min-h-screen pb-10 pt-3.5 bg-slate-50">
                 <div id="dashboard-content" className="w-full px-4 sm:px-6 lg:px-8 mx-auto xl:max-w-[95%] space-y-4">
 
+                    {/* Administrator Back to System Overview Banner */}
+                    {userRole === 'administrator' && (
+                        <div className="bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xs flex items-center justify-between">
+                            <div className="flex items-center gap-2.5">
+                                <span className="px-2 py-0.5 rounded bg-indigo-600 text-white text-[11px] font-bold uppercase tracking-wider">
+                                    โหมดการดำเนินงานซ่อม (IT Operations)
+                                </span>
+                                <span className="text-xs text-slate-300 hidden sm:inline">
+                                    คุณกำลังดูภาพรวมการดำเนินงานของทีมฝ่าย IT ทั้งหมด
+                                </span>
+                            </div>
+                            <Link
+                                href={route('dashboard')}
+                                className="bg-white hover:bg-slate-100 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-lg shadow-xs transition"
+                            >
+                                ← กลับสู่ภาพรวมระบบ (System Overview)
+                            </Link>
+                        </div>
+                    )}
+
                     {/* Flash Success */}
                     {flash?.success && (
                         <div className="bg-emerald-50 border border-emerald-400 text-emerald-800 px-4 py-2.5 rounded-xl shadow-xs flex items-center justify-between">
@@ -288,12 +408,35 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
                         </div>
                     )}
 
-                    {/* Task 1 Container with compact vertical spacing (space-y-2.5) */}
-                    <div className="space-y-2.5">
-                        {/* Header Section */}
-                        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
-                            <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">สถานะการแจ้งซ่อม</h2>
-                            <div className="text-xs text-gray-500 flex items-center gap-2">
+                    {/* Helpdesk Pending Triage Notification Banner */}
+                    {userRole === 'helpdesk' && Number(stats.pending_triage_count) > 0 && (
+                        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl px-4 py-2.5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-2.5 border border-amber-400">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                                    <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 className="text-xs sm:text-sm font-bold">มีเคสใหม่รอคัดกรอง (Pending Triage) จำนวน {Number(stats.pending_triage_count).toLocaleString()} ใบ</h4>
+                                    <p className="text-[11px] text-amber-100">โปรดตรวจสอบอาการปัญหา ระบุหมวดหมู่ ความเร่งด่วน และส่งต่อให้ทีมเฉพาะทาง</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => handleQuickFilter('pending')}
+                                className="bg-white text-amber-800 hover:bg-amber-50 font-bold px-3.5 py-1.5 rounded-lg text-xs shadow-xs transition whitespace-nowrap cursor-pointer"
+                            >
+                                คัดกรองเคสใหม่ ({Number(stats.pending_triage_count).toLocaleString()})
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Header Section with Manager/Admin Segmented Switch */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">สถานะการดำเนินงาน</h2>
+                            <div className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
                                 <span>อัปเดตล่าสุด {currentTime}</span>
                                 <span>·</span>
                                 <button
@@ -306,8 +449,54 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
                             </div>
                         </div>
 
-                        {/* Merged Sleek Alert Banner (Active Overdue / Urgent) */}
-                        {(Number(stats.sla_overdue) > 0 || Number(stats.urgent) > 0) && (
+                        {/* Manager / Admin Segmented Switch */}
+                        {isManagerOrAdmin && (
+                            <div className="flex items-center p-1 bg-slate-200/80 rounded-xl shadow-2xs self-start sm:self-auto">
+                                <button
+                                    type="button"
+                                    onClick={() => setManagerTab('task1')}
+                                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                        managerTab === 'task1'
+                                            ? 'bg-white text-slate-900 shadow-xs'
+                                            : 'text-slate-600 hover:text-slate-900'
+                                    }`}
+                                >
+                                    <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                    </svg>
+                                    <span>Task 1: งานซ่อม & ภาระงาน</span>
+                                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-50 text-indigo-700 font-bold">
+                                        {Number(stats.open_total || 0)}
+                                    </span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setManagerTab('task2')}
+                                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                        managerTab === 'task2'
+                                            ? 'bg-white text-slate-900 shadow-xs'
+                                            : 'text-slate-600 hover:text-slate-900'
+                                    }`}
+                                >
+                                    <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                    <span>Task 2: ป้องกันปัญหาเกิดซ้ำ</span>
+                                    {stats.task2_manager_review > 0 && (
+                                        <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-white font-bold animate-pulse">
+                                            รอตรวจ {Number(stats.task2_manager_review)}
+                                        </span>
+                                    )}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Task 1 Container (Visible if not manager/admin OR if managerTab === 'task1') */}
+                    {(!isManagerOrAdmin || managerTab === 'task1') && (
+                        <div className="space-y-2.5">
+                            {/* Merged Sleek Alert Banner (Active Overdue / Urgent) */}
+                            {(Number(stats.sla_overdue) > 0 || Number(stats.urgent) > 0) && (
                             <div className="bg-[#8b181b] text-white rounded-xl px-4 py-2 sm:py-2.5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-2.5">
                                 <div className="flex items-center gap-2.5 w-full sm:w-auto">
                                     <div className="w-5 h-5 rounded-full border-2 border-white/90 flex items-center justify-center shrink-0 text-white font-black text-[11px]">
@@ -546,7 +735,6 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
                                 })}
                             </div>
                         </div>
-                    </div>
 
                     {/* ภาระงานของทีมช่าง (Technician Workload) - For Tier 3 Managers & Administrator */}
                     {technician_workload && (
@@ -741,7 +929,12 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
                             </div>
                         </div>
                     )}
+                </div>
+            )}
 
+            {/* Task 2 Section (Visible for manager/admin when managerTab === 'task2', OR for technicians) */}
+            {userRole !== 'helpdesk' && (!isManagerOrAdmin || managerTab === 'task2') && (
+                <div className="space-y-4">
                     {/* Manager Approval Banner (Task 2) */}
                     {isManagerOrAdmin && stats.task2_manager_review > 0 && (
                         <div className="bg-gradient-to-r from-amber-600 to-amber-500 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between text-white overflow-hidden relative border border-amber-400">
@@ -767,124 +960,173 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
                         </div>
                     )}
 
-                    {/* Task 2 Section (Preventive Action) - Hidden for Helpdesk */}
-                    {userRole !== 'helpdesk' && (
-                        <>
-                            <div className="flex items-center pt-2">
-                                <div className="bg-teal-600 w-1.5 h-6 rounded-full mr-3" />
-                                <h2 className="text-xl font-bold text-gray-800">
-                                    Task 2: การป้องกันปัญหาไม่ให้เกิดซ้ำ (Preventive Action)
-                                </h2>
+                    <div className="flex items-center pt-2">
+                        <div className="bg-teal-600 w-1.5 h-6 rounded-full mr-3" />
+                        <h2 className="text-xl font-bold text-gray-800">
+                            Task 2: การป้องกันปัญหาไม่ให้เกิดซ้ำ (Preventive Action)
+                        </h2>
+                    </div>
+
+                    <div className={`grid grid-cols-2 md:grid-cols-3 ${isManagerOrAdmin ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-4 auto-rows-fr`}>
+                        {/* 1. Task 2 All Cases */}
+                        <div
+                            onClick={() => handleQuickFilter('task2_all')}
+                            className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-indigo-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                        >
+                            <p className="text-sm font-bold text-indigo-800 mb-2 leading-tight group-hover:text-indigo-900">เคสทั้งหมด</p>
+                            <div className="flex items-end justify-between mt-auto">
+                                <span className="text-4xl font-black text-indigo-600 leading-none">{Number(stats.task2_total).toLocaleString()}</span>
+                                <svg className="w-7 h-7 text-indigo-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
                             </div>
+                        </div>
 
-                            <div className={`grid grid-cols-2 md:grid-cols-3 ${isManagerOrAdmin ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-4 auto-rows-fr`}>
-                                {/* 1. Task 2 All Cases */}
-                                <div
-                                    onClick={() => handleQuickFilter('task2_all')}
-                                    className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-indigo-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                                >
-                                    <p className="text-sm font-bold text-indigo-800 mb-2 leading-tight group-hover:text-indigo-900">เคสทั้งหมด</p>
-                                    <div className="flex items-end justify-between mt-auto">
-                                        <span className="text-4xl font-black text-indigo-600 leading-none">{Number(stats.task2_total).toLocaleString()}</span>
-                                        <svg className="w-7 h-7 text-indigo-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                        </svg>
+                        {/* 2. Manager Review Cases (Only for manager and admin) */}
+                        {isManagerOrAdmin && (
+                            <div
+                                onClick={() => handleQuickFilter('task2_manager_review')}
+                                className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-orange-200 hover:border-orange-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                            >
+                                <p className="text-sm font-bold text-orange-800 mb-2 leading-tight group-hover:text-orange-900">รอหัวหน้าตรวจสอบ</p>
+                                <div className="flex items-end justify-between mt-auto">
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-4xl font-black text-orange-600 leading-none">{Number(stats.task2_manager_review).toLocaleString()}</span>
+                                        <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_t2_manager}%</span>
                                     </div>
-                                </div>
-
-                                {/* 2. Manager Review Cases (Only for manager and admin) */}
-                                {isManagerOrAdmin && (
-                                    <div
-                                        onClick={() => handleQuickFilter('task2_manager_review')}
-                                        className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-orange-200 hover:border-orange-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                                    >
-                                        <p className="text-sm font-bold text-orange-800 mb-2 leading-tight group-hover:text-orange-900">รอหัวหน้าตรวจสอบ</p>
-                                        <div className="flex items-end justify-between mt-auto">
-                                            <div className="flex items-baseline gap-2">
-                                                <span className="text-4xl font-black text-orange-600 leading-none">{Number(stats.task2_manager_review).toLocaleString()}</span>
-                                                <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_t2_manager}%</span>
-                                            </div>
-                                            <svg className="w-7 h-7 text-orange-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* 3. Assigned / Pending */}
-                                <div
-                                    onClick={() => handleQuickFilter('task2_assigned')}
-                                    className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-rose-200 hover:border-rose-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                                >
-                                    <p className="text-sm font-bold text-rose-800 mb-2 leading-tight group-hover:text-rose-900">รอดำเนินการ / มอบหมาย</p>
-                                    <div className="flex items-end justify-between mt-auto">
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-4xl font-black text-rose-600 leading-none">{Number(stats.task2_assigned).toLocaleString()}</span>
-                                            <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_t2_assigned}%</span>
-                                        </div>
-                                        <svg className="w-7 h-7 text-rose-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                </div>
-
-                                {/* 4. In Progress */}
-                                <div
-                                    onClick={() => handleQuickFilter('task2_in_progress')}
-                                    className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-yellow-300 hover:border-yellow-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                                >
-                                    <p className="text-sm font-bold text-yellow-900 mb-2 leading-tight group-hover:text-yellow-950">กำลังดำเนินการป้องกัน</p>
-                                    <div className="flex items-end justify-between mt-auto">
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-4xl font-black text-yellow-700 leading-none">{Number(stats.task2_in_progress).toLocaleString()}</span>
-                                            <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_t2_in_progress}%</span>
-                                        </div>
-                                        <svg className="w-7 h-7 text-yellow-600 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                        </svg>
-                                    </div>
-                                </div>
-
-                                {/* 5. Pending Review */}
-                                <div
-                                    onClick={() => handleQuickFilter('task2_pending_review')}
-                                    className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-blue-200 hover:border-blue-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                                >
-                                    <p className="text-sm font-bold text-blue-800 mb-2 leading-tight group-hover:text-blue-900">ตรวจปิดมาตรการป้องกัน</p>
-                                    <div className="flex items-end justify-between mt-auto">
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-4xl font-black text-blue-600 leading-none">{Number(stats.task2_pending_review).toLocaleString()}</span>
-                                            <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_t2_pending}%</span>
-                                        </div>
-                                        <svg className="w-7 h-7 text-blue-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </div>
-                                </div>
-
-                                {/* 6. Completed */}
-                                <div
-                                    onClick={() => handleQuickFilter('task2_completed')}
-                                    className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-teal-200 hover:border-teal-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                                >
-                                    <p className="text-sm font-bold text-teal-800 mb-2 leading-tight group-hover:text-teal-900">ปิดมาตรการป้องกัน</p>
-                                    <div className="flex items-end justify-between mt-auto">
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-4xl font-black text-teal-600 leading-none">{Number(stats.task2_completed).toLocaleString()}</span>
-                                            <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_t2_completed}%</span>
-                                        </div>
-                                        <svg className="w-7 h-7 text-teal-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                        </svg>
-                                    </div>
+                                    <svg className="w-7 h-7 text-orange-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
                                 </div>
                             </div>
-                        </>
-                    )}
+                        )}
+
+                        {/* 3. Assigned / Pending */}
+                        <div
+                            onClick={() => handleQuickFilter('task2_assigned')}
+                            className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-rose-200 hover:border-rose-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                        >
+                            <p className="text-sm font-bold text-rose-800 mb-2 leading-tight group-hover:text-rose-900">รอดำเนินการ / มอบหมาย</p>
+                            <div className="flex items-end justify-between mt-auto">
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-4xl font-black text-rose-600 leading-none">{Number(stats.task2_assigned).toLocaleString()}</span>
+                                    <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_t2_assigned}%</span>
+                                </div>
+                                <svg className="w-7 h-7 text-rose-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* 4. In Progress */}
+                        <div
+                            onClick={() => handleQuickFilter('task2_in_progress')}
+                            className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-yellow-300 hover:border-yellow-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                        >
+                            <p className="text-sm font-bold text-yellow-900 mb-2 leading-tight group-hover:text-yellow-950">กำลังดำเนินการป้องกัน</p>
+                            <div className="flex items-end justify-between mt-auto">
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-4xl font-black text-yellow-700 leading-none">{Number(stats.task2_in_progress).toLocaleString()}</span>
+                                    <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_t2_in_progress}%</span>
+                                </div>
+                                <svg className="w-7 h-7 text-yellow-600 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* 5. Pending Review */}
+                        <div
+                            onClick={() => handleQuickFilter('task2_pending_review')}
+                            className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-blue-200 hover:border-blue-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                        >
+                            <p className="text-sm font-bold text-blue-800 mb-2 leading-tight group-hover:text-blue-900">ตรวจปิดมาตรการป้องกัน</p>
+                            <div className="flex items-end justify-between mt-auto">
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-4xl font-black text-blue-600 leading-none">{Number(stats.task2_pending_review).toLocaleString()}</span>
+                                    <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_t2_pending}%</span>
+                                </div>
+                                <svg className="w-7 h-7 text-blue-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* 6. Completed */}
+                        <div
+                            onClick={() => handleQuickFilter('task2_completed')}
+                            className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-teal-200 hover:border-teal-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                        >
+                            <p className="text-sm font-bold text-teal-800 mb-2 leading-tight group-hover:text-teal-900">ปิดมาตรการป้องกัน</p>
+                            <div className="flex items-end justify-between mt-auto">
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-4xl font-black text-teal-600 leading-none">{Number(stats.task2_completed).toLocaleString()}</span>
+                                    <span className="text-xs font-bold text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded">{stats.percent_t2_completed}%</span>
+                                </div>
+                                <svg className="w-7 h-7 text-teal-500 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
                     {/* Table Section */}
                     <div id="tickets-table" className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-6 scroll-mt-6">
+                        {/* Tier 2 Quick Tabs for Technicians */}
+                        {userRole.startsWith('team_') && (
+                            <div className="flex items-center gap-2 px-6 pt-4 border-b border-gray-200 bg-white overflow-x-auto">
+                                <button
+                                    type="button"
+                                    onClick={() => handleTier2TabChange('my_work')}
+                                    className={`pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 cursor-pointer transition whitespace-nowrap ${
+                                        formFilters.tier2_tab === 'my_work'
+                                            ? 'border-indigo-600 text-indigo-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                                    }`}
+                                >
+                                    <span>💼 งานของฉัน</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                        formFilters.tier2_tab === 'my_work' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600'
+                                    }`}>
+                                        {Number(stats.my_work_count || 0)}
+                                    </span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleTier2TabChange('team_queue')}
+                                    className={`pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 cursor-pointer transition whitespace-nowrap ${
+                                        formFilters.tier2_tab === 'team_queue'
+                                            ? 'border-indigo-600 text-indigo-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                                    }`}
+                                >
+                                    <span>📥 คิวงานรอช่างรับ</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                        formFilters.tier2_tab === 'team_queue' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'
+                                    }`}>
+                                        {Number(stats.team_queue_count || 0)}
+                                    </span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleTier2TabChange('all')}
+                                    className={`pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 cursor-pointer transition whitespace-nowrap ${
+                                        formFilters.tier2_tab === 'all' || !formFilters.tier2_tab
+                                            ? 'border-indigo-600 text-indigo-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                                    }`}
+                                >
+                                    <span>🌐 งานทั้งหมดในทีม</span>
+                                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-gray-100 text-gray-600">
+                                        {Number(stats.open_total || 0)}
+                                    </span>
+                                </button>
+                            </div>
+                        )}
+
                         <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div>
@@ -1038,18 +1280,7 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
                                             <span className="text-sm font-bold text-indigo-600">#{caseItem.ticket_no}</span>
                                             <div className="flex flex-col items-end gap-1">
                                                 {getStatusBadge(caseItem.status, caseItem.status_label)}
-                                                {caseItem.is_overdue && (
-                                                    <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 animate-pulse">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                                                        เกิน SLA
-                                                    </span>
-                                                )}
-                                                {caseItem.is_near_overdue && !caseItem.is_overdue && (
-                                                    <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 animate-pulse">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                                                        ใกล้หมด SLA
-                                                    </span>
-                                                )}
+                                                {renderSlaStatus(caseItem)}
                                                 {caseItem.task2_status_label && (
                                                     <span className={`px-2 py-0.5 inline-flex text-[10px] leading-4 font-bold rounded-full shadow-sm ${caseItem.task2_status_color}`}>
                                                         {caseItem.task2_status_label}
@@ -1168,22 +1399,9 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
 
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     {getStatusBadge(caseItem.status, caseItem.status_label)}
-                                                    {caseItem.is_overdue && (
-                                                        <div className="mt-1">
-                                                            <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 animate-pulse">
-                                                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                                                                เกิน SLA
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {caseItem.is_near_overdue && !caseItem.is_overdue && (
-                                                        <div className="mt-1">
-                                                            <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 animate-pulse">
-                                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                                                                ใกล้หมด SLA
-                                                            </span>
-                                                        </div>
-                                                    )}
+                                                    <div className="mt-1">
+                                                        {renderSlaStatus(caseItem)}
+                                                    </div>
                                                     {caseItem.task2_status_label && (
                                                         <div className="mt-1">
                                                             <span className={`px-2.5 py-0.5 inline-flex text-[10px] leading-4 font-bold rounded-full shadow-sm ${caseItem.task2_status_color}`}>
