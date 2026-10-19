@@ -209,6 +209,19 @@
   - [x] แสดงป๊อปอัปแจ้งเตือนมุมบนขวาเมื่อมีเสียงเตือน พร้อมรายละเอียดเคส, ความเร่งด่วน, ปุ่มทางลัดเปิดดูเคส และแถบนับถอยหลัง 8 วินาที
   - [x] เพิ่มระบบไฮไลต์เรืองแสงสีส้ม (Amber Ring/Border) และป้ายกะพริบ `NEW` / `UPDATE` เป็นเวลา 30 วินาที บนตารางและ Mobile Cards ทั้งใน `ItStaffDashboard` และ `UserDashboard`
   - [x] เชื่อมโยงและส่งข้อมูลครบถ้วนจากทุกหน้าจอ (`Tickets/Show.jsx`, `SuperadminDashboard.jsx`)
+- [x] ระบบจัดเรียงข้อมูลหัวตารางแบบโต้ตอบตามหลักสากล (Interactive Sortable Table Headers & Mobile Sorting):
+  - [x] ระยะที่ 1: Dashboard รายการใบงาน (`ItStaffDashboard.jsx` และ `UserDashboard.jsx`)
+    - [x] สร้าง Reusable Component `SortableHeader.jsx` พร้อม Accessibility `aria-sort`, ลูกศรทิศทาง `↑`, `↓`, `↕` และ Sublabel สองภาษา
+    - [x] พัฒนา Server-side Sorting ใน `DashboardController.php` (Whitelist, Business Logic Ordering สำหรับ Priority และ Status Lifecycle, Tie-breaker `id desc`)
+    - [x] เพิ่มแถบเรียงลำดับสำหรับมุมมองมือถือ (Mobile Sort Bar) พร้อม Dropdown และปุ่มสลับทิศทาง
+  - [x] ระยะที่ 2: หน้าจัดการทีมงานและสายการบังคับบัญชา (`Teams/Index.jsx` & `TeamController.php`)
+    - [x] Backend Sorting: รองรับการเรียงตามชื่อทีม (`name`), รหัสทีม (`code`), หัวหน้าทีม (`manager_id`), จำนวนสมาชิก (`members_count`), และสถานะ (`is_active`)
+    - [x] Frontend Desktop Table: เชื่อมต่อ `SortableHeader` ทุกคอลัมน์สำคัญ (ยกเว้นคอลัมน์จัดการ)
+    - [x] Frontend Mobile View: เพิ่มแถบเรียงลำดับ Mobile Sort Bar พร้อมบันทึกสถานะการ Sort ร่วมกับ Search และ Status Filters
+  - [x] ระยะที่ 3: หน้าจัดการผู้ใช้งาน (`Users/Index.jsx` และ `NormalUsers/Index.jsx`)
+    - [x] ปรับใช้ `SortableHeader` ในหน้าจัดการผู้ใช้งานทีม IT (`Users/Index.jsx`) แทน Sort Icon เดิม
+    - [x] ปรับใช้ `SortableHeader` ในหน้าจัดการผู้ใช้งานทั่วไป (`NormalUsers/Index.jsx`)
+    - [x] เพิ่มแถบเรียงลำดับ Mobile Sort Bar บนทั้งสองหน้าจอ และคงค่าการ Sort ในการค้นหาและเปลี่ยนสถานะ
 - [ ] Phase 14: ปรับปรุงโครงสร้างสถาปัตยกรรมสู่ Commercial-Ready (ระบบทีมและสายการบังคับบัญชาแบบไดนามิก):
   - [x] Sprint 14.1: สร้างตาราง `teams` และ Pivot `team_user` พร้อมหน้าจัดการทีมงานและสายการบังคับบัญชา (กำหนดหัวหน้าทีมผ่าน UI)
   - [/] Sprint 14.2: ยกเลิก Hardcode บทบาท (`manager_software`, `team_software`) ใน Controllers & Policies และปรับใช้วิธีดึงข้อมูลผ่านความสัมพันธ์ทีมจริง:

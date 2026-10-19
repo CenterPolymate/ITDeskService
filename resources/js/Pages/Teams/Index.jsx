@@ -1,16 +1,48 @@
 import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import SortableHeader from '@/Components/SortableHeader';
 
 export default function Index({ teams = [], stats = {}, filters = {} }) {
     const { flash } = usePage().props;
     const [search, setSearch] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
 
+    const currentSort = filters.sort || 'name';
+    const currentDirection = filters.direction || 'asc';
+
+    const handleSort = (field) => {
+        let nextDirection = 'asc';
+        if (currentSort === field) {
+            nextDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            nextDirection = (field === 'created_at' || field === 'members_count') ? 'desc' : 'asc';
+        }
+        handleSortDirect(field, nextDirection);
+    };
+
+    const handleSortDirect = (field, direction) => {
+        router.get(
+            route('teams.index'),
+            {
+                search: search || undefined,
+                status: statusFilter !== 'all' ? statusFilter : undefined,
+                sort: field,
+                direction: direction,
+            },
+            { preserveState: true, replace: true }
+        );
+    };
+
     const handleSearch = (e) => {
         e.preventDefault();
         router.get(
             route('teams.index'),
-            { search, status: statusFilter },
+            {
+                search: search || undefined,
+                status: statusFilter !== 'all' ? statusFilter : undefined,
+                sort: currentSort !== 'name' ? currentSort : undefined,
+                direction: currentDirection !== 'asc' ? currentDirection : undefined,
+            },
             { preserveState: true, replace: true }
         );
     };
@@ -19,7 +51,12 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
         setStatusFilter(val);
         router.get(
             route('teams.index'),
-            { search, status: val },
+            {
+                search: search || undefined,
+                status: val !== 'all' ? val : undefined,
+                sort: currentSort !== 'name' ? currentSort : undefined,
+                direction: currentDirection !== 'asc' ? currentDirection : undefined,
+            },
             { preserveState: true, replace: true }
         );
     };
@@ -213,6 +250,47 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
                             </div>
                         ) : (
                             <>
+                                {/* Mobile Sort Bar */}
+                                <div className="md:hidden flex items-center justify-between gap-2 px-4 py-2.5 border-b border-gray-100 bg-gray-50/60">
+                                    <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+                                        <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                                        </svg>
+                                        <span>เรียงลำดับ:</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <select
+                                            value={currentSort}
+                                            onChange={(e) => handleSortDirect(e.target.value, currentDirection)}
+                                            aria-label="เลือกฟิลด์สำหรับเรียงลำดับ"
+                                            className="text-xs font-medium border-gray-200 rounded-lg py-1 px-2.5 bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs"
+                                        >
+                                            <option value="name">ชื่อทีม (Team Name)</option>
+                                            <option value="code">รหัสทีม (Code)</option>
+                                            <option value="manager_id">หัวหน้าทีม (Manager)</option>
+                                            <option value="members_count">จำนวนสมาชิก (Members)</option>
+                                            <option value="is_active">สถานะ (Status)</option>
+                                        </select>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSortDirect(currentSort, currentDirection === 'asc' ? 'desc' : 'asc')}
+                                            title={currentDirection === 'asc' ? 'เรียงจากน้อยไปมาก (A-Z)' : 'เรียงจากมากไปน้อย (Z-A)'}
+                                            aria-label="สลับทิศทางการเรียงลำดับ"
+                                            className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 focus:ring-1 focus:ring-indigo-500 transition-colors shadow-2xs"
+                                        >
+                                            {currentDirection === 'asc' ? (
+                                                <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+
                                 {/* Mobile Cards View (md:hidden) */}
                                 <div className="md:hidden divide-y divide-gray-100">
                                     {teams.map((team) => (
@@ -287,25 +365,42 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
                                     <table className="min-w-full divide-y divide-gray-200">
                                         <thead className="bg-gray-50/80">
                                             <tr>
-                                                <th scope="col" className="px-6 py-3 text-left">
-                                                    <div className="text-xs font-bold text-gray-800">ทีม / รหัสทีม</div>
-                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">TEAM & CODE</div>
-                                                </th>
-                                                <th scope="col" className="px-6 py-3 text-left">
-                                                    <div className="text-xs font-bold text-gray-800">หัวหน้าทีม</div>
-                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">TEAM MANAGER</div>
-                                                </th>
-                                                <th scope="col" className="px-6 py-3 text-left">
-                                                    <div className="text-xs font-bold text-gray-800">สมาชิกในทีม</div>
-                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">TEAM MEMBERS</div>
-                                                </th>
-                                                <th scope="col" className="px-6 py-3 text-center">
-                                                    <div className="text-xs font-bold text-gray-800">สถานะ</div>
-                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">STATUS</div>
-                                                </th>
-                                                <th scope="col" className="px-6 py-3 text-right">
-                                                    <div className="text-xs font-bold text-gray-800">จัดการ</div>
-                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">ACTIONS</div>
+                                                <SortableHeader
+                                                    field="name"
+                                                    currentSort={currentSort}
+                                                    currentDirection={currentDirection}
+                                                    onSort={handleSort}
+                                                    label="ทีม / รหัสทีม"
+                                                    subLabel="TEAM & CODE"
+                                                />
+                                                <SortableHeader
+                                                    field="manager_id"
+                                                    currentSort={currentSort}
+                                                    currentDirection={currentDirection}
+                                                    onSort={handleSort}
+                                                    label="หัวหน้าทีม"
+                                                    subLabel="TEAM MANAGER"
+                                                />
+                                                <SortableHeader
+                                                    field="members_count"
+                                                    currentSort={currentSort}
+                                                    currentDirection={currentDirection}
+                                                    onSort={handleSort}
+                                                    label="สมาชิกในทีม"
+                                                    subLabel="TEAM MEMBERS"
+                                                />
+                                                <SortableHeader
+                                                    field="is_active"
+                                                    currentSort={currentSort}
+                                                    currentDirection={currentDirection}
+                                                    onSort={handleSort}
+                                                    label="สถานะ"
+                                                    subLabel="STATUS"
+                                                    align="center"
+                                                />
+                                                <th scope="col" className="px-6 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-gray-500">
+                                                    <div>จัดการ</div>
+                                                    <div className="text-[10px] font-normal text-gray-400 tracking-normal">ACTIONS</div>
                                                 </th>
                                             </tr>
                                         </thead>

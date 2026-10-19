@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { sendBrowserNotification } from '@/Utils/webNotification';
 import Modal from '@/Components/Modal';
+import SortableHeader from '@/Components/SortableHeader';
 
 export default function UserDashboard({ cases, stats, active_tickets = [], waiting_tickets = [], filters = {} }) {
     const { auth, flash } = usePage().props;
@@ -135,6 +136,32 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
         return `${day} ${month} ${year} ${hours}:${minutes}`;
     };
 
+    const currentSort = filters.sort || 'created_at';
+    const currentDirection = filters.direction || 'desc';
+
+    const handleSort = (field) => {
+        let nextDirection = 'asc';
+        if (currentSort === field) {
+            nextDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            nextDirection = (field === 'created_at' || field === 'ticket_no') ? 'desc' : 'asc';
+        }
+        handleSortDirect(field, nextDirection);
+    };
+
+    const handleSortDirect = (field, direction) => {
+        router.get(
+            route('dashboard'),
+            {
+                status: currentStatus !== 'all' ? currentStatus : undefined,
+                search: search || undefined,
+                sort: field,
+                direction: direction,
+            },
+            { preserveState: true, preserveScroll: true }
+        );
+    };
+
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         router.get(
@@ -142,6 +169,8 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
             {
                 status: currentStatus !== 'all' ? currentStatus : undefined,
                 search: search || undefined,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -153,6 +182,8 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
             route('dashboard'),
             {
                 status: currentStatus !== 'all' ? currentStatus : undefined,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -164,6 +195,8 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
             {
                 status: statusKey !== 'all' ? statusKey : undefined,
                 search: search || undefined,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -554,6 +587,47 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                 </div>
                             ) : (
                                 <>
+                                    {/* Mobile Sort Bar */}
+                                    <div className="md:hidden flex items-center justify-between gap-2 pb-3 mb-2 border-b border-gray-100">
+                                        <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+                                            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                                            </svg>
+                                            <span>เรียงตาม:</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <select
+                                                value={currentSort}
+                                                onChange={(e) => handleSortDirect(e.target.value, currentDirection)}
+                                                aria-label="เลือกฟิลด์สำหรับเรียงลำดับ"
+                                                className="text-xs font-medium border-gray-200 rounded-lg py-1 px-2.5 bg-white text-gray-700 focus:ring-blue-500 focus:border-blue-500 shadow-2xs"
+                                            >
+                                                <option value="created_at">วันที่แจ้งล่าสุด (Default)</option>
+                                                <option value="ticket_no">รหัสใบงาน (Ticket ID)</option>
+                                                <option value="status">สถานะงาน (Status)</option>
+                                                <option value="title">หัวข้อปัญหา (Subject)</option>
+                                                <option value="category">หมวดหมู่ (Category)</option>
+                                            </select>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleSortDirect(currentSort, currentDirection === 'asc' ? 'desc' : 'asc')}
+                                                title={currentDirection === 'asc' ? 'เรียงจากน้อยไปมาก (เก่า-ใหม่)' : 'เรียงจากมากไปน้อย (ใหม่-เก่า)'}
+                                                aria-label="สลับทิศทางการเรียงลำดับ"
+                                                className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 focus:ring-1 focus:ring-blue-500 transition-colors shadow-2xs"
+                                            >
+                                                {currentDirection === 'asc' ? (
+                                                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+                                                    </svg>
+                                                ) : (
+                                                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     {/* Mobile Cards View (md:hidden) */}
                                     <div className="md:hidden space-y-3">
                                         {cases.data.map((c) => {
@@ -637,21 +711,46 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                         <table className="min-w-full divide-y divide-gray-200">
                                             <thead className="bg-gray-50/80 rounded-lg">
                                                 <tr>
-                                                    <th scope="col" className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                        Ticket No
-                                                    </th>
-                                                    <th scope="col" className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                        หัวข้อปัญหา
-                                                    </th>
-                                                    <th scope="col" className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                        หมวดหมู่
-                                                    </th>
-                                                    <th scope="col" className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                        สถานะ
-                                                    </th>
-                                                    <th scope="col" className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                        วันที่แจ้ง
-                                                    </th>
+                                                    <SortableHeader
+                                                        field="ticket_no"
+                                                        currentSort={currentSort}
+                                                        currentDirection={currentDirection}
+                                                        onSort={handleSort}
+                                                        label="Ticket No"
+                                                        subLabel="รหัสใบงาน"
+                                                    />
+                                                    <SortableHeader
+                                                        field="title"
+                                                        currentSort={currentSort}
+                                                        currentDirection={currentDirection}
+                                                        onSort={handleSort}
+                                                        label="หัวข้อปัญหา"
+                                                        subLabel="Subject"
+                                                    />
+                                                    <SortableHeader
+                                                        field="category"
+                                                        currentSort={currentSort}
+                                                        currentDirection={currentDirection}
+                                                        onSort={handleSort}
+                                                        label="หมวดหมู่"
+                                                        subLabel="Category"
+                                                    />
+                                                    <SortableHeader
+                                                        field="status"
+                                                        currentSort={currentSort}
+                                                        currentDirection={currentDirection}
+                                                        onSort={handleSort}
+                                                        label="สถานะ"
+                                                        subLabel="Status"
+                                                    />
+                                                    <SortableHeader
+                                                        field="created_at"
+                                                        currentSort={currentSort}
+                                                        currentDirection={currentDirection}
+                                                        onSort={handleSort}
+                                                        label="วันที่แจ้ง"
+                                                        subLabel="Reported Date"
+                                                    />
                                                     <th scope="col" className="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                                         จัดการ
                                                     </th>

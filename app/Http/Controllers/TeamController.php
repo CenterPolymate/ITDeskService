@@ -31,8 +31,16 @@ class TeamController extends Controller
 
         $search = $request->input('search');
         $status = $request->input('status', 'all');
+        $sort = $request->input('sort', 'name');
+        $direction = strtolower($request->input('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
 
-        $teams = Team::with(['manager:id,name,email,role', 'members:id,name,email,role'])
+        $allowedSorts = ['name', 'code', 'is_active', 'manager_id', 'members_count', 'created_at'];
+        if (! in_array($sort, $allowedSorts, true)) {
+            $sort = 'name';
+        }
+
+        $query = Team::with(['manager:id,name,email,role', 'members:id,name,email,role'])
+            ->withCount('members')
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -42,9 +50,22 @@ class TeamController extends Controller
             })
             ->when($status !== 'all', function ($query) use ($status) {
                 $query->where('is_active', $status === 'active');
-            })
-            ->orderBy('name')
-            ->get();
+            });
+
+        if ($sort === 'manager_id') {
+            $query->leftJoin('users as managers', 'teams.manager_id', '=', 'managers.id')
+                ->select('teams.*')
+                ->orderBy('managers.name', $direction);
+        } elseif ($sort === 'members_count') {
+            $query->orderBy('members_count', $direction);
+        } else {
+            $query->orderBy("teams.{$sort}", $direction);
+        }
+        if ($sort !== 'id') {
+            $query->orderBy('teams.id', 'asc');
+        }
+
+        $teams = $query->get();
 
         $stats = [
             'total_teams' => Team::count(),
@@ -59,6 +80,8 @@ class TeamController extends Controller
             'filters' => [
                 'search' => $search,
                 'status' => $status,
+                'sort' => $sort,
+                'direction' => $direction,
             ],
         ]);
     }

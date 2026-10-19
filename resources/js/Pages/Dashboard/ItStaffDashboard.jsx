@@ -3,6 +3,7 @@ import { Head, router, Link, usePage } from '@inertiajs/react';
 import {
     sendBrowserNotification,
 } from '@/Utils/webNotification';
+import SortableHeader from '@/Components/SortableHeader';
 
 export default function ItStaffDashboard({ cases, stats, teams = [], technician_workload = null, filters = {} }) {
     const { auth, flash } = usePage().props;
@@ -147,6 +148,37 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
         return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
     };
 
+    const currentSort = filters.sort || 'created_at';
+    const currentDirection = filters.direction || 'desc';
+
+    const handleSort = (field) => {
+        let nextDirection = 'asc';
+        if (currentSort === field) {
+            nextDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            nextDirection = (field === 'created_at' || field === 'ticket_no' || field === 'priority') ? 'desc' : 'asc';
+        }
+        handleSortDirect(field, nextDirection);
+    };
+
+    const handleSortDirect = (field, direction) => {
+        router.get(
+            route('dashboard'),
+            {
+                status: formFilters.status !== 'all' ? formFilters.status : undefined,
+                priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
+                team: formFilters.team !== 'all' ? formFilters.team : undefined,
+                technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
+                tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
+                search: formFilters.search || undefined,
+                view: filters.view || undefined,
+                sort: field,
+                direction: direction,
+            },
+            { preserveState: true, preserveScroll: true }
+        );
+    };
+
     const handleFilterChange = (key, value) => {
         setFormFilters(prev => ({ ...prev, [key]: value }));
     };
@@ -163,6 +195,8 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 tier2_tab: tabKey !== 'all' ? tabKey : undefined,
                 search: formFilters.search || undefined,
                 view: filters.view || undefined,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -180,6 +214,8 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
                 search: formFilters.search || undefined,
                 view: filters.view || undefined,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -212,6 +248,8 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
                 search: formFilters.search || undefined,
                 view: filters.view || undefined,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -236,6 +274,8 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
                 search: formFilters.search || undefined,
                 view: filters.view || undefined,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -1303,6 +1343,48 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                             </form>
                         </div>
 
+                        {/* Mobile Sort Bar */}
+                        <div className="md:hidden flex items-center justify-between gap-2 px-4 py-2.5 border-b border-gray-100 bg-gray-50/60">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+                                <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                                </svg>
+                                <span>เรียงลำดับ:</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <select
+                                    value={currentSort}
+                                    onChange={(e) => handleSortDirect(e.target.value, currentDirection)}
+                                    aria-label="เลือกฟิลด์สำหรับเรียงลำดับ"
+                                    className="text-xs font-medium border-gray-200 rounded-lg py-1 px-2.5 bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs"
+                                >
+                                    <option value="created_at">วันที่แจ้งล่าสุด (Default)</option>
+                                    <option value="ticket_no">รหัสใบงาน (Ticket ID)</option>
+                                    <option value="priority">ระดับความเร่งด่วน (Priority)</option>
+                                    <option value="status">สถานะงาน (Status)</option>
+                                    <option value="title">หัวข้อปัญหา (Title)</option>
+                                    <option value="escalated_to_team">ทีมที่รับผิดชอบ (Team)</option>
+                                </select>
+                                <button
+                                    type="button"
+                                    onClick={() => handleSortDirect(currentSort, currentDirection === 'asc' ? 'desc' : 'asc')}
+                                    title={currentDirection === 'asc' ? 'เรียงจากน้อยไปมาก (เก่า-ใหม่, A-Z)' : 'เรียงจากมากไปน้อย (ใหม่-เก่า, Z-A)'}
+                                    aria-label="สลับทิศทางการเรียงลำดับ"
+                                    className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 focus:ring-1 focus:ring-indigo-500 transition-colors shadow-2xs"
+                                >
+                                    {currentDirection === 'asc' ? (
+                                        <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+
                         {/* Mobile Card View */}
                         <div className="md:hidden space-y-4 p-4">
                             {cases.data && cases.data.length > 0 ? (
@@ -1379,21 +1461,46 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50/70">
                                     <tr>
-                                        <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                            Ticket No
-                                        </th>
-                                        <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                            ข้อมูลผู้แจ้ง & ปัญหา
-                                        </th>
-                                        <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                            ความเร่งด่วน
-                                        </th>
-                                        <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                            ทีมที่รับผิดชอบ
-                                        </th>
-                                        <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                            สถานะ
-                                        </th>
+                                        <SortableHeader
+                                            field="ticket_no"
+                                            currentSort={currentSort}
+                                            currentDirection={currentDirection}
+                                            onSort={handleSort}
+                                            label="Ticket No"
+                                            subLabel="รหัสใบงาน"
+                                        />
+                                        <SortableHeader
+                                            field="title"
+                                            currentSort={currentSort}
+                                            currentDirection={currentDirection}
+                                            onSort={handleSort}
+                                            label="ข้อมูลผู้แจ้ง & ปัญหา"
+                                            subLabel="Requester & Issue"
+                                        />
+                                        <SortableHeader
+                                            field="priority"
+                                            currentSort={currentSort}
+                                            currentDirection={currentDirection}
+                                            onSort={handleSort}
+                                            label="ความเร่งด่วน"
+                                            subLabel="Priority"
+                                        />
+                                        <SortableHeader
+                                            field="escalated_to_team"
+                                            currentSort={currentSort}
+                                            currentDirection={currentDirection}
+                                            onSort={handleSort}
+                                            label="ทีมที่รับผิดชอบ"
+                                            subLabel="Assigned Team"
+                                        />
+                                        <SortableHeader
+                                            field="status"
+                                            currentSort={currentSort}
+                                            currentDirection={currentDirection}
+                                            onSort={handleSort}
+                                            label="สถานะ"
+                                            subLabel="Status & SLA"
+                                        />
                                         <th scope="col" className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                             จัดการ
                                         </th>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import SortableHeader from '@/Components/SortableHeader';
 
 export default function Index({ users, filters = {} }) {
     const { flash, auth } = usePage().props;
@@ -32,6 +33,32 @@ export default function Index({ users, filters = {} }) {
         return roleMap[role] || role;
     };
 
+    const currentSort = filters.sort || 'created_at';
+    const currentDirection = filters.direction || 'desc';
+
+    const handleSort = (field) => {
+        let nextDirection = 'asc';
+        if (currentSort === field) {
+            nextDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            nextDirection = field === 'created_at' ? 'desc' : 'asc';
+        }
+        handleSortDirect(field, nextDirection);
+    };
+
+    const handleSortDirect = (field, direction) => {
+        router.get(
+            route('users.index'),
+            {
+                search: search || undefined,
+                status_filter: statusFilter !== '' ? statusFilter : undefined,
+                sort: field,
+                direction: direction,
+            },
+            { preserveState: true }
+        );
+    };
+
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         router.get(
@@ -39,24 +66,8 @@ export default function Index({ users, filters = {} }) {
             {
                 search: search || undefined,
                 status_filter: statusFilter !== '' ? statusFilter : undefined,
-                sort: filters.sort || undefined,
-                direction: filters.direction || undefined,
-            },
-            { preserveState: true }
-        );
-    };
-
-    const handleSort = (field) => {
-        const currentSort = filters.sort || 'created_at';
-        const currentDirection = filters.direction || 'desc';
-        const newDirection = currentSort === field && currentDirection === 'asc' ? 'desc' : 'asc';
-
-        router.get(
-            route('users.index'),
-            {
-                ...filters,
-                sort: field,
-                direction: newDirection,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
             },
             { preserveState: true }
         );
@@ -70,25 +81,6 @@ export default function Index({ users, filters = {} }) {
 
     const handleImpersonate = (userId) => {
         router.post(route('impersonate', userId));
-    };
-
-    const renderSortIcon = (field) => {
-        if (filters.sort !== field) {
-            return (
-                <svg className="w-3 h-3 text-gray-400 opacity-60 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                </svg>
-            );
-        }
-        return filters.direction === 'asc' ? (
-            <svg className="w-3 h-3 text-indigo-600 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
-            </svg>
-        ) : (
-            <svg className="w-3 h-3 text-indigo-600 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
-        );
     };
 
     return (
@@ -163,6 +155,46 @@ export default function Index({ users, filters = {} }) {
                                     ค้นหา
                                 </button>
                             </form>
+
+                            {/* Mobile Sort Bar */}
+                            <div className="md:hidden flex items-center justify-between gap-2 px-4 py-2.5 mb-3 rounded-xl border border-gray-100 bg-gray-50/80">
+                                <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+                                    <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                                    </svg>
+                                    <span>เรียงตาม:</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <select
+                                        value={currentSort}
+                                        onChange={(e) => handleSortDirect(e.target.value, currentDirection)}
+                                        aria-label="เลือกฟิลด์สำหรับเรียงลำดับ"
+                                        className="text-xs font-medium border-gray-200 rounded-lg py-1 px-2.5 bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs"
+                                    >
+                                        <option value="created_at">วันที่สร้าง (Default)</option>
+                                        <option value="name">ชื่อผู้ใช้งาน (Name)</option>
+                                        <option value="role">ตำแหน่ง / บทบาท (Role)</option>
+                                        <option value="is_active">สถานะการใช้งาน (Status)</option>
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSortDirect(currentSort, currentDirection === 'asc' ? 'desc' : 'asc')}
+                                        title={currentDirection === 'asc' ? 'เรียงจากน้อยไปมาก (A-Z)' : 'เรียงจากมากไปน้อย (Z-A)'}
+                                        aria-label="สลับทิศทางการเรียงลำดับ"
+                                        className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 focus:ring-1 focus:ring-indigo-500 transition-colors shadow-2xs"
+                                    >
+                                        {currentDirection === 'asc' ? (
+                                            <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+                                            </svg>
+                                        ) : (
+                                            <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
 
                             {/* Mobile Card View */}
                             <div className="md:hidden space-y-4 mb-4">
@@ -255,25 +287,31 @@ export default function Index({ users, filters = {} }) {
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
                                         <tr>
-                                            <th
-                                                onClick={() => handleSort('name')}
-                                                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                            >
-                                                ผู้ใช้งาน {renderSortIcon('name')}
-                                            </th>
-                                            <th
-                                                onClick={() => handleSort('role')}
-                                                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                            >
-                                                ตำแหน่ง (Role) {renderSortIcon('role')}
-                                            </th>
-                                            <th
-                                                onClick={() => handleSort('is_active')}
-                                                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                            >
-                                                สถานะ {renderSortIcon('is_active')}
-                                            </th>
-                                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <SortableHeader
+                                                field="name"
+                                                currentSort={currentSort}
+                                                currentDirection={currentDirection}
+                                                onSort={handleSort}
+                                                label="ผู้ใช้งาน"
+                                                subLabel="NAME & EMAIL"
+                                            />
+                                            <SortableHeader
+                                                field="role"
+                                                currentSort={currentSort}
+                                                currentDirection={currentDirection}
+                                                onSort={handleSort}
+                                                label="ตำแหน่ง (Role)"
+                                                subLabel="USER ROLE"
+                                            />
+                                            <SortableHeader
+                                                field="is_active"
+                                                currentSort={currentSort}
+                                                currentDirection={currentDirection}
+                                                onSort={handleSort}
+                                                label="สถานะ"
+                                                subLabel="STATUS"
+                                            />
+                                            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
                                                 จัดการ
                                             </th>
                                         </tr>

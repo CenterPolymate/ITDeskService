@@ -138,8 +138,44 @@ class DashboardController extends Controller
                 });
             }
 
+            $sortField = $request->input('sort', 'created_at');
+            $sortDirection = strtolower($request->input('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+            $allowedSorts = ['ticket_no', 'title', 'category', 'status', 'created_at'];
+            if (! in_array($sortField, $allowedSorts, true)) {
+                $sortField = 'created_at';
+            }
+
+            if ($sortField === 'status') {
+                $orderStatus = "CASE status 
+                    WHEN 'pending' THEN 1 
+                    WHEN 'assigned' THEN 2 
+                    WHEN 'analyzing' THEN 3 
+                    WHEN 'in_progress' THEN 4 
+                    WHEN 'resolved' THEN 5 
+                    WHEN 'approved' THEN 6 
+                    WHEN 'closed' THEN 7 
+                    WHEN 'cancelled' THEN 8 
+                    ELSE 9 END";
+                $query->orderByRaw($sortDirection === 'asc' ? $orderStatus : "CASE status 
+                    WHEN 'cancelled' THEN 1 
+                    WHEN 'closed' THEN 2 
+                    WHEN 'approved' THEN 3 
+                    WHEN 'resolved' THEN 4 
+                    WHEN 'in_progress' THEN 5 
+                    WHEN 'analyzing' THEN 6 
+                    WHEN 'assigned' THEN 7 
+                    WHEN 'pending' THEN 8 
+                    ELSE 9 END");
+            } else {
+                $query->orderBy($sortField, $sortDirection);
+            }
+            if ($sortField !== 'id') {
+                $query->orderBy('id', 'desc');
+            }
+
             // ดึงเฉพาะเคสของ User คนนั้นๆ
-            $cases = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+            $cases = $query->paginate(10)->withQueryString();
 
             // ดึงเคสที่กำลังดำเนินการล่าสุดสำหรับ Spotlight (ไม่รวมข้อมูลช่างตามความต้องการ)
             $activeTickets = (clone $baseQuery)
@@ -162,6 +198,8 @@ class DashboardController extends Controller
                 'filters' => [
                     'status' => $request->input('status', 'all'),
                     'search' => $request->input('search', ''),
+                    'sort' => $sortField,
+                    'direction' => $sortDirection,
                 ],
             ]);
         }
@@ -364,7 +402,32 @@ class DashboardController extends Controller
         $query = clone $baseQuery;
         $query->filter($request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive', 'technician_id', 'tier2_tab', 'manager_tab']));
 
-        $cases = $query->orderBy('created_at', 'desc')->paginate(10);
+        $sortField = $request->input('sort', 'created_at');
+        $sortDirection = strtolower($request->input('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $allowedSorts = ['ticket_no', 'title', 'requester_name', 'priority', 'escalated_to_team', 'status', 'created_at', 'sla_due_at'];
+        if (! in_array($sortField, $allowedSorts, true)) {
+            $sortField = 'created_at';
+        }
+
+        if ($sortField === 'priority') {
+            $query->orderByRaw($sortDirection === 'desc'
+                ? "CASE priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END"
+                : "CASE priority WHEN 'low' THEN 1 WHEN 'medium' THEN 2 WHEN 'high' THEN 3 WHEN 'urgent' THEN 4 ELSE 5 END"
+            );
+        } elseif ($sortField === 'status') {
+            $query->orderByRaw($sortDirection === 'asc'
+                ? "CASE status WHEN 'pending' THEN 1 WHEN 'assigned' THEN 2 WHEN 'analyzing' THEN 3 WHEN 'in_progress' THEN 4 WHEN 'resolved' THEN 5 WHEN 'approved' THEN 6 WHEN 'closed' THEN 7 WHEN 'cancelled' THEN 8 ELSE 9 END"
+                : "CASE status WHEN 'cancelled' THEN 1 WHEN 'closed' THEN 2 WHEN 'approved' THEN 3 WHEN 'resolved' THEN 4 WHEN 'in_progress' THEN 5 WHEN 'analyzing' THEN 6 WHEN 'assigned' THEN 7 WHEN 'pending' THEN 8 ELSE 9 END"
+            );
+        } else {
+            $query->orderBy($sortField, $sortDirection);
+        }
+        if ($sortField !== 'id') {
+            $query->orderBy('id', 'desc');
+        }
+
+        $cases = $query->paginate(10)->withQueryString();
 
         // คำนวณเปอร์เซ็นต์สำหรับ Pipeline แยกตามขั้นตอน (อิงจากงานค้างที่เปิดอยู่ open_total)
         $openTotal = $stats['open_total'];
@@ -394,7 +457,10 @@ class DashboardController extends Controller
             'stats' => $stats,
             'teams' => Team::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']),
             'technician_workload' => $technicianWorkload,
-            'filters' => $request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive', 'technician_id', 'tier2_tab', 'manager_tab', 'view']),
+            'filters' => array_merge(
+                $request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive', 'technician_id', 'tier2_tab', 'manager_tab', 'view']),
+                ['sort' => $sortField, 'direction' => $sortDirection]
+            ),
         ]);
     }
 }
