@@ -29,7 +29,7 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
     };
 
     const handleDelete = (team) => {
-        if (!confirm(`ยืนยันการลบทีม "${team.name}" (${team.code})? การลบนี้จะยกเลิกการสังกัดทีมของช่างทุกคนในทีมนี้`)) {
+        if (!confirm(`ยืนยันการลบทีม "${team.name}" (${team.code})? การลบนี้จะยกเลิกการสังกัดทีมของสมาชิกทุกคนในทีมนี้`)) {
             return;
         }
         router.delete(route('teams.destroy', team.id));
@@ -55,7 +55,7 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
                                         จัดการทีมงานและสายการบังคับบัญชา (Teams & Hierarchy)
                                     </h1>
                                     <p className="text-sm text-gray-500 mt-0.5">
-                                        กำหนดโครงสร้างทีม ระบุหัวหน้าทีม (Manager) และจัดการช่างผู้ปฏิบัติงานในแต่ละทีมแบบไดนามิก
+                                        กำหนดโครงสร้างทีม ระบุหัวหน้าทีม (Manager) และจัดการสมาชิกผู้ปฏิบัติงานในแต่ละทีมแบบไดนามิก
                                     </p>
                                 </div>
                             </div>
@@ -110,7 +110,7 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
                         </div>
 
                         <div className="bg-white p-4 rounded-2xl border border-blue-200/80 shadow-xs">
-                            <span className="text-xs font-semibold text-blue-600">ช่างเทคนิคทั้งหมด</span>
+                            <span className="text-xs font-semibold text-blue-600">สมาชิกในทีมทั้งหมด</span>
                             <div className="mt-1 flex items-baseline gap-2">
                                 <span className="text-2xl font-black text-blue-700">{stats.total_members || 0}</span>
                                 <span className="text-xs text-blue-600">คน</span>
@@ -202,7 +202,7 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
                                 <p className="text-sm text-gray-500 max-w-sm mx-auto">
                                     {search || statusFilter !== 'all'
                                         ? 'ไม่พบทีมที่ตรงกับเงื่อนไขการค้นหา ลองปรับตัวกรองใหม่'
-                                        : 'ยังไม่มีทีมในระบบ เริ่มต้นสร้างทีมแรกเพื่อจัดกลุ่มช่างและกำหนดหัวหน้างาน'}
+                                        : 'ยังไม่มีทีมในระบบ เริ่มต้นสร้างทีมแรกเพื่อจัดกลุ่มสมาชิกและกำหนดหัวหน้างาน'}
                                 </p>
                                 <Link
                                     href={route('teams.create')}
@@ -260,7 +260,7 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
 
                                             {/* Members summary */}
                                             <div className="flex items-center justify-between text-xs text-gray-600 pt-1">
-                                                <span>ช่างในสังกัด: <strong>{team.members?.length || 0} คน</strong></span>
+                                                <span>สมาชิกในทีม: <strong>{team.members?.length || 0} คน</strong></span>
                                                 <div className="flex items-center gap-2">
                                                     <Link
                                                         href={route('teams.edit', team.id)}
@@ -294,7 +294,7 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
                                                     หัวหน้าทีม (Manager)
                                                 </th>
                                                 <th scope="col" className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                    ช่างในสังกัด (Technicians)
+                                                    สมาชิกในทีม (Team Members)
                                                 </th>
                                                 <th scope="col" className="px-6 py-3.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                                     สถานะ
@@ -360,7 +360,7 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
                                                                 )}
                                                             </div>
                                                         ) : (
-                                                            <span className="text-xs text-gray-400">ยังไม่มีช่างในทีม</span>
+                                                            <span className="text-xs text-gray-400">ยังไม่มีสมาชิกในทีม</span>
                                                         )}
                                                     </td>
 

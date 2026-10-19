@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\Company;
+use App\Models\Team;
 use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -72,7 +73,40 @@ class AuditLogController extends Controller
 
         $targetCompanies = Company::whereIn('id', $targetCompanyIds)->get()->keyBy('id');
 
-        $logs->getCollection()->transform(function ($log) use ($targetUsers, $targetCompanies) {
+        // Eager-load target teams for team-related actions
+        $targetTeamIds = $logs->getCollection()
+            ->filter(function ($log) {
+                return str_contains($log->target_type, 'teams') && is_numeric($log->target_id);
+            })
+            ->pluck('target_id')
+            ->unique()
+            ->filter();
+
+        $targetTeams = Team::whereIn('id', $targetTeamIds)->get()->keyBy('id');
+
+        // Eager-load referenced users for member_ids or manager_id in changes/old_values
+        $referencedUserIds = collect();
+        foreach ($logs->getCollection() as $log) {
+            if (is_array($log->changes)) {
+                if (! empty($log->changes['member_ids']) && is_array($log->changes['member_ids'])) {
+                    $referencedUserIds = $referencedUserIds->merge($log->changes['member_ids']);
+                }
+                if (! empty($log->changes['manager_id']) && is_numeric($log->changes['manager_id'])) {
+                    $referencedUserIds->push((int) $log->changes['manager_id']);
+                }
+            }
+            if (is_array($log->old_values)) {
+                if (! empty($log->old_values['member_ids']) && is_array($log->old_values['member_ids'])) {
+                    $referencedUserIds = $referencedUserIds->merge($log->old_values['member_ids']);
+                }
+                if (! empty($log->old_values['manager_id']) && is_numeric($log->old_values['manager_id'])) {
+                    $referencedUserIds->push((int) $log->old_values['manager_id']);
+                }
+            }
+        }
+        $referencedUsers = User::whereIn('id', $referencedUserIds->unique()->filter())->get(['id', 'name', 'email', 'role'])->keyBy('id');
+
+        $logs->getCollection()->transform(function ($log) use ($targetUsers, $targetCompanies, $targetTeams, $referencedUsers) {
             $isUserTarget = str_contains($log->target_type, 'users')
                 || str_contains($log->target_type, 'impersonate')
                 || str_contains($log->action, 'impersonate')
@@ -126,6 +160,62 @@ class AuditLogController extends Controller
                 }
             }
 
+            $isTeamTarget = str_contains($log->target_type, 'teams');
+            if ($isTeamTarget && is_numeric($log->target_id)) {
+                $teamName = null;
+                $teamCode = null;
+                if (isset($targetTeams[$log->target_id])) {
+                    $teamName = $targetTeams[$log->target_id]->name;
+                    $teamCode = $targetTeams[$log->target_id]->code;
+                } elseif (is_array($log->changes) && ! empty($log->changes['name'])) {
+                    $teamName = $log->changes['name'];
+                    $teamCode = $log->changes['code'] ?? null;
+                }
+                if ($teamName) {
+                    $log->target_team_name = $teamName;
+                    $log->target_team_code = $teamCode;
+                }
+            }
+
+            // แปลงข้อมูลสมาชิกเดิม (member_ids) ให้อ่านเป็นชื่อ-นามสกุล พร้อมอีเมล
+            if (is_array($log->changes) && ! empty($log->changes['member_ids']) && is_array($log->changes['member_ids'])) {
+                $resolvedMembers = [];
+                foreach ($log->changes['member_ids'] as $mid) {
+                    if (isset($referencedUsers[$mid])) {
+                        $u = $referencedUsers[$mid];
+                        $resolvedMembers[] = [
+                            'id' => $u->id,
+                            'name' => $u->name,
+                            'email' => $u->email,
+                            'role' => $u->role,
+                        ];
+                    } else {
+                        $resolvedMembers[] = [
+                            'id' => $mid,
+                            'name' => "User #{$mid}",
+                            'email' => '',
+                            'role' => '',
+                        ];
+                    }
+                }
+                $log->legacy_members_resolved = $resolvedMembers;
+            }
+
+            if (is_array($log->changes) && ! empty($log->changes['manager_id']) && is_numeric($log->changes['manager_id'])) {
+                $mid = (int) $log->changes['manager_id'];
+                if (isset($referencedUsers[$mid])) {
+                    $u = $referencedUsers[$mid];
+                    $log->manager_name_resolved = "{$u->name} ({$u->email})";
+                }
+            }
+            if (is_array($log->old_values) && ! empty($log->old_values['manager_id']) && is_numeric($log->old_values['manager_id'])) {
+                $mid = (int) $log->old_values['manager_id'];
+                if (isset($referencedUsers[$mid])) {
+                    $u = $referencedUsers[$mid];
+                    $log->old_manager_name_resolved = "{$u->name} ({$u->email})";
+                }
+            }
+
             return $log;
         });
 
@@ -166,9 +256,14 @@ class AuditLogController extends Controller
                     'name' => 'ชื่อ',
                     'name_th' => 'ชื่อ (ไทย)',
                     'short_name' => 'ชื่อย่อ',
+                    'code' => 'รหัสทีม',
                     'is_active' => 'สถานะการใช้งาน',
                     'status' => 'สถานะ',
                     'description' => 'รายละเอียด',
+                    'manager_name' => 'หัวหน้าทีม',
+                    'manager_id' => 'หัวหน้าทีม',
+                    'member_ids' => 'สมาชิกในทีม',
+                    'team_members_delta' => 'การเปลี่ยนแปลงสมาชิกในทีม',
                     'email_domains' => 'โดเมนอีเมล',
                     'role' => 'ระดับสิทธิ์',
                     'company' => 'บริษัท',
@@ -228,6 +323,10 @@ class AuditLogController extends Controller
                         $comp = is_numeric($displayId) ? Company::find($displayId) : null;
                         $compName = $comp ? $comp->name : (is_array($log->changes) && isset($log->changes['name']) ? $log->changes['name'] : '');
                         $targetText = 'ข้อมูลบริษัท'.($compName ? " : $compName" : '');
+                    } elseif (str_contains($log->target_type, 'teams')) {
+                        $team = is_numeric($displayId) ? Team::find($displayId) : null;
+                        $teamName = $team ? $team->name : (is_array($log->changes) && isset($log->changes['name']) ? $log->changes['name'] : '');
+                        $targetText = 'ทีมงาน / สายงาน'.($teamName ? " : $teamName" : '');
                     } elseif (str_contains($log->target_type, 'users')) {
                         $u = is_numeric($displayId) ? User::find($displayId) : null;
                         $uName = $u ? $u->name : '';
@@ -277,6 +376,39 @@ class AuditLogController extends Controller
                         $ignoredKeys = ['id', 'created_at', 'updated_at', 'deleted_at', 'email_verified_at', 'remember_token', 'password'];
                         foreach ($log->changes as $key => $value) {
                             if (in_array($key, $ignoredKeys)) {
+                                continue;
+                            }
+
+                            if ($key === 'team_members_delta' && is_array($value)) {
+                                $deltaParts = [];
+                                if (! empty($value['added'])) {
+                                    $addedNames = array_map(fn ($m) => '+ '.$m['name'], $value['added']);
+                                    $deltaParts[] = 'เพิ่มสมาชิก: '.implode(', ', $addedNames);
+                                }
+                                if (! empty($value['removed'])) {
+                                    $removedNames = array_map(fn ($m) => '- '.$m['name'], $value['removed']);
+                                    $deltaParts[] = 'นำสมาชิกออก: '.implode(', ', $removedNames);
+                                }
+                                $changesText[] = '[สมาชิกในทีม]: '.implode(' | ', $deltaParts);
+                                continue;
+                            }
+
+                            if ($key === 'member_ids' && is_array($value)) {
+                                $memberUsers = User::whereIn('id', $value)->pluck('name')->toArray();
+                                $changesText[] = '[สมาชิกในทีม]: '.(! empty($memberUsers) ? implode(', ', $memberUsers) : json_encode($value));
+                                continue;
+                            }
+
+                            if ($key === 'manager_id') {
+                                $newMgr = is_numeric($value) ? User::find($value) : null;
+                                $valStr = $newMgr ? "{$newMgr->name} ({$newMgr->email})" : 'ไม่มีหัวหน้าทีม';
+                                if ($log->old_values && array_key_exists('manager_id', $log->old_values)) {
+                                    $oldMgr = is_numeric($log->old_values['manager_id']) ? User::find($log->old_values['manager_id']) : null;
+                                    $oldValStr = $oldMgr ? "{$oldMgr->name} ({$oldMgr->email})" : 'ไม่มีหัวหน้าทีม';
+                                    $changesText[] = "เปลี่ยน [หัวหน้าทีม] จาก '$oldValStr' เป็น '$valStr'";
+                                } else {
+                                    $changesText[] = "[หัวหน้าทีม]: $valStr";
+                                }
                                 continue;
                             }
 

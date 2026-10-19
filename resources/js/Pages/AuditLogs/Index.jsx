@@ -5,9 +5,14 @@ const KEY_MAP = {
     name: 'ชื่อ',
     name_th: 'ชื่อ (ไทย)',
     short_name: 'ชื่อย่อ',
+    code: 'รหัสทีม',
     is_active: 'สถานะการใช้งาน',
     status: 'สถานะ',
     description: 'รายละเอียด',
+    manager_name: 'หัวหน้าทีม',
+    manager_id: 'หัวหน้าทีม',
+    member_ids: 'สมาชิกในทีม',
+    team_members_delta: 'สมาชิกในทีม',
     email_domains: 'โดเมนอีเมล',
     role: 'ระดับสิทธิ์',
     company: 'บริษัท',
@@ -37,6 +42,7 @@ const ROLE_MAP = {
     team_hardware: 'ช่างฮาร์ดแวร์',
     team_network: 'ช่างระบบเครือข่าย',
     team_software: 'โปรแกรมเมอร์/ซอฟต์แวร์',
+    technician: 'เจ้าหน้าที่ทีมงาน (Tier 2 Team Member)',
     user: 'ผู้ใช้งานทั่วไป',
 };
 
@@ -73,15 +79,20 @@ function getActionBadge(action = '') {
     return { label: action, className: 'bg-gray-100 text-gray-800' };
 }
 
-function getTargetInfo(targetType = '', targetId = '', targetUser = null, targetCompanyName = null) {
+function getTargetInfo(targetType = '', targetId = '', targetUser = null, targetCompanyName = null, targetTeamName = null) {
     let text = targetType.split('\\').pop() || targetType;
     let isUser = false;
     let isCompany = false;
+    let isTeam = false;
 
     if (targetType.includes('categories')) text = 'หมวดหมู่ปัญหา';
     else if (targetType.includes('companies')) {
         text = 'ข้อมูลบริษัท';
         isCompany = true;
+    }
+    else if (targetType.includes('teams')) {
+        text = 'ทีมงาน / สายงาน';
+        isTeam = true;
     }
     else if (targetType.includes('users')) {
         text = 'ผู้ใช้งาน';
@@ -114,6 +125,7 @@ function getTargetInfo(targetType = '', targetId = '', targetUser = null, target
         displayId,
         targetUser: isUser ? targetUser : null,
         targetCompanyName: isCompany ? targetCompanyName : null,
+        targetTeamName: isTeam ? targetTeamName : null,
     };
 }
 
@@ -211,6 +223,120 @@ function LogChangesDisplay({ log }) {
             <div className="space-y-2">
                 {keys.map((key) => {
                     const keyLabel = KEY_MAP[key] || key;
+
+                    // 1. Team Members Delta (SOC 2 / ISO 27001 Standard)
+                    if (key === 'team_members_delta' && typeof log.changes[key] === 'object' && log.changes[key] !== null) {
+                        const delta = log.changes[key];
+                        const hasAdded = Array.isArray(delta.added) && delta.added.length > 0;
+                        const hasRemoved = Array.isArray(delta.removed) && delta.removed.length > 0;
+
+                        if (!hasAdded && !hasRemoved) return null;
+
+                        return (
+                            <div key={key} className="text-xs border-b border-gray-100 last:border-0 pb-2 last:pb-0">
+                                <div className="font-bold text-blue-700 mb-1 flex items-center gap-1.5">
+                                    <svg className="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    สมาชิกในทีม:
+                                </div>
+                                <div className="space-y-1.5 pl-2 border-l-2 border-indigo-200">
+                                    {hasAdded && (
+                                        <div>
+                                            <div className="text-[10px] font-bold text-emerald-700 uppercase flex items-center gap-1 mb-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block shrink-0"></span>
+                                                เพิ่มสมาชิกเข้าทีม (+):
+                                            </div>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {delta.added.map((m) => (
+                                                    <span key={m.id} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-800 ring-1 ring-emerald-600/20">
+                                                        <span className="font-semibold">{m.name}</span>
+                                                        {m.email && <span className="text-emerald-600/70 font-mono text-[10px]">({m.email})</span>}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {hasRemoved && (
+                                        <div>
+                                            <div className="text-[10px] font-bold text-rose-700 uppercase flex items-center gap-1 mb-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block shrink-0"></span>
+                                                นำสมาชิกออกจากทีม (-):
+                                            </div>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {delta.removed.map((m) => (
+                                                    <span key={m.id} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-800 ring-1 ring-rose-600/20">
+                                                        <span className="font-semibold">{m.name}</span>
+                                                        {m.email && <span className="text-rose-600/70 font-mono text-[10px]">({m.email})</span>}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    }
+
+                    // 2. Legacy / Fallback member_ids formatting
+                    if (key === 'member_ids') {
+                        const resolvedList = log.legacy_members_resolved || [];
+                        return (
+                            <div key={key} className="text-xs border-b border-gray-100 last:border-0 pb-2 last:pb-0">
+                                <div className="font-bold text-blue-700 mb-1 flex items-center gap-1.5">
+                                    <svg className="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    สมาชิกในทีม:
+                                </div>
+                                {resolvedList.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1.5 pl-2 border-l-2 border-blue-200">
+                                        {resolvedList.map((m) => (
+                                            <span key={m.id} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-800 ring-1 ring-blue-600/20">
+                                                <span className="font-semibold">{m.name}</span>
+                                                {m.email && <span className="text-blue-600/70 font-mono text-[10px]">({m.email})</span>}
+                                            </span>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="pl-2 border-l-2 border-gray-200 text-gray-600 font-mono">{formatValue(log.changes[key], key)}</div>
+                                )}
+                            </div>
+                        );
+                    }
+
+                    // 3. Manager ID (Legacy / Resolved)
+                    if (key === 'manager_id') {
+                        const displayNew = log.manager_name_resolved || formatValue(log.changes[key], key);
+                        const hasOld = log.old_values && Object.prototype.hasOwnProperty.call(log.old_values, key);
+                        const displayOld = log.old_manager_name_resolved || (hasOld ? formatValue(log.old_values[key], key) : null);
+
+                        if (hasOld) {
+                            return (
+                                <div key={key} className="text-xs border-b border-gray-100 last:border-0 pb-1.5 last:pb-0">
+                                    <div className="font-bold text-blue-700 mb-0.5">หัวหน้าทีม:</div>
+                                    <div className="pl-2 border-l-2 border-gray-200 space-y-0.5">
+                                        <div>
+                                            <span className="text-gray-400 uppercase text-[10px]">เดิม: </span>
+                                            <span className="text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded font-medium break-all">{displayOld}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-400 uppercase text-[10px]">ใหม่: </span>
+                                            <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-medium break-all">{displayNew}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <div key={key} className="text-xs border-b border-gray-100 last:border-0 pb-1 last:pb-0">
+                                <span className="font-semibold text-gray-700">หัวหน้าทีม: </span>
+                                <span className="text-gray-800 font-medium break-all">{displayNew}</span>
+                            </div>
+                        );
+                    }
+
                     const newVal = formatValue(log.changes[key], key);
                     const hasOld = log.old_values && Object.prototype.hasOwnProperty.call(log.old_values, key);
                     const oldVal = hasOld ? formatValue(log.old_values[key], key) : null;
@@ -405,7 +531,7 @@ export default function Index({ logs, users = [], filters = {} }) {
                                 <div className="md:hidden divide-y divide-gray-100">
                                     {logs.data.map((log) => {
                                         const badge = getActionBadge(log.action);
-                                        const target = getTargetInfo(log.target_type, log.target_id, log.target_user, log.target_company_name);
+                                        const target = getTargetInfo(log.target_type, log.target_id, log.target_user, log.target_company_name, log.target_team_name);
                                         const createdDate = new Date(log.created_at);
                                         const dateStr = createdDate.toLocaleDateString('th-TH', {
                                             day: 'numeric',
@@ -451,6 +577,10 @@ export default function Index({ logs, users = [], filters = {} }) {
                                                             <span className="text-indigo-600 font-medium ml-1">
                                                                 : {target.targetCompanyName} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId}</span>
                                                             </span>
+                                                        ) : target.targetTeamName ? (
+                                                            <span className="text-indigo-600 font-medium ml-1">
+                                                                : {target.targetTeamName} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId}</span>
+                                                            </span>
                                                         ) : target.displayId ? (
                                                             <span className="text-gray-400 font-mono"> #{target.displayId}</span>
                                                         ) : null}
@@ -483,7 +613,7 @@ export default function Index({ logs, users = [], filters = {} }) {
                                         <tbody className="bg-white divide-y divide-gray-100 text-sm">
                                             {logs.data.map((log) => {
                                                 const badge = getActionBadge(log.action);
-                                                const target = getTargetInfo(log.target_type, log.target_id, log.target_user, log.target_company_name);
+                                                const target = getTargetInfo(log.target_type, log.target_id, log.target_user, log.target_company_name, log.target_team_name);
                                                 const createdDate = new Date(log.created_at);
                                                 const dateStr = createdDate.toLocaleDateString('th-TH', {
                                                     day: 'numeric',
@@ -525,6 +655,10 @@ export default function Index({ logs, users = [], filters = {} }) {
                                                             ) : target.targetCompanyName ? (
                                                                 <span className="text-indigo-600 font-medium text-xs ml-1">
                                                                     : {target.targetCompanyName} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId}</span>
+                                                                </span>
+                                                            ) : target.targetTeamName ? (
+                                                                <span className="text-indigo-600 font-medium text-xs ml-1">
+                                                                    : {target.targetTeamName} <span className="text-gray-400 font-mono text-[11px]">#{target.displayId}</span>
                                                                 </span>
                                                             ) : target.displayId ? (
                                                                 <span className="text-gray-400 font-mono text-xs ml-1">#{target.displayId}</span>

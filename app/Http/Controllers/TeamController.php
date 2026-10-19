@@ -120,6 +120,10 @@ class TeamController extends Controller
             $team->members()->sync($validated['member_ids']);
         }
 
+        $request->attributes->set('created_team_id', $team->id);
+        $request->attributes->set('created_team_name', $team->name);
+        $request->attributes->set('created_team', $team);
+
         return redirect()->route('teams.index')->with('success', "สร้างทีม \"{$team->name}\" เรียบร้อยแล้ว");
     }
 

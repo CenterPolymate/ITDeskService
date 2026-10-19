@@ -16,9 +16,11 @@ export default function Edit({ team, managers = [], technicians = [], currentMem
     });
 
     const handleMemberToggle = (id) => {
-        setData('member_ids', (prev) =>
-            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-        );
+        const currentMembers = Array.isArray(data.member_ids) ? data.member_ids : [];
+        const nextMembers = currentMembers.includes(id)
+            ? currentMembers.filter((item) => item !== id)
+            : [...currentMembers, id];
+        setData('member_ids', nextMembers);
     };
 
     const handleSubmit = (e) => {
@@ -27,7 +29,7 @@ export default function Edit({ team, managers = [], technicians = [], currentMem
     };
 
     const handleDelete = () => {
-        if (!confirm(`ยืนยันการลบทีม "${team.name}" (${team.code})? การลบนี้จะยกเลิกการสังกัดทีมของช่างทุกคนในทีมนี้`)) {
+        if (!confirm(`ยืนยันการลบทีม "${team.name}" (${team.code})? การลบนี้จะยกเลิกการสังกัดทีมของสมาชิกทุกคนในทีมนี้`)) {
             return;
         }
         router.delete(route('teams.destroy', team.id));
@@ -56,7 +58,7 @@ export default function Edit({ team, managers = [], technicians = [], currentMem
                                 </h1>
                             </div>
                             <p className="text-sm text-gray-500 mt-1 ml-9">
-                                ปรับปรุงข้อมูลทีม เปลี่ยนหัวหน้างาน หรือจัดสรรช่างผู้รับผิดชอบใหม่
+                                ปรับปรุงข้อมูลทีม เปลี่ยนหัวหน้างาน หรือจัดสรรสมาชิกผู้รับผิดชอบใหม่
                             </p>
                         </div>
 
@@ -146,20 +148,21 @@ export default function Edit({ team, managers = [], technicians = [], currentMem
                             {/* Technicians / Members */}
                             <div>
                                 <div className="flex items-center justify-between mb-2">
-                                    <InputLabel value="ช่าง / เจ้าหน้าที่ผู้รับผิดชอบในทีม (Technicians)" />
+                                    <InputLabel value="สมาชิกในทีมผู้รับผิดชอบ (Team Members)" />
                                     <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
-                                        เลือกแล้ว {data.member_ids.length} คน
+                                        เลือกแล้ว {(Array.isArray(data.member_ids) ? data.member_ids : []).length} คน
                                     </span>
                                 </div>
 
                                 {technicians.length === 0 ? (
                                     <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-xs text-gray-500 text-center">
-                                        ยังไม่มีรายชื่อช่างในระบบ
+                                        ยังไม่มีรายชื่อสมาชิกในระบบ
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto p-2 bg-gray-50/60 rounded-xl border border-gray-200">
                                         {technicians.map((tech) => {
-                                            const isSelected = data.member_ids.includes(tech.id);
+                                            const memberIds = Array.isArray(data.member_ids) ? data.member_ids : [];
+                                            const isSelected = memberIds.includes(tech.id);
                                             return (
                                                 <label
                                                     key={tech.id}
