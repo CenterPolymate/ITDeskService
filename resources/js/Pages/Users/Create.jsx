@@ -139,6 +139,7 @@ export default function Create({ companies = [] }) {
                                         required
                                     >
                                         <option value="helpdesk">Helpdesk (Tier 1)</option>
+                                        <option value="technician">ช่างเทคนิค (Tier 2 Technician - ระบุทีมได้อิสระ)</option>
                                         <option value="team_hardware">Team Hardware (Tier 2)</option>
                                         <option value="team_network">Team Network (Tier 2)</option>
                                         <option value="team_software">Team Software (Tier 2)</option>

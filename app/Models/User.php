@@ -56,6 +56,32 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check if user is a technician / Tier 2 specialist.
+     */
+    public function isTechnician(): bool
+    {
+        return in_array($this->role, ['technician', 'team_hardware', 'team_network', 'team_software'], true);
+    }
+
+    /**
+     * Teams supervised by this user as a Manager.
+     */
+    public function managedTeams(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Team::class, 'manager_id');
+    }
+
+    /**
+     * Teams this user belongs to as a member/technician.
+     */
+    public function teams(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'team_user')
+            ->withPivot('role_in_team')
+            ->withTimestamps();
+    }
+
+    /**
      * Check if user has any historical records (cases, comments, audit logs).
      * Used to determine if the user can be safely hard-deleted.
      */

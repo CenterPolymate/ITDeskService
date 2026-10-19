@@ -145,7 +145,7 @@ class NormalUserController extends Controller
             'company' => ['required', 'string', 'exists:companies,name'],
             'department' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'role' => ['required', 'string', Rule::in(['user', 'helpdesk', 'team_hardware', 'team_network', 'team_software', 'manager', 'manager_software', 'manager_network_hardware', 'administrator'])],
+            'role' => ['required', 'string', Rule::in(['user', 'helpdesk', 'technician', 'team_hardware', 'team_network', 'team_software', 'manager', 'manager_software', 'manager_network_hardware', 'administrator'])],
         ];
 
         if ($request->filled('password')) {

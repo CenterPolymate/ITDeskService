@@ -23,6 +23,7 @@ export default function Index({ users, filters = {} }) {
             manager_software: 'Software Manager (Tier 3)',
             manager_network_hardware: 'Network & Hardware Manager (Tier 3)',
             helpdesk: 'Helpdesk (Tier 1)',
+            technician: 'ช่างเทคนิค (Tier 2 Technician)',
             team_hardware: 'Team Hardware (Tier 2)',
             team_network: 'Team Network (Tier 2)',
             team_software: 'Team Software (Tier 2)',

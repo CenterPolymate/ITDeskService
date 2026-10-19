@@ -319,3 +319,48 @@
   - [x] เมนู "ตั้งค่าระบบ" บน Navbar เปิดให้ Manager เข้าถึงเมนูข้างต้นได้ โดยคงการตั้งค่า SMTP/LINE และการสำรองข้อมูล (Backup) ให้เฉพาะ Administrator เท่านั้น
   - [x] อนุญาตให้ Manager และ Administrator สามารถส่งต่องานหรือเปลี่ยนช่างผู้รับผิดชอบ (Re-assign/Re-escalate) ได้ในทุกสถานะงานที่ยังไม่ปิด
 
+## Phase 13: In-App Notifications, Visual Highlighting & Permission Refinement (✅ ดำเนินการแล้วเสร็จ)
+- [x] **การจำกัดสิทธิ์หน้าจัดการผู้ใช้งานทั่วไป (Normal Users Access Control):**
+  - [x] จำกัดสิทธิ์ปุ่ม Import CSV, Export CSV และ ปุ่มเพิ่มผู้ใช้งาน ในหน้าจัดการผู้ใช้งานทั่วไป ให้เฉพาะ Role `administrator` เพียงบทบาทเดียวเท่านั้น
+  - [x] ปรับเมนูนำทางของ Helpdesk (Tier 1) ให้มีเมนู "ผู้ใช้งานทั่วไป" เป็นเมนูหลักแยกอิสระเหมือน Role Administrator
+  - [x] จำกัดสิทธิ์หน้าจัดการผู้ใช้งานทั่วไปสำหรับ Role Tier 1 (Helpdesk) และ Tier 3 (Manager) ไม่ให้แก้ไขข้อมูลผู้ใช้ได้ ให้ทำได้เฉพาะ "ส่งลิงก์รีเซ็ตรหัสผ่าน" และ "ลบ/ระงับบัญชี" เท่านั้น
+- [x] **ระบบแจ้งเตือนป๊อปอัปบนหน้าเว็บ (In-App Floating Toast Notifications):**
+  - [x] สร้างคอมโพเนนต์ `InAppToastContainer.jsx` ติดตั้งไว้ในระดับ Global App (`app.jsx`)
+  - [x] แสดงป๊อปอัปแจ้งเตือนมุมบนขวาเมื่อมีเสียงเตือนดังขึ้น โดยไม่ขึ้นกับสิทธิ์ Web Notification ของบราวเซอร์
+  - [x] แสดงเลขที่ใบงาน (`#IT-YYYYMM-XXXX`), หัวข้อปัญหา, ผู้แจ้ง/แผนก, และป้ายระบุประเภทเหตุการณ์ (🚨 ด่วนที่สุด, เคสใหม่, 💬 แชทใหม่, 🎉 ส่งมอบงาน)
+  - [x] มีปุ่มทางลัด **[เปิดดูเคสนี้ →]** บนการ์ดแจ้งเตือนเพื่อเปิดหน้าเคสนั้นได้ทันที
+  - [x] มีแถบเวลานับถอยหลัง (Countdown Progress Bar) 8 วินาที พร้อมระบบหยุดเวลาชั่วคราวเมื่อนำเมาส์ไปชี้ (Hover Pause)
+- [x] **ระบบไฮไลต์เรืองแสงบนรายการเคส (Visual Ticket Highlighting):**
+  - [x] เมื่อมีเคสใหม่เข้ามา หรือเคสมีการเปลี่ยนสถานะ แถวในตาราง (Desktop Table) หรือ การ์ด (Mobile Cards) จะเรืองแสงสีส้ม (Amber Ring/Border) พร้อมติดป้ายกะพริบ `NEW / เพิ่งเข้ามา` (สำหรับเจ้าหน้าที่) หรือ `UPDATE / อัปเดตล่าสุด` (สำหรับผู้แจ้ง) เป็นเวลา 30 วินาที ทั้งใน `ItStaffDashboard.jsx` และ `UserDashboard.jsx`
+
+## Phase 14: Commercial Readiness & Dynamic Organizational Structure (📋 แผนงานระยะถัดไป)
+> [!NOTE]
+> **นโยบาย SLA:** ระบบการนับเวลา การคำนวณระยะเวลา และการแจ้งเตือน SLA ให้คงเดิมตามระบบปัจจุบัน (4 ชั่วโมง / ทบเวลาทำการ 8x5 / แจ้งเตือนล่วงหน้า) โดยไม่มีการปรับเปลี่ยน
+
+- [x] **Sprint 14.1: Dynamic Teams & Subordination Management (ระบบทีมและสายการบังคับบัญชาแบบไดนามิก):**
+  - [x] สร้าง Database Migration ตาราง `teams`: `id`, `name`, `code`, `description`, `manager_id` (foreign key ชี้ไปที่ `users.id`), `is_active`, `timestamps`
+  - [x] สร้าง Database Migration Pivot Table `team_user`: `id`, `team_id`, `user_id`, `role_in_team` (enum: `lead`, `member`), `timestamps`
+  - [x] พัฒนาระบบ CRUD "จัดการทีมงานและสายการบังคับบัญชา" (Team Management) ในฝั่ง Administrator: สามารถสร้างทีม, กำหนดหรือเปลี่ยนหัวหน้าทีม (`manager_id`), และเพิ่ม/ลดช่างผู้รับผิดชอบในทีมได้อิสระผ่านหน้าเว็บ
+  - [x] กำหนด Core Roles มาตรฐาน 5 ระดับสำหรับผลิตภัณฑ์:
+    - `administrator`: ผู้ดูแลระบบสูงสุด
+    - `manager`: หัวหน้างาน / ผู้จัดการ (ระบบจะระบุทีมที่ดูแลจากความสัมพันธ์ `teams.manager_id`)
+    - `technician`: ช่างเฉพาะทาง / เจ้าหน้าที่ผู้ปฏิบัติงาน Tier 2 (สังกัดทีมผ่าน `team_user`)
+    - `helpdesk`: เจ้าหน้าที่รับเรื่อง / คัดกรองงาน Tier 1
+    - `user`: ผู้ใช้งาน / ผู้แจ้งปัญหาทั่วไป
+- [ ] **Sprint 14.2: Controller & Policy Refactoring (ยกเลิกการ Hardcode บทบาทและสายบังคับบัญชา):**
+  - [ ] ปรับปรุง `DashboardController`, `TicketController`, และ `TicketPolicy` ให้ตรวจสอบสิทธิ์และดึงข้อมูลลูกน้องผ่านความสัมพันธ์ในฐานข้อมูล (`$user->managedTeams` และ `$user->teams`) แทนการใช้ `match ($user->role)` หรือเงื่อนไข `manager_software`, `team_software` แบบเดิม
+  - [ ] ปรับปรุง Widget "ภาระงานของทีมช่าง (Technician Workload Tracking)" ในแดชบอร์ด ให้ดึงข้อมูลช่างตามทีมที่ Manager คนนั้นเป็นผู้ดูแลจริงจากฐานข้อมูล
+  - [ ] ปรับหน้า Triage ให้ Dropdown รายชื่อทีมที่ส่งต่อ ดึงข้อมูลมาจากตาราง `teams` แบบ Dynamic
+- [ ] **Sprint 14.3: Dynamic Ticket Routing & Category Mapping (การจับคู่หมวดหมู่กับทีมรับผิดชอบ):**
+  - [ ] เพิ่มฟิลด์ `default_team_id` ในตารางหมวดหมู่ปัญหา (`categories`)
+  - [ ] ในหน้าจอ Triage เมื่อ Helpdesk เลือกหมวดหมู่ปัญหา ระบบจะ Auto-suggest หรือเลือกทีมที่รับผิดชอบเริ่มต้นให้อัตโนมัติตามที่ตั้งค่าไว้
+- [ ] **Sprint 14.4: White-Labeling & System Personalization (การปรับแต่งแบรนด์และตราสัญลักษณ์องค์กร):**
+  - [ ] เพิ่มส่วนการตั้งค่า Corporate Branding ในหน้า System Settings ให้ Administrator สามารถอัปโหลด:
+    - โลโก้ระบบ (Header Logo & Login Logo)
+    - Favicon
+    - ชื่อระบบ / ชื่อองค์กร (App Name)
+    - สีธีมหลัก (Brand Primary Color)
+    - ข้อมูลติดต่อฝ่ายบริการ (Support Contact / Hotline / Extension)
+  - [ ] ปรับปรุงโค้ดส่วนหน้า (Blade Navigation, Header, Footers, Print Report) ให้ดึงข้อมูลการแสดงผลจากค่า System Settings แทนการระบุชื่อหรือสัญลักษณ์แบรนด์เดิมแบบตายตัว เพื่อให้เป็นระบบที่พร้อมขายได้ทันที (Commercial-ready)
+
+

@@ -88,7 +88,7 @@ class UserManagementController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'role' => ['required', 'string', 'in:helpdesk,team_hardware,team_network,team_software,manager,manager_software,manager_network_hardware,administrator'],
+            'role' => ['required', 'string', 'in:helpdesk,technician,team_hardware,team_network,team_software,manager,manager_software,manager_network_hardware,administrator'],
             'company' => ['required', 'string', 'exists:companies,name'],
             'department' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
@@ -130,7 +130,7 @@ class UserManagementController extends Controller
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'role' => ['required', 'string', 'in:helpdesk,team_hardware,team_network,team_software,manager,manager_software,manager_network_hardware,administrator,user'],
+            'role' => ['required', 'string', 'in:helpdesk,technician,team_hardware,team_network,team_software,manager,manager_software,manager_network_hardware,administrator,user'],
             'company' => ['required', 'string', 'exists:companies,name'],
             'department' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],

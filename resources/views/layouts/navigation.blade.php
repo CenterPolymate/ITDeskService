@@ -65,7 +65,7 @@
                         <div class="hidden sm:flex sm:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
-                                    <button class="inline-flex items-center px-2.5 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 whitespace-nowrap {{ request()->routeIs('categories.*') || request()->routeIs('holidays.*') || request()->routeIs('companies.*') || request()->routeIs('settings.*') || request()->routeIs('audit_logs.*') || request()->routeIs('backups.*') ? 'border-b-2 border-indigo-400 text-gray-900 focus:border-indigo-700' : '' }}">
+                                    <button class="inline-flex items-center px-2.5 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 whitespace-nowrap {{ request()->routeIs('categories.*') || request()->routeIs('teams.*') || request()->routeIs('holidays.*') || request()->routeIs('companies.*') || request()->routeIs('settings.*') || request()->routeIs('audit_logs.*') || request()->routeIs('backups.*') ? 'border-b-2 border-indigo-400 text-gray-900 focus:border-indigo-700' : '' }}">
                                         <span>{{ $isAdmin ? 'ตั้งค่าระบบ (Admin)' : 'ตั้งค่าระบบ' }}</span>
                                         <div class="ms-1">
                                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -78,6 +78,10 @@
                                 <x-slot name="content">
                                     <x-dropdown-link :href="route('companies.index')">
                                         {{ __('จัดการรายชื่อบริษัท') }}
+                                    </x-dropdown-link>
+
+                                    <x-dropdown-link :href="route('teams.index')">
+                                        {{ __('จัดการทีมงานและสายงาน') }}
                                     </x-dropdown-link>
 
                                     <x-dropdown-link :href="route('categories.index')">
@@ -443,6 +447,9 @@
                 </div>
                 <x-responsive-nav-link :href="route('companies.index')" :active="request()->routeIs('companies.*')" class="pl-8">
                     {{ __('จัดการรายชื่อบริษัท') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('teams.index')" :active="request()->routeIs('teams.*')" class="pl-8">
+                    {{ __('จัดการทีมงานและสายงาน') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')" class="pl-8">
                     {{ __('จัดการหมวดหมู่ปัญหา') }}
