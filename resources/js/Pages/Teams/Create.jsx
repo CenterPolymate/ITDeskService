@@ -99,12 +99,16 @@ export default function Create({ managers = [], technicians = [] }) {
                                         id="code"
                                         type="text"
                                         value={data.code}
-                                        onChange={(e) => setData('code', e.target.value.toUpperCase())}
+                                        onChange={(e) => setData('code', e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
                                         placeholder="เช่น SW, HW, ERP"
                                         className="mt-1 block w-full font-mono uppercase"
                                         required
-                                        maxLength="20"
+                                        minLength="2"
+                                        maxLength="5"
                                     />
+                                    <p className="text-[11px] text-gray-500 mt-1">
+                                        ภาษาอังกฤษหรือตัวเลข 2-5 ตัวอักษร (เช่น SW, HW, ERP)
+                                    </p>
                                     <InputError message={errors.code} className="mt-1" />
                                 </div>
                             </div>

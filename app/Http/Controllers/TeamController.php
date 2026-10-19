@@ -96,7 +96,7 @@ class TeamController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:teams,name',
-            'code' => 'required|string|max:50|uppercase|unique:teams,code',
+            'code' => ['required', 'string', 'min:2', 'max:5', 'regex:/^[A-Za-z0-9]+$/', 'unique:teams,code'],
             'description' => 'nullable|string',
             'manager_id' => 'required|exists:users,id',
             'is_active' => 'boolean',
@@ -107,6 +107,9 @@ class TeamController extends Controller
             'name.unique' => 'ชื่อทีมนี้มีอยู่ในระบบแล้ว',
             'code.required' => 'กรุณาระบุรหัสทีม',
             'code.unique' => 'รหัสทีมนี้มีอยู่ในระบบแล้ว',
+            'code.min' => 'รหัสย่อทีมต้องมีความยาวอย่างน้อย 2 ตัวอักษร',
+            'code.max' => 'รหัสย่อทีมต้องมีความยาวไม่เกิน 5 ตัวอักษร',
+            'code.regex' => 'รหัสย่อทีมต้องเป็นตัวอักษรภาษาอังกฤษหรือตัวเลขเท่านั้น (ห้ามมีช่องว่างหรืออักขระพิเศษ)',
             'manager_id.required' => 'กรุณาระบุหัวหน้าทีมผู้ดูแล',
             'manager_id.exists' => 'ไม่พบบัญชีหัวหน้าทีมที่เลือกในระบบ',
         ]);
@@ -168,7 +171,7 @@ class TeamController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:teams,name,'.$team->id,
-            'code' => 'required|string|max:50|uppercase|unique:teams,code,'.$team->id,
+            'code' => ['required', 'string', 'min:2', 'max:5', 'regex:/^[A-Za-z0-9]+$/', 'unique:teams,code,'.$team->id],
             'description' => 'nullable|string',
             'manager_id' => 'required|exists:users,id',
             'is_active' => 'boolean',
@@ -179,6 +182,9 @@ class TeamController extends Controller
             'name.unique' => 'ชื่อทีมนี้มีอยู่ในระบบแล้ว',
             'code.required' => 'กรุณาระบุรหัสทีม',
             'code.unique' => 'รหัสทีมนี้มีอยู่ในระบบแล้ว',
+            'code.min' => 'รหัสย่อทีมต้องมีความยาวอย่างน้อย 2 ตัวอักษร',
+            'code.max' => 'รหัสย่อทีมต้องมีความยาวไม่เกิน 5 ตัวอักษร',
+            'code.regex' => 'รหัสย่อทีมต้องเป็นตัวอักษรภาษาอังกฤษหรือตัวเลขเท่านั้น (ห้ามมีช่องว่างหรืออักขระพิเศษ)',
             'manager_id.required' => 'กรุณาระบุหัวหน้าทีมผู้ดูแล',
             'manager_id.exists' => 'ไม่พบบัญชีหัวหน้าทีมที่เลือกในระบบ',
         ]);
