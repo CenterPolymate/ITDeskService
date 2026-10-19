@@ -202,8 +202,17 @@ class TicketController extends Controller
             $request->merge(['escalated_to_team' => null]);
         }
 
+        // Auto-create category in master table if it does not exist yet (excluding generic keywords)
+        $categoryName = trim((string) $request->category);
+        if ($categoryName !== '' && ! in_array(mb_strtolower($categoryName), ['other', 'อื่นๆ', 'อื่น ๆ'])) {
+            Category::firstOrCreate(
+                ['name' => $categoryName],
+                ['is_active' => true]
+            );
+        }
+
         $updateData = [
-            'category' => $request->category,
+            'category' => $categoryName,
             'priority' => $request->priority,
             'escalated_to_team' => $request->escalated_to_team === 'None' ? null : $request->escalated_to_team,
             'status' => $status,

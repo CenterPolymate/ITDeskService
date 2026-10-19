@@ -168,6 +168,7 @@ class TicketManagementTest extends TestCase
         $this->assertEquals('high', $case->priority);
         $this->assertEquals('Hardware', $case->escalated_to_team);
         $this->assertEquals('assigned', $case->status);
+        $this->assertDatabaseHas('categories', ['name' => 'Hardware']);
     }
 
     public function test_assigned_team_can_update_analysis_and_resolve_ticket(): void
