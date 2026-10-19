@@ -114,36 +114,38 @@ export default function Index({ users, filters = {} }) {
                         <h2 className="font-semibold text-xl text-gray-800 leading-tight">
                             จัดการผู้ใช้งานทั่วไป
                         </h2>
-                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setImportError('');
-                                    setShowImportModal(true);
-                                }}
-                                className="inline-flex justify-center items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-emerald-700 transition shadow-sm w-full sm:w-auto"
-                            >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                </svg>
-                                Import CSV
-                            </button>
-                            <a
-                                href={route('normal_users.export', filters)}
-                                className="inline-flex justify-center items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 transition shadow-sm w-full sm:w-auto"
-                            >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 013 3h10a3 3 0 013-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                </svg>
-                                Export CSV
-                            </a>
-                            <Link
-                                href={route('normal_users.create')}
-                                className="inline-flex justify-center items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition shadow-sm w-full sm:w-auto"
-                            >
-                                + เพิ่มผู้ใช้งานใหม่
-                            </Link>
-                        </div>
+                        {auth.user?.role === 'administrator' && (
+                            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setImportError('');
+                                        setShowImportModal(true);
+                                    }}
+                                    className="inline-flex justify-center items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-emerald-700 transition shadow-sm w-full sm:w-auto"
+                                >
+                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                    </svg>
+                                    Import CSV
+                                </button>
+                                <a
+                                    href={route('normal_users.export', filters)}
+                                    className="inline-flex justify-center items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 transition shadow-sm w-full sm:w-auto"
+                                >
+                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 013 3h10a3 3 0 013-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                    </svg>
+                                    Export CSV
+                                </a>
+                                <Link
+                                    href={route('normal_users.create')}
+                                    className="inline-flex justify-center items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition shadow-sm w-full sm:w-auto"
+                                >
+                                    + เพิ่มผู้ใช้งานใหม่
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
             </header>
@@ -424,7 +426,7 @@ export default function Index({ users, filters = {} }) {
             </div>
 
             {/* Import CSV Modal */}
-            {showImportModal && (
+            {auth.user?.role === 'administrator' && showImportModal && (
                 <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
                     <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                         <div

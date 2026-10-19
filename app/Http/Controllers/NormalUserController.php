@@ -24,6 +24,14 @@ class NormalUserController extends Controller
         }
     }
 
+    private function authorizeAdministratorOnly(): void
+    {
+        $user = request()->user();
+        if (! $user || $user->role !== 'administrator') {
+            abort(403, 'Unauthorized action. Only administrators can perform this action.');
+        }
+    }
+
     public function index(Request $request): Response
     {
         $this->authorizeNormalUserManagers();
@@ -74,7 +82,7 @@ class NormalUserController extends Controller
 
     public function create(): Response
     {
-        $this->authorizeNormalUserManagers();
+        $this->authorizeAdministratorOnly();
         $companies = Company::with('departments')->where('is_active', true)->orderBy('name')->get();
 
         return Inertia::render('NormalUsers/Create', [
@@ -84,7 +92,7 @@ class NormalUserController extends Controller
 
     public function store(Request $request)
     {
-        $this->authorizeNormalUserManagers();
+        $this->authorizeAdministratorOnly();
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -191,7 +199,7 @@ class NormalUserController extends Controller
 
     public function import(Request $request): RedirectResponse
     {
-        $this->authorizeNormalUserManagers();
+        $this->authorizeAdministratorOnly();
         $request->validate([
             'csv_file' => ['required', 'file', 'max:2048', function (string $attribute, mixed $value, \Closure $fail): void {
                 if (! in_array(strtolower($value->getClientOriginalExtension()), ['csv', 'txt'], true)) {
@@ -313,7 +321,7 @@ class NormalUserController extends Controller
 
     public function export(Request $request)
     {
-        $this->authorizeNormalUserManagers();
+        $this->authorizeAdministratorOnly();
 
         $query = User::where('role', 'user');
 

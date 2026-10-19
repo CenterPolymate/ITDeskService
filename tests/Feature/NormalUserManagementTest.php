@@ -136,4 +136,36 @@ class NormalUserManagementTest extends TestCase
             'is_active' => false,
         ]);
     }
+
+    public function test_non_admin_cannot_create_or_import_or_export_normal_user(): void
+    {
+        $helpdesk = User::factory()->create(['role' => 'helpdesk']);
+        $company = Company::create(['name' => 'Acme Corp', 'sla_type' => '8x5', 'is_active' => true]);
+
+        // create page
+        $this->actingAs($helpdesk)->get(route('normal_users.create'))->assertForbidden();
+
+        // store
+        $this->actingAs($helpdesk)->post(route('normal_users.store'), [
+            'name' => 'Helpdesk Created User',
+            'email' => 'hduser@acme.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'company' => $company->name,
+        ])->assertForbidden();
+
+        // export
+        $this->actingAs($helpdesk)->get(route('normal_users.export'))->assertForbidden();
+
+        // import
+        $file = \Illuminate\Http\UploadedFile::fake()->createWithContent('users.csv', "name,email,company\r\n");
+        $this->actingAs($helpdesk)->post(route('normal_users.import'), ['csv_file' => $file])->assertForbidden();
+    }
+
+    public function test_admin_can_export_normal_users(): void
+    {
+        $admin = User::factory()->create(['role' => 'administrator']);
+        $this->actingAs($admin)->get(route('normal_users.export'))->assertOk();
+    }
 }
+

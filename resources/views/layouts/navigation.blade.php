@@ -33,13 +33,7 @@
                         </x-nav-link>
                     @endif
 
-                    @if($user?->role === 'helpdesk')
-                        <x-nav-link :href="route('normal_users.index')" :active="request()->routeIs('normal_users.*')">
-                            {{ __('ผู้ใช้งานทั่วไป') }}
-                        </x-nav-link>
-                    @endif
-
-                    @if($isManagerOrAdmin)
+                    @if($isManagerOrAdmin || $user?->role === 'helpdesk')
                         <div class="hidden sm:flex sm:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
@@ -54,9 +48,11 @@
                                 </x-slot>
 
                                 <x-slot name="content">
-                                    <x-dropdown-link :href="route('users.index')">
-                                        {{ __('ทีม IT') }}
-                                    </x-dropdown-link>
+                                    @if($isManagerOrAdmin)
+                                        <x-dropdown-link :href="route('users.index')">
+                                            {{ __('ทีม IT') }}
+                                        </x-dropdown-link>
+                                    @endif
                                     <x-dropdown-link :href="route('normal_users.index')">
                                         {{ __('ผู้ใช้งานทั่วไป') }}
                                     </x-dropdown-link>
@@ -429,17 +425,13 @@
                 </x-responsive-nav-link>
             @endif
 
-            @if($user?->role === 'helpdesk')
-                <x-responsive-nav-link :href="route('normal_users.index')" :active="request()->routeIs('normal_users.*')">
-                    {{ __('ผู้ใช้งานทั่วไป') }}
-                </x-responsive-nav-link>
-            @endif
-
-            @if($isManagerOrAdmin)
+            @if($isManagerOrAdmin || $user?->role === 'helpdesk')
                 <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">จัดการผู้ใช้งาน</div>
-                <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')" class="pl-8">
-                    {{ __('ทีม IT') }}
-                </x-responsive-nav-link>
+                @if($isManagerOrAdmin)
+                    <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')" class="pl-8">
+                        {{ __('ทีม IT') }}
+                    </x-responsive-nav-link>
+                @endif
                 <x-responsive-nav-link :href="route('normal_users.index')" :active="request()->routeIs('normal_users.*')" class="pl-8">
                     {{ __('ผู้ใช้งานทั่วไป') }}
                 </x-responsive-nav-link>
