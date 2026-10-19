@@ -7,6 +7,7 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
     const { auth, flash } = usePage().props;
     const [search, setSearch] = useState(filters.search || '');
     const currentStatus = filters.status || 'all';
+    const [highlightedTicketIds, setHighlightedTicketIds] = useState(new Set());
     const knownCasesRef = useRef(null);
 
     // CSAT 1-Click Acceptance States
@@ -84,10 +85,23 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                 sendBrowserNotification(title, {
                     body,
                     tag: `user-ticket-${t.id}-${t.status}`,
+                    url: route('tickets.show', t.id),
+                    ticket_no: t.ticket_no,
+                    type: t.status === 'resolved' ? 'resolved' : 'info',
                     onClick: () => {
                         window.location.href = route('tickets.show', t.id);
                     },
                 });
+
+                // Highlight updated ticket for 30s
+                setHighlightedTicketIds(prev => new Set(prev).add(t.id));
+                setTimeout(() => {
+                    setHighlightedTicketIds(prev => {
+                        const next = new Set(prev);
+                        next.delete(t.id);
+                        return next;
+                    });
+                }, 30000);
             }
             knownCasesRef.current.set(t.id, t.status);
         });
@@ -542,22 +556,36 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                 <>
                                     {/* Mobile Cards View (md:hidden) */}
                                     <div className="md:hidden space-y-3">
-                                        {cases.data.map((c) => (
-                                            <a
-                                                key={c.id}
-                                                href={route('tickets.show', c.id)}
-                                                className="block bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition p-4 active:bg-gray-50"
-                                            >
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <span className="text-sm font-bold text-blue-600">
-                                                        #{c.ticket_no}
-                                                    </span>
-                                                    {getStatusBadge(c.status, c.status_label)}
-                                                </div>
+                                        {cases.data.map((c) => {
+                                            const isHighlighted = highlightedTicketIds.has(c.id);
+                                            return (
+                                                <a
+                                                    key={c.id}
+                                                    href={route('tickets.show', c.id)}
+                                                    className={`block rounded-xl shadow-sm transition p-4 ${
+                                                        isHighlighted
+                                                            ? 'bg-amber-50/90 border-2 border-amber-400 ring-2 ring-amber-300 shadow-md animate-pulse'
+                                                            : 'bg-white border border-gray-200 hover:shadow-md active:bg-gray-50'
+                                                    }`}
+                                                >
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                                            <span className="text-sm font-bold text-blue-600">
+                                                                #{c.ticket_no}
+                                                            </span>
+                                                            {isHighlighted && (
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white shadow-xs">
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                                                                    อัปเดตล่าสุด
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {getStatusBadge(c.status, c.status_label)}
+                                                    </div>
 
-                                                <h4 className="text-base font-semibold text-gray-900 mb-1 leading-tight">
-                                                    {c.title}
-                                                </h4>
+                                                    <h4 className="text-base font-semibold text-gray-900 mb-1 leading-tight">
+                                                        {c.title}
+                                                    </h4>
                                                 {c.actual_user_name && (
                                                     <div className="mb-2">
                                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
@@ -599,8 +627,9 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                         </button>
                                                     </div>
                                                 )}
-                                            </a>
-                                        ))}
+                                                </a>
+                                            );
+                                        })}
                                     </div>
 
                                     {/* Desktop Table View (hidden md:block) */}
@@ -629,64 +658,82 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                 </tr>
                                             </thead>
                                             <tbody className="bg-white divide-y divide-gray-100">
-                                                {cases.data.map((c) => (
-                                                    <tr key={c.id} className="hover:bg-blue-50/40 transition-colors">
-                                                        <td className="px-5 py-3.5 whitespace-nowrap text-sm font-bold">
-                                                            <a
-                                                                href={route('tickets.show', c.id)}
-                                                                className="text-blue-600 hover:text-blue-800 hover:underline"
-                                                            >
-                                                                #{c.ticket_no}
-                                                            </a>
-                                                        </td>
-                                                        <td className="px-5 py-3.5 text-sm text-gray-900 font-medium max-w-md">
-                                                            <div className="truncate">{c.title}</div>
-                                                            {c.actual_user_name && (
-                                                                <div className="mt-1">
-                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                                                                        <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                                        </svg>
-                                                                        แจ้งแทน: {c.actual_user_name}
-                                                                    </span>
-                                                                </div>
-                                                            )}
-                                                        </td>
-                                                        <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-500">
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 text-xs">
-                                                                {c.category || 'อื่นๆ'}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-5 py-3.5 whitespace-nowrap text-sm">
-                                                            {getStatusBadge(c.status, c.status_label)}
-                                                        </td>
-                                                        <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-500">
-                                                            {formatThaiDate(c.created_at)}
-                                                        </td>
-                                                        <td className="px-5 py-3.5 whitespace-nowrap text-right text-sm font-medium">
-                                                            <div className="flex items-center justify-end gap-2">
-                                                                {c.status === 'resolved' && (
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => handleOpenCsatModal(c)}
-                                                                        className="inline-flex items-center gap-1 text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-lg transition font-bold text-xs shadow-xs hover:shadow cursor-pointer"
+                                                {cases.data.map((c) => {
+                                                    const isHighlighted = highlightedTicketIds.has(c.id);
+                                                    return (
+                                                        <tr
+                                                            key={c.id}
+                                                            className={`transition-all duration-300 ${
+                                                                isHighlighted
+                                                                    ? 'bg-amber-50/95 ring-2 ring-inset ring-amber-400 shadow-xs'
+                                                                    : 'hover:bg-blue-50/40 transition-colors'
+                                                            }`}
+                                                        >
+                                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm font-bold">
+                                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                                    <a
+                                                                        href={route('tickets.show', c.id)}
+                                                                        className="text-blue-600 hover:text-blue-800 hover:underline"
                                                                     >
-                                                                        <span>⭐ ยืนยันรับงาน</span>
-                                                                    </button>
+                                                                        #{c.ticket_no}
+                                                                    </a>
+                                                                    {isHighlighted && (
+                                                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white shadow-xs animate-bounce">
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                                                                            UPDATE
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-5 py-3.5 text-sm text-gray-900 font-medium max-w-md">
+                                                                <div className="truncate">{c.title}</div>
+                                                                {c.actual_user_name && (
+                                                                    <div className="mt-1">
+                                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                                                            <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                                            </svg>
+                                                                            แจ้งแทน: {c.actual_user_name}
+                                                                        </span>
+                                                                    </div>
                                                                 )}
-                                                                <a
-                                                                    href={route('tickets.show', c.id)}
-                                                                    className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition font-medium text-xs cursor-pointer"
-                                                                >
-                                                                    <span>ดูรายละเอียด</span>
-                                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                                                    </svg>
-                                                                </a>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
+                                                            </td>
+                                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-500">
+                                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 text-xs">
+                                                                    {c.category || 'อื่นๆ'}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm">
+                                                                {getStatusBadge(c.status, c.status_label)}
+                                                            </td>
+                                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-500">
+                                                                {formatThaiDate(c.created_at)}
+                                                            </td>
+                                                            <td className="px-5 py-3.5 whitespace-nowrap text-right text-sm font-medium">
+                                                                <div className="flex items-center justify-end gap-2">
+                                                                    {c.status === 'resolved' && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleOpenCsatModal(c)}
+                                                                            className="inline-flex items-center gap-1 text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-lg transition font-bold text-xs shadow-xs hover:shadow cursor-pointer"
+                                                                        >
+                                                                            <span>⭐ ยืนยันรับงาน</span>
+                                                                        </button>
+                                                                    )}
+                                                                    <a
+                                                                        href={route('tickets.show', c.id)}
+                                                                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition font-medium text-xs cursor-pointer"
+                                                                    >
+                                                                        <span>ดูรายละเอียด</span>
+                                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                                                        </svg>
+                                                                    </a>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
                                             </tbody>
                                         </table>
                                     </div>

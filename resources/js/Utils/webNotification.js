@@ -161,12 +161,51 @@ export async function requestNotificationPermission() {
 }
 
 /**
- * Trigger a browser notification and chime.
+ * Dispatch an In-App Toast notification on screen.
+ */
+export function showInAppToast(toastData) {
+    if (typeof window === 'undefined') return;
+    const detail = typeof toastData === 'string' ? { title: toastData } : toastData;
+    window.dispatchEvent(new CustomEvent('itdesk:toast', { detail }));
+}
+
+/**
+ * Trigger a browser notification, in-app toast, and chime.
  */
 export function sendBrowserNotification(title, options = {}) {
-    // Always play chime if sound is enabled
+    // 1. Always play chime if sound is enabled
     playNotificationChime(false);
 
+    // 2. Dispatch In-App Toast for instant visual feedback on screen
+    if (typeof window !== 'undefined') {
+        const toastId = options.tag || `toast-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+        window.dispatchEvent(
+            new CustomEvent('itdesk:toast', {
+                detail: {
+                    id: toastId,
+                    title,
+                    body: options.body || '',
+                    tag: options.tag || null,
+                    url: options.url || null,
+                    onClick: options.onClick || null,
+                    priority: options.priority || null,
+                    type:
+                        options.type ||
+                        (title.includes('🚨') || title.includes('ด่วนที่สุด')
+                            ? 'urgent'
+                            : title.includes('💬')
+                            ? 'chat'
+                            : title.includes('🎉')
+                            ? 'resolved'
+                            : 'new'),
+                    ticket_no: options.ticket_no || null,
+                    duration: options.duration || 8000,
+                },
+            })
+        );
+    }
+
+    // 3. Trigger native OS/Browser notification if permitted
     if (!isNotificationSupported() || Notification.permission !== 'granted') {
         return null;
     }
@@ -207,5 +246,6 @@ if (typeof window !== 'undefined') {
         getNotificationPermission,
         requestNotificationPermission,
         sendBrowserNotification,
+        showInAppToast,
     };
 }

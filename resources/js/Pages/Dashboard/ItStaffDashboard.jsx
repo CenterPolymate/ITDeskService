@@ -24,6 +24,7 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
     });
 
     const [isTyping, setIsTyping] = useState(false);
+    const [highlightedTicketIds, setHighlightedTicketIds] = useState(new Set());
     const knownUrgentIdsRef = useRef(null);
     const knownTicketsMapRef = useRef(null);
 
@@ -60,21 +61,48 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
                 sendBrowserNotification(title, {
                     body,
                     tag: `staff-ticket-new-${t.id}`,
+                    url: route('tickets.show', t.id),
+                    ticket_no: t.ticket_no,
+                    priority: t.priority,
+                    type: t.priority === 'urgent' ? 'urgent' : 'new',
                     onClick: () => {
                         window.location.href = route('tickets.show', t.id);
                     },
                 });
+
+                // Highlight newly arrived ticket in table and card view for 30s
+                setHighlightedTicketIds(prev => new Set(prev).add(t.id));
+                setTimeout(() => {
+                    setHighlightedTicketIds(prev => {
+                        const next = new Set(prev);
+                        next.delete(t.id);
+                        return next;
+                    });
+                }, 30000);
             } else if (prevStatus && prevStatus !== t.status) {
                 // Ticket status changed
                 if (t.status === 'resolved') {
                     sendBrowserNotification(`🎉 เคส #${t.ticket_no} ส่งมอบงานแล้ว`, {
                         body: `รอผู้แจ้งตรวจสอบและกดยืนยันรับงาน`,
                         tag: `staff-ticket-status-${t.id}-${t.status}`,
+                        url: route('tickets.show', t.id),
+                        ticket_no: t.ticket_no,
+                        type: 'resolved',
                         onClick: () => {
                             window.location.href = route('tickets.show', t.id);
                         },
                     });
                 }
+
+                // Highlight updated ticket for 30s
+                setHighlightedTicketIds(prev => new Set(prev).add(t.id));
+                setTimeout(() => {
+                    setHighlightedTicketIds(prev => {
+                        const next = new Set(prev);
+                        next.delete(t.id);
+                        return next;
+                    });
+                }, 30000);
             }
 
             knownTicketsMapRef.current.set(t.id, t.status);
@@ -1270,49 +1298,64 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
                         {/* Mobile Card View */}
                         <div className="md:hidden space-y-4 p-4">
                             {cases.data && cases.data.length > 0 ? (
-                                cases.data.map((caseItem) => (
-                                    <a
-                                        key={caseItem.id}
-                                        href={route('tickets.show', caseItem.id)}
-                                        className="block bg-white border border-gray-200 rounded-xl shadow-sm p-4 hover:border-indigo-300 hover:shadow-md transition-all relative overflow-hidden"
-                                    >
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="text-sm font-bold text-indigo-600">#{caseItem.ticket_no}</span>
-                                            <div className="flex flex-col items-end gap-1">
-                                                {getStatusBadge(caseItem.status, caseItem.status_label)}
-                                                {renderSlaStatus(caseItem)}
-                                                {caseItem.task2_status_label && (
-                                                    <span className={`px-2 py-0.5 inline-flex text-[10px] leading-4 font-bold rounded-full shadow-sm ${caseItem.task2_status_color}`}>
-                                                        {caseItem.task2_status_label}
+                                cases.data.map((caseItem) => {
+                                    const isHighlighted = highlightedTicketIds.has(caseItem.id);
+                                    return (
+                                        <a
+                                            key={caseItem.id}
+                                            href={route('tickets.show', caseItem.id)}
+                                            className={`block rounded-xl shadow-sm p-4 transition-all relative overflow-hidden ${
+                                                isHighlighted
+                                                    ? 'bg-amber-50/90 border-2 border-amber-400 ring-2 ring-amber-300 shadow-md animate-pulse'
+                                                    : 'bg-white border border-gray-200 hover:border-indigo-300 hover:shadow-md'
+                                            }`}
+                                        >
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                    <span className="text-sm font-bold text-indigo-600">#{caseItem.ticket_no}</span>
+                                                    {isHighlighted && (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white shadow-xs">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                                                            เพิ่งเข้ามา
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-col items-end gap-1">
+                                                    {getStatusBadge(caseItem.status, caseItem.status_label)}
+                                                    {renderSlaStatus(caseItem)}
+                                                    {caseItem.task2_status_label && (
+                                                        <span className={`px-2 py-0.5 inline-flex text-[10px] leading-4 font-bold rounded-full shadow-sm ${caseItem.task2_status_color}`}>
+                                                            {caseItem.task2_status_label}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <h4 className="text-base font-semibold text-gray-900 mb-1 leading-tight">{caseItem.title}</h4>
+                                            <div className="text-xs text-gray-500 mb-3 flex flex-wrap items-center gap-1.5">
+                                                <span>โดย: {caseItem.requester_name} ({caseItem.department || '-'})</span>
+                                                {caseItem.actual_user_name && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                                        <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                        </svg>
+                                                        แจ้งแทน: {caseItem.actual_user_name}
                                                     </span>
                                                 )}
                                             </div>
-                                        </div>
 
-                                        <h4 className="text-base font-semibold text-gray-900 mb-1 leading-tight">{caseItem.title}</h4>
-                                        <div className="text-xs text-gray-500 mb-3 flex flex-wrap items-center gap-1.5">
-                                            <span>โดย: {caseItem.requester_name} ({caseItem.department || '-'})</span>
-                                            {caseItem.actual_user_name && (
-                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                                                    <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            <div className="flex justify-between items-center text-xs mt-3 pt-3 border-t border-gray-100">
+                                                {getPriorityBadge(caseItem.priority, caseItem.priority_label)}
+                                                <span className="flex items-center gap-1 text-gray-400">
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                     </svg>
-                                                    แจ้งแทน: {caseItem.actual_user_name}
+                                                    {formatRelativeTime(caseItem.created_at)}
                                                 </span>
-                                            )}
-                                        </div>
-
-                                        <div className="flex justify-between items-center text-xs mt-3 pt-3 border-t border-gray-100">
-                                            {getPriorityBadge(caseItem.priority, caseItem.priority_label)}
-                                            <span className="flex items-center gap-1 text-gray-400">
-                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                {formatRelativeTime(caseItem.created_at)}
-                                            </span>
-                                        </div>
-                                    </a>
-                                ))
+                                            </div>
+                                        </a>
+                                    );
+                                })
                             ) : (
                                 <div className="text-center py-10">
                                     <svg className="h-10 w-10 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1350,80 +1393,98 @@ export default function ItStaffDashboard({ cases, stats, technician_workload = n
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 bg-white">
                                     {cases.data && cases.data.length > 0 ? (
-                                        cases.data.map((caseItem) => (
-                                            <tr key={caseItem.id} className="hover:bg-slate-50 transition-colors duration-150">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <a
-                                                        href={route('tickets.show', caseItem.id)}
-                                                        className="text-sm font-bold text-indigo-600 hover:text-indigo-900 hover:underline"
-                                                    >
-                                                        #{caseItem.ticket_no}
-                                                    </a>
-                                                    <div className="text-xs text-gray-400 mt-0.5">
-                                                        {formatRelativeTime(caseItem.created_at)}
-                                                    </div>
-                                                </td>
+                                        cases.data.map((caseItem) => {
+                                            const isHighlighted = highlightedTicketIds.has(caseItem.id);
+                                            return (
+                                                <tr
+                                                    key={caseItem.id}
+                                                    className={`transition-all duration-300 ${
+                                                        isHighlighted
+                                                            ? 'bg-amber-50/95 ring-2 ring-inset ring-amber-400 shadow-xs'
+                                                            : 'hover:bg-slate-50'
+                                                    }`}
+                                                >
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                                            <a
+                                                                href={route('tickets.show', caseItem.id)}
+                                                                className="text-sm font-bold text-indigo-600 hover:text-indigo-900 hover:underline"
+                                                            >
+                                                                #{caseItem.ticket_no}
+                                                            </a>
+                                                            {isHighlighted && (
+                                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white shadow-xs animate-bounce">
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                                                                    NEW
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-xs text-gray-400 mt-0.5">
+                                                            {formatRelativeTime(caseItem.created_at)}
+                                                        </div>
+                                                    </td>
 
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm font-semibold text-gray-900">{caseItem.title}</div>
-                                                    <div className="text-xs text-gray-500 mt-1 flex flex-wrap items-center gap-1.5">
-                                                        <span>โดย: {caseItem.requester_name} ({caseItem.department || '-'})</span>
-                                                        {caseItem.actual_user_name && (
-                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                                                                <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                                </svg>
-                                                                แจ้งแทน: {caseItem.actual_user_name}
+                                                    <td className="px-6 py-4">
+                                                        <div className="text-sm font-semibold text-gray-900">{caseItem.title}</div>
+                                                        <div className="text-xs text-gray-500 mt-1 flex flex-wrap items-center gap-1.5">
+                                                            <span>โดย: {caseItem.requester_name} ({caseItem.department || '-'})</span>
+                                                            {caseItem.actual_user_name && (
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                                                    <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                                    </svg>
+                                                                    แจ้งแทน: {caseItem.actual_user_name}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        {getPriorityBadge(caseItem.priority, caseItem.priority_label)}
+                                                    </td>
+
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                                                        {caseItem.escalated_to_team ? (
+                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                                                ทีม {caseItem.escalated_to_team}
+                                                            </span>
+                                                        ) : caseItem.status === 'pending' ? (
+                                                            <span className="text-gray-400 italic text-xs">ยังไม่ระบุ</span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-50 text-gray-700 border border-gray-200">
+                                                                Helpdesk (Tier 1)
                                                             </span>
                                                         )}
-                                                    </div>
-                                                </td>
+                                                    </td>
 
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    {getPriorityBadge(caseItem.priority, caseItem.priority_label)}
-                                                </td>
-
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                                                    {caseItem.escalated_to_team ? (
-                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                                            ทีม {caseItem.escalated_to_team}
-                                                        </span>
-                                                    ) : caseItem.status === 'pending' ? (
-                                                        <span className="text-gray-400 italic text-xs">ยังไม่ระบุ</span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-50 text-gray-700 border border-gray-200">
-                                                            Helpdesk (Tier 1)
-                                                        </span>
-                                                    )}
-                                                </td>
-
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    {getStatusBadge(caseItem.status, caseItem.status_label)}
-                                                    <div className="mt-1">
-                                                        {renderSlaStatus(caseItem)}
-                                                    </div>
-                                                    {caseItem.task2_status_label && (
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        {getStatusBadge(caseItem.status, caseItem.status_label)}
                                                         <div className="mt-1">
-                                                            <span className={`px-2.5 py-0.5 inline-flex text-[10px] leading-4 font-bold rounded-full shadow-sm ${caseItem.task2_status_color}`}>
-                                                                {caseItem.task2_status_label}
-                                                            </span>
+                                                            {renderSlaStatus(caseItem)}
                                                         </div>
-                                                    )}
-                                                </td>
+                                                        {caseItem.task2_status_label && (
+                                                            <div className="mt-1">
+                                                                <span className={`px-2.5 py-0.5 inline-flex text-[10px] leading-4 font-bold rounded-full shadow-sm ${caseItem.task2_status_color}`}>
+                                                                    {caseItem.task2_status_label}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </td>
 
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <a
-                                                        href={route('tickets.show', caseItem.id)}
-                                                        className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
-                                                    >
-                                                        ดูรายละเอียด
-                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                                        </svg>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        ))
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                        <a
+                                                            href={route('tickets.show', caseItem.id)}
+                                                            className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                                                        >
+                                                            ดูรายละเอียด
+                                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                                            </svg>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
                                     ) : (
                                         <tr>
                                             <td colSpan="6" className="px-6 py-12 text-center text-gray-500">

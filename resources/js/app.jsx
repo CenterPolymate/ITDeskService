@@ -1,6 +1,7 @@
 import './bootstrap';
 import '../css/app.css';
 import './Utils/webNotification';
+import InAppToastContainer from './Components/InAppToastContainer';
 
 import { createRoot } from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
@@ -13,7 +14,12 @@ createInertiaApp({
     resolve: (name) => resolvePageComponent(`./Pages/${name}.jsx`, import.meta.glob('./Pages/**/*.jsx')),
     setup({ el, App, props }) {
         const root = createRoot(el);
-        root.render(<App {...props} />);
+        root.render(
+            <>
+                <App {...props} />
+                <InAppToastContainer />
+            </>
+        );
     },
     progress: {
         color: '#4f46e5',

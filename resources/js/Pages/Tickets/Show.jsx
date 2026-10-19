@@ -104,8 +104,13 @@ export default function Show({ ticket, categories = [] }) {
                 sendBrowserNotification(`💬 ข้อความใหม่จาก ${senderName} [${ticket.ticket_no}]`, {
                     body: lastComment.message || (lastComment.attachment_path ? '📎 ส่งไฟล์รูปภาพแนบ' : 'มีข้อความใหม่'),
                     tag: `comment-${lastComment.id}`,
+                    ticket_no: ticket.ticket_no,
+                    type: 'chat',
                     onClick: () => {
                         window.focus();
+                        if (commentsContainerRef.current) {
+                            commentsContainerRef.current.scrollTop = commentsContainerRef.current.scrollHeight;
+                        }
                     },
                 });
             }
@@ -117,6 +122,8 @@ export default function Show({ ticket, categories = [] }) {
             sendBrowserNotification(`📌 ใบงาน #${ticket.ticket_no} เปลี่ยนสถานะ`, {
                 body: `สถานะปัจจุบัน: ${ticket.status_label || ticket.status}`,
                 tag: `status-${ticket.id}-${ticket.status}`,
+                ticket_no: ticket.ticket_no,
+                type: ticket.status === 'resolved' ? 'resolved' : (ticket.priority === 'urgent' ? 'urgent' : 'info'),
                 onClick: () => {
                     window.focus();
                 },

@@ -17,12 +17,22 @@ export default function SuperadminDashboard({ stats, chartLabels = [], chartData
         if (stats?.total_tickets > prevStatsRef.current?.total_tickets) {
             const diff = stats.total_tickets - prevStatsRef.current.total_tickets;
             sendBrowserNotification(`📥 มีเคสเปิดใหม่ในระบบ (+${diff})`, {
-                body: `จำนวนใบงานทั้งหมดในระบบ: ${stats.total_tickets}`,
+                body: `จำนวนใบงานทั้งหมดในระบบ: ${stats.total_tickets} เคส`,
+                url: route('dashboard'),
+                type: 'new',
+                onClick: () => {
+                    window.location.href = route('dashboard');
+                },
             });
         } else if (stats?.breached_tickets > prevStatsRef.current?.breached_tickets) {
             const diff = stats.breached_tickets - prevStatsRef.current.breached_tickets;
             sendBrowserNotification(`🚨 มีเคสเกินกำหนดเวลา SLA เพิ่มขึ้น (+${diff})`, {
-                body: `จำนวนเคสที่ Breached SLA: ${stats.breached_tickets}`,
+                body: `จำนวนเคสที่ Breached SLA: ${stats.breached_tickets} เคส\nกรุณาตรวจสอบและเร่งรัดการดำเนินงาน`,
+                url: route('dashboard'),
+                type: 'urgent',
+                onClick: () => {
+                    window.location.href = route('dashboard');
+                },
             });
         }
 
