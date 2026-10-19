@@ -89,6 +89,7 @@
    - **Helpdesk Normal Users Management:** ให้สิทธิ์ Role `helpdesk` ในการจัดการผู้ใช้งานทั่วไป (Normal Users) เพื่อความรวดเร็วในการประสานงานและบริการผู้ใช้งานหน้างาน โดยจำกัดไม่ให้ Helpdesk สามารถยกระดับสิทธิ์เป็น Administrator ได้
    - **Interactive Sortable Table Headers & Mobile Sorting:** คอมโพเนนต์หัวตารางแบบโต้ตอบ (`SortableHeader.jsx`) สำหรับคลิกสลับการจัดเรียงคอลัมน์ (ASC/DESC) ในทุกตารางสำคัญ (Dashboard เคส, จัดการทีมงาน, จัดการผู้ใช้ IT, และจัดการผู้ใช้ทั่วไป) พร้อมแถบ Mobile Sort Bar สำหรับผู้ใช้บนมือถือ และระบบ Server-side Business Logic Ordering
    - **Dynamic Team Management & Code Limit:** ระบบสร้างและบริหารทีมงานเฉพาะทาง (`teams`) และผูกสังกัดช่าง (`team_user`) ได้อิสระผ่าน UI โดยจำกัดความยาวของรหัสย่อทีม (Team Code) ไว้ไม่เกิน 5 ตัวอักษร
+   - **Admin Settings Navigation Grouping:** ปรับปรุงโครงสร้างเมนูดรอปดาวน์ "ตั้งค่าระบบ (Admin)" บนแถบ Navbar โดยจัดกลุ่มงานออกเป็น 2 หมวดหมู่อย่างเป็นระเบียบ ได้แก่ "บริการและองค์กร (Service)" และ "ระบบและความปลอดภัย (System)" พร้อมไอคอน SVG ประจำแต่ละเมนู ป้าย Badge ภาษาอังกฤษกำกับ และเส้นคั่น Divider คั่นกลาง เพื่อความชัดเจนตามหลัก Information Architecture และลด Cognitive Load
 5. **มาตรฐานข้อมูลและสิทธิ (Data Standards & Security):**
    - **Date Format:** รูปแบบการแสดงผลวันที่ในระบบทั้งหมด กำหนดให้ใช้มาตรฐาน `dd/MMMM/yyyy` (เช่น 10 มกราคม 2026) หรือเทียบเท่ากับฟอร์แมต `d F Y` ในภาษา PHP
    - **Force Reset Password:** ระบบบังคับรีเซ็ตรหัสผ่าน โดยการส่งอีเมลพร้อมลิงก์

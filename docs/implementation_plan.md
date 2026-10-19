@@ -365,6 +365,9 @@
   - [x] ปรับเมนูตัวเลือกบทบาทและตารางในหน้า `Users/Create.jsx`, `Users/Edit.jsx`, `NormalUsers/Edit.jsx`, `Users/Index.jsx`, และ `AuditLogs/Index.jsx` เป็นมาตรฐานสากล
   - [x] ปรับเมนูส่งต่องาน (Triage & Manager Task 2) และตัวกรองใน Dashboard/Report เป็นไดนามิก ดึงจากตาราง `teams` อัตโนมัติ
   - [x] ปรับปรุง `getStatusLabelAttribute()` ใน `HelpdeskCase.php` และ query select list ให้รองรับ Null-safety ป้องกัน TypeError 100%
+  - [x] **มาตรการแบ่งแยกหน้าที่และความรับผิดชอบ (Separation of Duties):** จำกัดสิทธิ์การเปิดเคสแจ้งซ่อม (`/tickets/create`, `POST /tickets`, และ LINE OA) ให้เฉพาะผู้ใช้งานทั่วไป (Role `user`) เท่านั้น ป้องกันผลประโยชน์ทับซ้อน (Conflict of Interest) โดยทีมงานไอทีและผู้ดูแลระบบทุกบทบาทจะไม่มีสิทธิ์เปิดเคสแจ้งซ่อม
+  - [x] **การจัดระเบียบเมนูตั้งค่าระบบ (Admin Navigation IA):** ปรับปรุงโครงสร้างเมนูดรอปดาวน์ "ตั้งค่าระบบ (Admin)" ให้จัดหมวดหมู่ย่อย 2 กลุ่มงานชัดเจน ได้แก่ "บริการและองค์กร (Service)" และ "ระบบและความปลอดภัย (System)" พร้อมไอคอน SVG, Badges, Divider และปรับความกว้างเป็น `w-60` ทั้งเดสก์ท็อปและมือถือ
+  - [x] **การแก้ไขข้อผิดพลาดและการบำรุงรักษาฐานข้อมูล:** แก้ไข Class "App\Http\Controllers\Team" not found ใน `ReportController.php` และสร้าง Migration ลบข้อมูลวันหยุดทดสอบ (`2026_10_19_174000_delete_test_holiday_record.php`)
 - [ ] **Sprint 14.3: Dynamic Ticket Routing & Category Mapping (การจับคู่หมวดหมู่กับทีมรับผิดชอบ):**
   - [ ] เพิ่มฟิลด์ `default_team_id` ในตารางหมวดหมู่ปัญหา (`categories`)
   - [ ] ในหน้าจอ Triage เมื่อ Helpdesk เลือกหมวดหมู่ปัญหา ระบบจะ Auto-suggest หรือเลือกทีมที่รับผิดชอบเริ่มต้นให้อัตโนมัติตามที่ตั้งค่าไว้
