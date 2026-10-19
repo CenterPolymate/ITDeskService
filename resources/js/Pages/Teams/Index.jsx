@@ -287,20 +287,25 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
                                     <table className="min-w-full divide-y divide-gray-200">
                                         <thead className="bg-gray-50/80">
                                             <tr>
-                                                <th scope="col" className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                    ทีม / รหัสทีม
+                                                <th scope="col" className="px-6 py-3 text-left">
+                                                    <div className="text-xs font-bold text-gray-800">ทีม / รหัสทีม</div>
+                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">TEAM & CODE</div>
                                                 </th>
-                                                <th scope="col" className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                    หัวหน้าทีม (Manager)
+                                                <th scope="col" className="px-6 py-3 text-left">
+                                                    <div className="text-xs font-bold text-gray-800">หัวหน้าทีม</div>
+                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">TEAM MANAGER</div>
                                                 </th>
-                                                <th scope="col" className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                    สมาชิกในทีม (Team Members)
+                                                <th scope="col" className="px-6 py-3 text-left">
+                                                    <div className="text-xs font-bold text-gray-800">สมาชิกในทีม</div>
+                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">TEAM MEMBERS</div>
                                                 </th>
-                                                <th scope="col" className="px-6 py-3.5 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                    สถานะ
+                                                <th scope="col" className="px-6 py-3 text-center">
+                                                    <div className="text-xs font-bold text-gray-800">สถานะ</div>
+                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">STATUS</div>
                                                 </th>
-                                                <th scope="col" className="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                    จัดการ
+                                                <th scope="col" className="px-6 py-3 text-right">
+                                                    <div className="text-xs font-bold text-gray-800">จัดการ</div>
+                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mt-0.5">ACTIONS</div>
                                                 </th>
                                             </tr>
                                         </thead>

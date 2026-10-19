@@ -200,19 +200,22 @@ export default function Create({ managers = [], technicians = [] }) {
                                                             {tech.email}
                                                         </div>
                                                         {tech.teams && tech.teams.length > 0 ? (
-                                                            <div className="flex items-center gap-1 flex-wrap mt-1">
-                                                                <span className="text-[10px] text-gray-400">สังกัดอยู่:</span>
-                                                                {tech.teams.map((t) => (
-                                                                    <span
-                                                                        key={t.id}
-                                                                        className="inline-flex items-center text-[10px] font-semibold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200"
-                                                                    >
-                                                                        {t.code} - {t.name}
-                                                                    </span>
-                                                                ))}
+                                                            <div className="flex items-start gap-1.5 mt-1">
+                                                                <span className="text-[10px] text-gray-400 shrink-0 pt-0.5">สังกัดอยู่:</span>
+                                                                <div className="flex flex-wrap gap-1 flex-1">
+                                                                    {tech.teams.map((t) => (
+                                                                        <span
+                                                                            key={t.id}
+                                                                            className="inline-flex items-center text-[10px] font-semibold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200"
+                                                                        >
+                                                                            {t.code} - {t.name}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
                                                             </div>
                                                         ) : (
-                                                            <div className="mt-1">
+                                                            <div className="flex items-center gap-1.5 mt-1">
+                                                                <span className="text-[10px] text-gray-400 shrink-0">สังกัดอยู่:</span>
                                                                 <span className="inline-flex items-center text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                                                                     ยังไม่สังกัดทีมใด
                                                                 </span>
