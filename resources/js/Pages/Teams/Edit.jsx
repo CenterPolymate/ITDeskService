@@ -6,12 +6,13 @@ import TextInput from '@/Components/TextInput';
 import PrimaryButton from '@/Components/PrimaryButton';
 
 export default function Edit({ team, managers = [], technicians = [], currentMemberIds = [] }) {
+    const initialHasMembers = Array.isArray(currentMemberIds) && currentMemberIds.length > 0;
     const { data, setData, put, processing, errors } = useForm({
         name: team.name || '',
         code: team.code || '',
         description: team.description || '',
         manager_id: team.manager_id || '',
-        is_active: team.is_active ?? true,
+        is_active: initialHasMembers ? Boolean(team.is_active) : false,
         member_ids: currentMemberIds || [],
     });
 
@@ -32,7 +33,12 @@ export default function Edit({ team, managers = [], technicians = [], currentMem
         const nextMembers = currentMembers.includes(id)
             ? currentMembers.filter((item) => item !== id)
             : [...currentMembers, id];
-        setData('member_ids', nextMembers);
+
+        setData((prev) => ({
+            ...prev,
+            member_ids: nextMembers,
+            is_active: nextMembers.length === 0 ? false : (prev.is_active || prev.member_ids.length === 0),
+        }));
     };
 
     const handleSubmit = (e) => {
@@ -137,14 +143,17 @@ export default function Edit({ team, managers = [], technicians = [], currentMem
 
                             {/* Manager (Supervisor) */}
                             <div>
-                                <InputLabel htmlFor="manager_id" value="หัวหน้าทีมผู้ดูแล (Team Manager / Supervisor)" />
+                                <InputLabel htmlFor="manager_id">
+                                    หัวหน้าทีมผู้ดูแล (Team Manager / Supervisor) <span className="text-rose-500">*</span>
+                                </InputLabel>
                                 <select
                                     id="manager_id"
+                                    required
                                     value={data.manager_id}
                                     onChange={(e) => setData('manager_id', e.target.value)}
                                     className="mt-1 block w-full rounded-xl border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                 >
-                                    <option value="">-- ยังไม่ระบุหัวหน้าทีม (กำหนดภายหลังได้) --</option>
+                                    <option value="" disabled>-- กรุณาเลือกหัวหน้าทีม --</option>
                                     {managers.map((m) => (
                                         <option key={m.id} value={m.id}>
                                             {m.name} ({m.email}) [{m.role}]
@@ -256,21 +265,34 @@ export default function Edit({ team, managers = [], technicians = [], currentMem
                             </div>
 
                             {/* Active Toggle */}
-                            <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                            <div className="pt-2 border-t border-gray-100 flex items-start justify-between gap-4">
                                 <div>
-                                    <label htmlFor="is_active" className="text-sm font-bold text-gray-900 cursor-pointer">
+                                    <label
+                                        htmlFor="is_active"
+                                        className={`text-sm font-bold ${!(Array.isArray(data.member_ids) && data.member_ids.length > 0) ? 'text-gray-400 cursor-not-allowed' : 'text-gray-900 cursor-pointer'}`}
+                                    >
                                         เปิดใช้งานทีมนี้ (Active)
                                     </label>
                                     <p className="text-xs text-gray-500">
                                         ทีมที่เปิดใช้งานจะปรากฏให้เลือกในขั้นตอนการส่งต่องาน (Triage / Escalate)
                                     </p>
+                                    {!(Array.isArray(data.member_ids) && data.member_ids.length > 0) && (
+                                        <p className="text-xs text-amber-600 font-medium mt-1 flex items-center gap-1">
+                                            <span>⚠️</span> ต้องเลือกสมาชิกในทีมอย่างน้อย 1 คน จึงจะสามารถเปิดใช้งานทีมนี้เพื่อรับงานได้
+                                        </p>
+                                    )}
                                 </div>
                                 <input
                                     id="is_active"
                                     type="checkbox"
-                                    checked={data.is_active}
+                                    disabled={!(Array.isArray(data.member_ids) && data.member_ids.length > 0)}
+                                    checked={(Array.isArray(data.member_ids) && data.member_ids.length > 0) && Boolean(data.is_active)}
                                     onChange={(e) => setData('is_active', e.target.checked)}
-                                    className="rounded text-indigo-600 focus:ring-indigo-500 h-5 w-5 cursor-pointer"
+                                    className={`rounded text-indigo-600 focus:ring-indigo-500 h-5 w-5 mt-0.5 ${
+                                        !(Array.isArray(data.member_ids) && data.member_ids.length > 0)
+                                            ? 'opacity-40 cursor-not-allowed bg-gray-100'
+                                            : 'cursor-pointer'
+                                    }`}
                                 />
                             </div>
 

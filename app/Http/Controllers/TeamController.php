@@ -98,7 +98,7 @@ class TeamController extends Controller
             'name' => 'required|string|max:255|unique:teams,name',
             'code' => 'required|string|max:50|uppercase|unique:teams,code',
             'description' => 'nullable|string',
-            'manager_id' => 'nullable|exists:users,id',
+            'manager_id' => 'required|exists:users,id',
             'is_active' => 'boolean',
             'member_ids' => 'nullable|array',
             'member_ids.*' => 'exists:users,id',
@@ -107,14 +107,17 @@ class TeamController extends Controller
             'name.unique' => 'ชื่อทีมนี้มีอยู่ในระบบแล้ว',
             'code.required' => 'กรุณาระบุรหัสทีม',
             'code.unique' => 'รหัสทีมนี้มีอยู่ในระบบแล้ว',
+            'manager_id.required' => 'กรุณาระบุหัวหน้าทีมผู้ดูแล',
+            'manager_id.exists' => 'ไม่พบบัญชีหัวหน้าทีมที่เลือกในระบบ',
         ]);
 
+        $hasMembers = ! empty($validated['member_ids']);
         $team = Team::create([
             'name' => $validated['name'],
             'code' => strtoupper($validated['code']),
             'description' => $validated['description'] ?? null,
-            'manager_id' => $validated['manager_id'] ?? null,
-            'is_active' => $request->boolean('is_active', true),
+            'manager_id' => $validated['manager_id'],
+            'is_active' => $hasMembers && $request->boolean('is_active', true),
         ]);
 
         if (! empty($validated['member_ids'])) {
@@ -167,7 +170,7 @@ class TeamController extends Controller
             'name' => 'required|string|max:255|unique:teams,name,'.$team->id,
             'code' => 'required|string|max:50|uppercase|unique:teams,code,'.$team->id,
             'description' => 'nullable|string',
-            'manager_id' => 'nullable|exists:users,id',
+            'manager_id' => 'required|exists:users,id',
             'is_active' => 'boolean',
             'member_ids' => 'nullable|array',
             'member_ids.*' => 'exists:users,id',
@@ -176,14 +179,17 @@ class TeamController extends Controller
             'name.unique' => 'ชื่อทีมนี้มีอยู่ในระบบแล้ว',
             'code.required' => 'กรุณาระบุรหัสทีม',
             'code.unique' => 'รหัสทีมนี้มีอยู่ในระบบแล้ว',
+            'manager_id.required' => 'กรุณาระบุหัวหน้าทีมผู้ดูแล',
+            'manager_id.exists' => 'ไม่พบบัญชีหัวหน้าทีมที่เลือกในระบบ',
         ]);
 
+        $hasMembers = ! empty($validated['member_ids']);
         $team->update([
             'name' => $validated['name'],
             'code' => strtoupper($validated['code']),
             'description' => $validated['description'] ?? null,
-            'manager_id' => $validated['manager_id'] ?? null,
-            'is_active' => $request->boolean('is_active', true),
+            'manager_id' => $validated['manager_id'],
+            'is_active' => $hasMembers && $request->boolean('is_active', true),
         ]);
 
         $team->members()->sync($validated['member_ids'] ?? []);
@@ -197,6 +203,10 @@ class TeamController extends Controller
     public function toggleStatus(Team $team): RedirectResponse
     {
         $this->authorizeAdminOrManager();
+
+        if (! $team->is_active && $team->members()->count() === 0) {
+            return redirect()->back()->with('error', "ไม่สามารถเปิดใช้งานทีม \"{$team->name}\" ได้ เนื่องจากยังไม่มีสมาชิกในทีม กรุณาแก้ไขเพื่อเพิ่มสมาชิกก่อน");
+        }
 
         $team->is_active = ! $team->is_active;
         $team->save();
