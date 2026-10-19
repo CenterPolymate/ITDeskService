@@ -4,14 +4,17 @@ import {
     sendBrowserNotification,
 } from '@/Utils/webNotification';
 
-export default function ItStaffDashboard({ cases, stats, filters = {} }) {
+export default function ItStaffDashboard({ cases, stats, technician_workload = null, filters = {} }) {
     const { auth, flash } = usePage().props;
     const userRole = auth.user.role;
+    const isManager = ['manager', 'manager_software', 'manager_network_hardware'].includes(userRole);
+    const isManagerOrAdmin = ['manager', 'manager_software', 'manager_network_hardware', 'administrator'].includes(userRole);
 
     const [formFilters, setFormFilters] = useState({
         status: filters.status || 'all',
         priority: filters.priority || 'all',
         team: filters.team || 'all',
+        technician_id: filters.technician_id || 'all',
         search: filters.search || '',
     });
 
@@ -45,7 +48,7 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                     title = `🛠️ มีเคสใหม่ส่งถึงทีมคุณ: #${t.ticket_no}`;
                 } else if (userRole === 'helpdesk') {
                     title = `📥 มีเคสใหม่รอคัดกรอง (Triage): #${t.ticket_no}`;
-                } else if (userRole === 'manager') {
+                } else if (isManager) {
                     title = `📋 มีเคสใหม่ในระบบ: #${t.ticket_no}`;
                 }
 
@@ -117,6 +120,7 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                 status: formFilters.status !== 'all' ? formFilters.status : undefined,
                 priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
                 team: formFilters.team !== 'all' ? formFilters.team : undefined,
+                technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
                 search: formFilters.search || undefined,
             },
             { preserveState: true, preserveScroll: true }
@@ -124,7 +128,7 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
     };
 
     const handleClearFilters = () => {
-        const cleared = { status: 'all', priority: 'all', team: 'all', search: '' };
+        const cleared = { status: 'all', priority: 'all', team: 'all', technician_id: 'all', search: '' };
         setFormFilters(cleared);
         router.get(route('dashboard'), {}, { preserveState: true, preserveScroll: true });
     };
@@ -137,6 +141,29 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                 status: statusKey !== 'all' ? statusKey : undefined,
                 priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
                 team: formFilters.team !== 'all' ? formFilters.team : undefined,
+                technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
+                search: formFilters.search || undefined,
+            },
+            { preserveState: true, preserveScroll: true }
+        );
+
+        // Smooth scroll to table
+        const el = document.getElementById('tickets-table');
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    const handleTechnicianFilter = (techId) => {
+        const newTechId = formFilters.technician_id === String(techId) ? 'all' : String(techId);
+        setFormFilters(prev => ({ ...prev, technician_id: newTechId }));
+        router.get(
+            route('dashboard'),
+            {
+                status: formFilters.status !== 'all' ? formFilters.status : undefined,
+                priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
+                team: formFilters.team !== 'all' ? formFilters.team : undefined,
+                technician_id: newTechId !== 'all' ? newTechId : undefined,
                 search: formFilters.search || undefined,
             },
             { preserveState: true, preserveScroll: true }
@@ -521,8 +548,202 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                         </div>
                     </div>
 
+                    {/* ภาระงานของทีมช่าง (Technician Workload) - For Tier 3 Managers & Administrator */}
+                    {technician_workload && (
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                            {/* Header */}
+                            <div className="p-5 sm:p-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 via-white to-indigo-50/30">
+                                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <h3 className="text-lg font-bold text-slate-900">
+                                                    ภาระงานของทีมช่าง (Technician Workload)
+                                                </h3>
+                                                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
+                                                    {technician_workload.team_title}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-slate-500 mt-0.5">
+                                                ติดตามสถานะช่างในทีมและจำนวนใบงานที่กำลังถือครองอยู่ (สืบสภาพ / กำลังแก้ไข)
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Summary Stats Badges */}
+                                    <div className="flex flex-wrap items-center gap-2 self-stretch sm:self-auto">
+                                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200">
+                                            <span className="text-slate-400">ช่างในทีม:</span>
+                                            <span className="font-bold text-slate-900">{technician_workload.total_technicians} ท่าน</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-800 text-xs font-medium border border-indigo-200">
+                                            <span className="text-indigo-400">งานที่กำลังถือครอง:</span>
+                                            <span className="font-bold text-indigo-700">{technician_workload.total_active_tickets} ใบ</span>
+                                        </div>
+                                        {technician_workload.unassigned_queue_count > 0 && (
+                                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 text-xs font-medium border border-amber-200">
+                                                <span className="text-amber-500 font-bold">รอช่างกดรับ:</span>
+                                                <span className="font-bold text-amber-700">{technician_workload.unassigned_queue_count} ใบ</span>
+                                            </div>
+                                        )}
+                                        {technician_workload.total_overdue_tickets > 0 && (
+                                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 text-red-800 text-xs font-medium border border-red-200 animate-pulse">
+                                                <span className="text-red-500">เกิน SLA:</span>
+                                                <span className="font-bold text-red-700">{technician_workload.total_overdue_tickets} ใบ</span>
+                                            </div>
+                                        )}
+                                        {formFilters.technician_id !== 'all' && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleTechnicianFilter('all')}
+                                                className="text-xs text-rose-600 hover:text-rose-800 underline font-semibold px-2 py-1"
+                                            >
+                                                ✕ ยกเลิกการกรองช่าง
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Unassigned Central Queue Notice */}
+                            {technician_workload.unassigned_queue_count > 0 && (
+                                <div className="mx-5 sm:mx-6 mt-4 p-3 bg-amber-50/90 border border-amber-200 rounded-xl flex items-center justify-between gap-3 text-xs text-amber-800">
+                                    <div className="flex items-center gap-2">
+                                        <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>
+                                            มีใบงานในคิวส่วนกลางของทีมจำนวน <strong className="font-bold">{technician_workload.unassigned_queue_count}</strong> ใบ ที่รอช่างในทีมกดรับเพื่อเริ่มสืบสภาพ
+                                        </span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleQuickFilter('pending')}
+                                        className="px-3 py-1 bg-white hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg font-bold shadow-2xs shrink-0 transition"
+                                    >
+                                        ดูคิวงาน
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Technician Cards */}
+                            <div className="p-5 sm:p-6">
+                                {technician_workload.technicians && technician_workload.technicians.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                        {technician_workload.technicians.map((tech) => {
+                                            const isSelected = formFilters.technician_id === String(tech.id);
+                                            return (
+                                                <div
+                                                    key={tech.id}
+                                                    className={`rounded-2xl border p-4 transition-all duration-200 flex flex-col justify-between ${
+                                                        isSelected
+                                                            ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-500/20 shadow-md'
+                                                            : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
+                                                    }`}
+                                                >
+                                                    {/* Technician Header */}
+                                                    <div>
+                                                        <div className="flex items-start justify-between gap-2 mb-3">
+                                                            <div className="flex items-center gap-2.5 min-w-0">
+                                                                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-slate-700 to-indigo-800 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                                                                    {tech.name.substring(0, 1)}
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <h4 className="text-sm font-bold text-slate-900 truncate" title={tech.name}>
+                                                                        {tech.name}
+                                                                    </h4>
+                                                                    <span className="text-[10px] font-semibold text-slate-500 block truncate">
+                                                                        {tech.role_label}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* SLA Status Pill */}
+                                                            {tech.sla_overdue_count > 0 ? (
+                                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 border border-red-200 shrink-0">
+                                                                    เกิน {tech.sla_overdue_count}
+                                                                </span>
+                                                            ) : tech.sla_warning_count > 0 ? (
+                                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200 shrink-0">
+                                                                    เตือน {tech.sla_warning_count}
+                                                                </span>
+                                                            ) : tech.total_active > 0 ? (
+                                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                                                    ปกติ
+                                                                </span>
+                                                            ) : (
+                                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 shrink-0">
+                                                                    ว่าง
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Ticket Count Breakdown */}
+                                                        <div className="grid grid-cols-3 gap-1.5 p-2 bg-slate-50 rounded-xl mb-3 text-center">
+                                                            <div>
+                                                                <div className="text-[10px] text-slate-400 font-medium">สืบสภาพ</div>
+                                                                <div className="text-xs font-bold text-purple-700 mt-0.5">{tech.analyzing_count}</div>
+                                                            </div>
+                                                            <div className="border-x border-slate-200">
+                                                                <div className="text-[10px] text-slate-400 font-medium">แก้ไขอยู่</div>
+                                                                <div className="text-xs font-bold text-blue-700 mt-0.5">{tech.in_progress_count}</div>
+                                                            </div>
+                                                            <div>
+                                                                <div className="text-[10px] text-slate-400 font-medium">เสร็จวันนี้</div>
+                                                                <div className="text-xs font-bold text-emerald-700 mt-0.5">{tech.resolved_today_count}</div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Total active highlight */}
+                                                        <div className="flex items-center justify-between text-xs px-1 mb-3">
+                                                            <span className="text-slate-500">งานค้างที่ถืออยู่ทั้งหมด:</span>
+                                                            <span className={`text-sm font-black ${tech.total_active > 3 ? 'text-rose-600' : tech.total_active > 0 ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                                                {tech.total_active} <span className="text-[11px] font-normal text-slate-400">ใบ</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Filter Button */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleTechnicianFilter(tech.id)}
+                                                        className={`w-full py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs ${
+                                                            isSelected
+                                                                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                                                : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
+                                                        }`}
+                                                    >
+                                                        {isSelected ? (
+                                                            <>
+                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                                <span>กำลังกรองช่างคนนี้</span>
+                                                            </>
+                                                        ) : (
+                                                            <span>ดูกรองเฉพาะช่างคนนี้</span>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8 text-slate-400 text-sm">
+                                        ยังไม่มีรายชื่อช่างในความรับผิดชอบของทีมนี้
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Manager Approval Banner (Task 2) */}
-                    {userRole === 'manager' && stats.task2_manager_review > 0 && (
+                    {isManagerOrAdmin && stats.task2_manager_review > 0 && (
                         <div className="bg-gradient-to-r from-amber-600 to-amber-500 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between text-white overflow-hidden relative border border-amber-400">
                             <div className="flex items-center gap-4 z-10 w-full sm:w-auto mb-3 sm:mb-0">
                                 <div className="bg-white/20 p-2.5 rounded-xl animate-pulse shrink-0">
@@ -556,7 +777,7 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                                 </h2>
                             </div>
 
-                            <div className={`grid grid-cols-2 md:grid-cols-3 ${['manager', 'administrator'].includes(userRole) ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-4 auto-rows-fr`}>
+                            <div className={`grid grid-cols-2 md:grid-cols-3 ${isManagerOrAdmin ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-4 auto-rows-fr`}>
                                 {/* 1. Task 2 All Cases */}
                                 <div
                                     onClick={() => handleQuickFilter('task2_all')}
@@ -572,7 +793,7 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                                 </div>
 
                                 {/* 2. Manager Review Cases (Only for manager and admin) */}
-                                {['manager', 'administrator'].includes(userRole) && (
+                                {isManagerOrAdmin && (
                                     <div
                                         onClick={() => handleQuickFilter('task2_manager_review')}
                                         className="bg-white rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between border-2 border-orange-200 hover:border-orange-400 shadow-sm hover:shadow-md transition-all cursor-pointer group"
@@ -677,7 +898,7 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
 
                             {/* Comprehensive Filters */}
                             <form onSubmit={handleSearchSubmit} className="w-full mt-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                                <div className={`grid grid-cols-1 md:grid-cols-2 ${technician_workload?.technicians?.length > 0 ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-3`}>
                                     <div>
                                         <label className="block text-xs font-medium text-gray-600 mb-1">สถานะ (Status)</label>
                                         <select
@@ -737,6 +958,24 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                                         </select>
                                     </div>
 
+                                    {technician_workload?.technicians?.length > 0 && (
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-600 mb-1">ช่างในทีม (Technician)</label>
+                                            <select
+                                                value={formFilters.technician_id}
+                                                onChange={(e) => handleFilterChange('technician_id', e.target.value)}
+                                                className="w-full rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
+                                            >
+                                                <option value="all">ช่างทุกคนในทีม</option>
+                                                {technician_workload.technicians.map((t) => (
+                                                    <option key={t.id} value={t.id}>
+                                                        {t.name} ({t.total_active} ใบ)
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
+
                                     <div>
                                         <label className="block text-xs font-medium text-gray-600 mb-1">ค้นหา (Search)</label>
                                         <input
@@ -760,12 +999,29 @@ export default function ItStaffDashboard({ cases, stats, filters = {} }) {
                                         <button
                                             type="button"
                                             onClick={handleClearFilters}
-                                            className="w-full text-center bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm cursor-pointer"
+                                            className="w-full text-center bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm cursor-pointer whitespace-nowrap"
                                         >
                                             ล้างค่า
                                         </button>
                                     </div>
                                 </div>
+
+                                {formFilters.technician_id !== 'all' && (
+                                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2 text-xs">
+                                        <span className="text-gray-500 font-medium">กำลังกรองเฉพาะใบงานของช่าง:</span>
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 font-bold border border-indigo-200 shadow-2xs">
+                                            <span>👤 {technician_workload?.technicians?.find(t => String(t.id) === String(formFilters.technician_id))?.name || `ID #${formFilters.technician_id}`}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleTechnicianFilter('all')}
+                                                className="text-indigo-600 hover:text-indigo-900 ml-1 font-black cursor-pointer"
+                                                title="ล้างการกรองช่างคนนี้"
+                                            >
+                                                ✕
+                                            </button>
+                                        </span>
+                                    </div>
+                                )}
                             </form>
                         </div>
 

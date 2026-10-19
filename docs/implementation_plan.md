@@ -295,3 +295,27 @@
   - [x] อธิบายความแตกต่างระหว่างเวลาทำการของระบบ (Business Hours) กับตัวนับเวลาถอยหลังจริง (Wall-clock Countdown) บนหน้าเว็บ
 - [x] **การจัดการความสะอาดของเอกสารบริบท (Context Document Cleanup):**
   - [x] ลบตารางบัญชีทดสอบระบบ (Test Accounts) ออกจาก `CONTEXT.md` อย่างถาวรตามความต้องการของผู้ใช้ เพื่อความกระชับและปลอดภัย
+
+## Phase 12: Helpdesk User Management & Tier 3 Manager Split with Workload Tracking (✅ ดำเนินการแล้วเสร็จ)
+- [x] **การให้สิทธิ์ Helpdesk (Tier 1) จัดการผู้ใช้งานทั่วไป (Normal Users Management):**
+  - [x] มอบสิทธิ์ Role `helpdesk` ให้เข้าถึงหน้ารายการ, เพิ่ม, แก้ไขข้อมูล, รีเซ็ตรหัสผ่าน และระงับบัญชีผู้ใช้งานทั่วไป (`NormalUserController`)
+  - [x] เพิ่มปุ่มเมนูนำทาง "ผู้ใช้งานทั่วไป" บน Navbar สำหรับ Helpdesk ทั้งโหมดเดสก์ท็อปและมือถือ
+  - [x] ป้องกันความปลอดภัย: ไม่ให้ Helpdesk ยกระดับสิทธิ์ผู้ใช้เป็น Administrator
+  - [x] อัปเดต Feature Tests ใน `NormalUserManagementTest.php` ให้ครอบคลุมสิทธิ์ Helpdesk ผ่าน 100%
+- [x] **การแบ่งโครงสร้างหัวหน้างาน Tier 3 เป็น 2 ทีม (Tier 3 Managers Split):**
+  - [x] เพิ่มบทบาท `manager_software` ("Software Manager (Tier 3)"): ลูกน้องในทีมคือ `team_software` (Tier 2)
+  - [x] เพิ่มบทบาท `manager_network_hardware` ("Network & Hardware Manager (Tier 3)"): ลูกน้องในทีมคือ `team_hardware` (Tier 2) และ `team_network` (Tier 2)
+  - [x] รองรับ `manager` (ทั่วไป) และ `administrator` ในการดูแลภาพรวมของทุกทีม
+  - [x] อัปเดต `User::managerRoles()` และ `isManager()` ใน `User.php`
+  - [x] ปรับปรุงแบบฟอร์มสร้าง/แก้ไขผู้ใช้ (`Users/Create.jsx`, `Users/Edit.jsx`, `NormalUsers/Edit.jsx`) และการแสดงผลบทบาทใน `Users/Index.jsx`
+- [x] **การติดตามภาระงานของทีมช่าง (Technician Workload Tracking Widget):**
+  - [x] พัฒนา Widget "ภาระงานของทีมช่าง" บน `ItStaffDashboard.jsx` สำหรับ Tier 3 Managers
+  - [x] แสดงเฉพาะช่างที่เป็นลูกน้องในทีมของตนเอง: ระบุจำนวนเคสที่ถือครองอยู่ (`analyzing` + `in_progress`), จำนวนเคสที่ส่งมอบแล้ววันนี้ (`resolved_today`), และสถานะ SLA (ปกติ / เตือน / เกินกำหนด)
+  - [x] ปุ่มลัด 1-Click Filter: คลิกที่การ์ดช่างเพื่อกรองตารางเคสให้แสดงเฉพาะเคสของช่างคนนั้นทันที
+  - [x] เพิ่มตัวกรองช่างผู้ปฏิบัติงาน (`technician_id`) ในแบบฟอร์มค้นหาของแดชบอร์ด
+  - [x] เพิ่ม Feature Tests ใน `HelpdeskDashboardTest.php` ตรวจสอบความถูกต้องของการกรองลูกน้องในทีม ผ่านครบ 100%
+- [x] **การขยายสิทธิ์การบริหารระบบสำหรับ Manager (Tier 3):**
+  - [x] ให้สิทธิ์ Manager เข้าถึงและจัดการ บริษัทและแผนก (`CompanyController`), หมวดหมู่ปัญหา (`CategoryController`), วันหยุด (`HolidayController`), และประวัติการใช้งาน (`AuditLogController`)
+  - [x] เมนู "ตั้งค่าระบบ" บน Navbar เปิดให้ Manager เข้าถึงเมนูข้างต้นได้ โดยคงการตั้งค่า SMTP/LINE และการสำรองข้อมูล (Backup) ให้เฉพาะ Administrator เท่านั้น
+  - [x] อนุญาตให้ Manager และ Administrator สามารถส่งต่องานหรือเปลี่ยนช่างผู้รับผิดชอบ (Re-assign/Re-escalate) ได้ในทุกสถานะงานที่ยังไม่ปิด
+

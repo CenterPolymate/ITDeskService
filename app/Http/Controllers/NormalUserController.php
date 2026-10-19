@@ -15,16 +15,18 @@ use Inertia\Response;
 
 class NormalUserController extends Controller
 {
-    private function authorizeAdministrator()
+    private function authorizeNormalUserManagers(): void
     {
-        if (! request()->user() || request()->user()->role !== 'administrator') {
+        $user = request()->user();
+        $allowed = ['administrator', 'helpdesk', 'manager', 'manager_software', 'manager_network_hardware'];
+        if (! $user || ! in_array($user->role, $allowed, true)) {
             abort(403, 'Unauthorized action.');
         }
     }
 
     public function index(Request $request): Response
     {
-        $this->authorizeAdministrator();
+        $this->authorizeNormalUserManagers();
 
         $query = User::where('role', 'user');
 
@@ -72,7 +74,7 @@ class NormalUserController extends Controller
 
     public function create(): Response
     {
-        $this->authorizeAdministrator();
+        $this->authorizeNormalUserManagers();
         $companies = Company::with('departments')->where('is_active', true)->orderBy('name')->get();
 
         return Inertia::render('NormalUsers/Create', [
@@ -82,7 +84,7 @@ class NormalUserController extends Controller
 
     public function store(Request $request)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeNormalUserManagers();
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -109,7 +111,7 @@ class NormalUserController extends Controller
 
     public function edit(User $normal_user): Response
     {
-        $this->authorizeAdministrator();
+        $this->authorizeNormalUserManagers();
         if ($normal_user->role !== 'user') {
             abort(404);
         }
@@ -124,7 +126,7 @@ class NormalUserController extends Controller
 
     public function update(Request $request, User $normal_user)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeNormalUserManagers();
         if ($normal_user->role !== 'user') {
             abort(404);
         }
@@ -135,7 +137,7 @@ class NormalUserController extends Controller
             'company' => ['required', 'string', 'exists:companies,name'],
             'department' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'role' => ['required', 'string', Rule::in(['user', 'helpdesk', 'team_hardware', 'team_network', 'team_software', 'manager', 'administrator'])],
+            'role' => ['required', 'string', Rule::in(['user', 'helpdesk', 'team_hardware', 'team_network', 'team_software', 'manager', 'manager_software', 'manager_network_hardware', 'administrator'])],
         ];
 
         if ($request->filled('password')) {
@@ -143,6 +145,10 @@ class NormalUserController extends Controller
         }
 
         $request->validate($rules);
+
+        if ($request->role === 'administrator' && request()->user()->role !== 'administrator') {
+            abort(403, 'Unauthorized action: only administrators can grant administrator role.');
+        }
 
         $updateData = [
             'name' => $request->name,
@@ -165,7 +171,7 @@ class NormalUserController extends Controller
 
     public function destroy(User $normal_user)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeNormalUserManagers();
         if ($normal_user->role !== 'user') {
             abort(404);
         }
@@ -185,7 +191,7 @@ class NormalUserController extends Controller
 
     public function import(Request $request): RedirectResponse
     {
-        $this->authorizeAdministrator();
+        $this->authorizeNormalUserManagers();
         $request->validate([
             'csv_file' => ['required', 'file', 'max:2048', function (string $attribute, mixed $value, \Closure $fail): void {
                 if (! in_array(strtolower($value->getClientOriginalExtension()), ['csv', 'txt'], true)) {
@@ -289,7 +295,7 @@ class NormalUserController extends Controller
 
     public function forceResetPassword(User $normal_user)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeNormalUserManagers();
         if ($normal_user->role !== 'user') {
             abort(404);
         }
@@ -307,7 +313,7 @@ class NormalUserController extends Controller
 
     public function export(Request $request)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeNormalUserManagers();
 
         $query = User::where('role', 'user');
 

@@ -149,7 +149,7 @@ class CheckSlaWarnings extends Command
         }
 
         // 3. Always include Helpdesk and Managers for oversight
-        $managersAndHelpdesk = User::whereIn('role', ['helpdesk', 'manager'])
+        $managersAndHelpdesk = User::whereIn('role', ['helpdesk', 'manager', 'manager_software', 'manager_network_hardware'])
             ->where('is_active', true)
             ->get();
 

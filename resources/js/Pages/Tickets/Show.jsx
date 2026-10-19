@@ -63,8 +63,9 @@ export default function Show({ ticket, categories = [] }) {
     const canEditNotes = (isAssignedTeam || (user.role === 'helpdesk' && !ticket.escalated_to_team)) &&
         ['in_progress', 'resolved'].includes(ticket.status);
 
-    const canTriage = (isHelpdesk || isManager) && (
+    const canTriage = (isHelpdesk || isManager || user.role === 'administrator') && (
         ['pending', 'assigned'].includes(ticket.status) ||
+        ((isManager || user.role === 'administrator') && !['resolved', 'approved', 'closed', 'cancelled'].includes(ticket.status)) ||
         (!ticket.escalated_to_team && !['resolved', 'approved', 'closed', 'cancelled'].includes(ticket.status))
     );
 
@@ -1016,7 +1017,7 @@ export default function Show({ ticket, categories = [] }) {
                         )}
 
                         {/* 4. Action Form for Manager Review */}
-                        {ticket.status === 'closed' && user.role === 'manager' && (
+                        {ticket.status === 'closed' && isManager && (
                             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-slate-800 border-x border-b border-slate-200">
                                 <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
                                     <span className="p-2 bg-slate-100 text-slate-800 rounded-xl">🛡️</span>

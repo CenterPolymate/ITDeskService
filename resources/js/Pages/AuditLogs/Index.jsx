@@ -30,7 +30,9 @@ const KEY_MAP = {
 
 const ROLE_MAP = {
     administrator: 'ผู้ดูแลระบบสูงสุด',
-    manager: 'ผู้จัดการ IT',
+    manager: 'IT Manager (Tier 3)',
+    manager_software: 'Software Manager (Tier 3)',
+    manager_network_hardware: 'Network & Hardware Manager (Tier 3)',
     helpdesk: 'ฝ่ายรับเรื่อง (Helpdesk)',
     team_hardware: 'ช่างฮาร์ดแวร์',
     team_network: 'ช่างระบบเครือข่าย',

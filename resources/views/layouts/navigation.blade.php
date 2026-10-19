@@ -21,13 +21,25 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
+                    @php
+                        $user = Auth::user();
+                        $isManagerOrAdmin = $user && ($user->isManager() || $user->role === 'administrator');
+                        $isAdmin = $user && $user->role === 'administrator';
+                    @endphp
+
+                    @if($isManagerOrAdmin)
                         <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                             {{ __('รายงานสถิติ') }}
                         </x-nav-link>
                     @endif
 
-                    @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
+                    @if($user?->role === 'helpdesk')
+                        <x-nav-link :href="route('normal_users.index')" :active="request()->routeIs('normal_users.*')">
+                            {{ __('ผู้ใช้งานทั่วไป') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if($isManagerOrAdmin)
                         <div class="hidden sm:flex sm:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
@@ -45,22 +57,20 @@
                                     <x-dropdown-link :href="route('users.index')">
                                         {{ __('ทีม IT') }}
                                     </x-dropdown-link>
-                                    @if(Auth::user()?->role === 'administrator')
-                                        <x-dropdown-link :href="route('normal_users.index')">
-                                            {{ __('ผู้ใช้งานทั่วไป') }}
-                                        </x-dropdown-link>
-                                    @endif
+                                    <x-dropdown-link :href="route('normal_users.index')">
+                                        {{ __('ผู้ใช้งานทั่วไป') }}
+                                    </x-dropdown-link>
                                 </x-slot>
                             </x-dropdown>
                         </div>
                     @endif
 
-                    @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
+                    @if($isManagerOrAdmin)
                         <div class="hidden sm:flex sm:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
                                     <button class="inline-flex items-center px-2.5 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 whitespace-nowrap {{ request()->routeIs('categories.*') || request()->routeIs('holidays.*') || request()->routeIs('companies.*') || request()->routeIs('settings.*') || request()->routeIs('audit_logs.*') || request()->routeIs('backups.*') ? 'border-b-2 border-indigo-400 text-gray-900 focus:border-indigo-700' : '' }}">
-                                        <span>{{ Auth::user()?->role === 'administrator' ? 'ตั้งค่าระบบ (Admin)' : 'ตั้งค่าระบบ' }}</span>
+                                        <span>{{ $isAdmin ? 'ตั้งค่าระบบ (Admin)' : 'ตั้งค่าระบบ' }}</span>
                                         <div class="ms-1">
                                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -70,11 +80,9 @@
                                 </x-slot>
 
                                 <x-slot name="content">
-                                    @if(Auth::user()?->role === 'administrator')
-                                        <x-dropdown-link :href="route('companies.index')">
-                                            {{ __('จัดการรายชื่อบริษัท') }}
-                                        </x-dropdown-link>
-                                    @endif
+                                    <x-dropdown-link :href="route('companies.index')">
+                                        {{ __('จัดการรายชื่อบริษัท') }}
+                                    </x-dropdown-link>
 
                                     <x-dropdown-link :href="route('categories.index')">
                                         {{ __('จัดการหมวดหมู่ปัญหา') }}
@@ -84,12 +92,13 @@
                                         {{ __('ตั้งค่าวันหยุด (Holidays)') }}
                                     </x-dropdown-link>
 
-                                    @if(Auth::user()?->role === 'administrator')
+                                    <x-dropdown-link :href="route('audit_logs.index')">
+                                        {{ __('ประวัติการใช้งาน') }}
+                                    </x-dropdown-link>
+
+                                    @if($isAdmin)
                                         <x-dropdown-link :href="route('settings.index')">
                                             {{ __('ตั้งค่าระบบ') }}
-                                        </x-dropdown-link>
-                                        <x-dropdown-link :href="route('audit_logs.index')">
-                                            {{ __('ประวัติการใช้งาน') }}
                                         </x-dropdown-link>
                                         <x-dropdown-link :href="route('backups.index')">
                                             {{ __('ระบบสำรองข้อมูล (Backup)') }}
@@ -414,33 +423,35 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
 
-            @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
+            @if($isManagerOrAdmin)
                 <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                     {{ __('รายงานสถิติ') }}
                 </x-responsive-nav-link>
             @endif
 
-            @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
+            @if($user?->role === 'helpdesk')
+                <x-responsive-nav-link :href="route('normal_users.index')" :active="request()->routeIs('normal_users.*')">
+                    {{ __('ผู้ใช้งานทั่วไป') }}
+                </x-responsive-nav-link>
+            @endif
+
+            @if($isManagerOrAdmin)
                 <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">จัดการผู้ใช้งาน</div>
                 <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')" class="pl-8">
                     {{ __('ทีม IT') }}
                 </x-responsive-nav-link>
-                @if(Auth::user()?->role === 'administrator')
-                    <x-responsive-nav-link :href="route('normal_users.index')" :active="request()->routeIs('normal_users.*')" class="pl-8">
-                        {{ __('ผู้ใช้งานทั่วไป') }}
-                    </x-responsive-nav-link>
-                @endif
+                <x-responsive-nav-link :href="route('normal_users.index')" :active="request()->routeIs('normal_users.*')" class="pl-8">
+                    {{ __('ผู้ใช้งานทั่วไป') }}
+                </x-responsive-nav-link>
             @endif
 
-            @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
+            @if($isManagerOrAdmin)
                 <div class="px-4 py-2 mt-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    {{ Auth::user()?->role === 'administrator' ? 'ตั้งค่าระบบ (Admin)' : 'ตั้งค่าระบบ' }}
+                    {{ $isAdmin ? 'ตั้งค่าระบบ (Admin)' : 'ตั้งค่าระบบ' }}
                 </div>
-                @if(Auth::user()?->role === 'administrator')
-                    <x-responsive-nav-link :href="route('companies.index')" :active="request()->routeIs('companies.*')" class="pl-8">
-                        {{ __('จัดการรายชื่อบริษัท') }}
-                    </x-responsive-nav-link>
-                @endif
+                <x-responsive-nav-link :href="route('companies.index')" :active="request()->routeIs('companies.*')" class="pl-8">
+                    {{ __('จัดการรายชื่อบริษัท') }}
+                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')" class="pl-8">
                     {{ __('จัดการหมวดหมู่ปัญหา') }}
                 </x-responsive-nav-link>
@@ -449,12 +460,13 @@
                     {{ __('ตั้งค่าวันหยุด (Holidays)') }}
                 </x-responsive-nav-link>
 
-                @if(Auth::user()?->role === 'administrator')
+                <x-responsive-nav-link :href="route('audit_logs.index')" :active="request()->routeIs('audit_logs.*')" class="pl-8">
+                    {{ __('ประวัติการใช้งาน') }}
+                </x-responsive-nav-link>
+
+                @if($isAdmin)
                     <x-responsive-nav-link :href="route('settings.index')" :active="request()->routeIs('settings.*')" class="pl-8">
                         {{ __('ตั้งค่าระบบ') }}
-                    </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('audit_logs.index')" :active="request()->routeIs('audit_logs.*')" class="pl-8">
-                        {{ __('ประวัติการใช้งาน') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('backups.index')" :active="request()->routeIs('backups.*')" class="pl-8">
                         {{ __('ระบบสำรองข้อมูล (Backup)') }}

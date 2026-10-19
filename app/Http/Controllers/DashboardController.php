@@ -149,6 +149,8 @@ class DashboardController extends Controller
 
         // คำนวณ KPI Cards ให้ครบทุกขั้นตอนตาม Data Scope ของ User นั้นๆ (ก่อนนำไปกรองตาม Filter URL)
         $today = now()->timezone('Asia/Bangkok')->toDateString();
+        $isManager = (method_exists($user, 'isManager') && $user->isManager()) || in_array($user->role, ['manager', 'manager_software', 'manager_network_hardware'], true);
+        $isAdmin = $user->role === 'administrator';
 
         $stats = [
             'total' => (clone $baseQuery)->count(),
@@ -189,7 +191,7 @@ class DashboardController extends Controller
                 ->whereColumn('resolved_at', '>', 'sla_due_at')->count(),
 
             // Task 2 Stats
-            'task2_total' => in_array($user->role, ['manager', 'administrator'])
+            'task2_total' => ($isManager || $isAdmin)
                 ? (clone $baseQuery)->where('status', 'closed')->where(function ($q) {
                     $q->whereNull('requires_preventive_measure')->orWhere('requires_preventive_measure', true);
                 })->count()
@@ -203,9 +205,107 @@ class DashboardController extends Controller
             'task2_completed' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where('preventive_measure', 'done')->count(),
         ];
 
+        // Technician Workload Data for Tier 3 Managers & Administrator
+        $isManager = (method_exists($user, 'isManager') && $user->isManager()) || in_array($user->role, ['manager', 'manager_software', 'manager_network_hardware'], true);
+        $isAdmin = $user->role === 'administrator';
+        $technicianWorkload = null;
+
+        if ($isManager || $isAdmin) {
+            $targetRoles = match ($user->role) {
+                'manager_software' => ['team_software'],
+                'manager_network_hardware' => ['team_hardware', 'team_network'],
+                default => ['team_hardware', 'team_network', 'team_software'],
+            };
+
+            $teamNames = match ($user->role) {
+                'manager_software' => ['Software'],
+                'manager_network_hardware' => ['Hardware', 'Network'],
+                default => ['Hardware', 'Network', 'Software'],
+            };
+
+            $teamTitle = match ($user->role) {
+                'manager_software' => 'ทีม Software (Tier 2 ในความรับผิดชอบ)',
+                'manager_network_hardware' => 'ทีม Network & Hardware (Tier 2 ในความรับผิดชอบ)',
+                default => 'ทีมช่าง IT ทั้งหมด (Tier 2)',
+            };
+
+            $roleLabelMap = [
+                'team_hardware' => 'Team Hardware',
+                'team_network' => 'Team Network',
+                'team_software' => 'Team Software',
+            ];
+
+            $technicians = User::whereIn('role', $targetRoles)
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get();
+
+            $technicianList = [];
+            foreach ($technicians as $tech) {
+                $techTickets = HelpdeskCase::whereIn('status', ['analyzing', 'in_progress'])
+                    ->where(function ($q) use ($tech) {
+                        $q->where('in_progress_by', $tech->id)
+                            ->orWhere('analyzing_by', $tech->id);
+                    })
+                    ->get();
+
+                $analyzingCount = $techTickets->where('status', 'analyzing')->count();
+                $inProgressCount = $techTickets->where('status', 'in_progress')->count();
+                $totalActive = $techTickets->count();
+
+                $slaWarningCount = $techTickets->filter(fn ($t) => $t->is_near_overdue)->count();
+                $slaOverdueCount = $techTickets->filter(fn ($t) => $t->is_overdue)->count();
+
+                $resolvedTodayCount = HelpdeskCase::where('resolved_by', $tech->id)
+                    ->whereDate('resolved_at', $today)
+                    ->count();
+
+                $technicianList[] = [
+                    'id' => $tech->id,
+                    'name' => $tech->name,
+                    'role' => $tech->role,
+                    'role_label' => $roleLabelMap[$tech->role] ?? $tech->role,
+                    'email' => $tech->email,
+                    'phone' => $tech->phone,
+                    'analyzing_count' => $analyzingCount,
+                    'in_progress_count' => $inProgressCount,
+                    'total_active' => $totalActive,
+                    'sla_warning_count' => $slaWarningCount,
+                    'sla_overdue_count' => $slaOverdueCount,
+                    'resolved_today_count' => $resolvedTodayCount,
+                    'recent_tickets' => $techTickets->take(5)->map(fn ($t) => [
+                        'id' => $t->id,
+                        'ticket_no' => $t->ticket_no,
+                        'title' => $t->title,
+                        'priority' => $t->priority,
+                        'status' => $t->status,
+                        'status_label' => $t->status_label,
+                        'is_overdue' => $t->is_overdue,
+                        'is_near_overdue' => $t->is_near_overdue,
+                    ])->values()->all(),
+                ];
+            }
+
+            $unassignedCount = HelpdeskCase::where('status', 'assigned')
+                ->whereIn('escalated_to_team', $teamNames)
+                ->count();
+
+            $technicianWorkload = [
+                'team_title' => $teamTitle,
+                'manager_role' => $user->role,
+                'target_teams' => $teamNames,
+                'total_technicians' => $technicians->count(),
+                'total_active_tickets' => collect($technicianList)->sum('total_active'),
+                'total_warning_tickets' => collect($technicianList)->sum('sla_warning_count'),
+                'total_overdue_tickets' => collect($technicianList)->sum('sla_overdue_count'),
+                'unassigned_queue_count' => $unassignedCount,
+                'technicians' => $technicianList,
+            ];
+        }
+
         // กรองข้อมูลตาม Filter จาก URL (ถ้ามี)
         $query = clone $baseQuery;
-        $query->filter($request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive']));
+        $query->filter($request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive', 'technician_id']));
 
         $cases = $query->orderBy('created_at', 'desc')->paginate(10);
 
@@ -235,7 +335,8 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard/ItStaffDashboard', [
             'cases' => $cases,
             'stats' => $stats,
-            'filters' => $request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive']),
+            'technician_workload' => $technicianWorkload,
+            'filters' => $request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive', 'technician_id']),
         ]);
     }
 }

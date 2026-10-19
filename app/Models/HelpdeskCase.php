@@ -307,7 +307,7 @@ class HelpdeskCase extends Model
                         ->whereNull('requires_preventive_measure');
                 } elseif ($status === 'task2_all') {
                     $user = Auth::user();
-                    if (! $user || in_array($user->role, ['manager', 'administrator'])) {
+                    if (! $user || (method_exists($user, 'isManager') && $user->isManager()) || in_array($user->role, ['manager', 'manager_software', 'manager_network_hardware', 'administrator'])) {
                         $query->where('status', 'closed')
                             ->where(function ($q) {
                                 $q->whereNull('requires_preventive_measure')
@@ -358,6 +358,14 @@ class HelpdeskCase extends Model
             ->when($filters['team'] ?? null, function ($query, $team) {
                 if ($team !== 'all') {
                     $query->where('escalated_to_team', $team);
+                }
+            })
+            ->when($filters['technician_id'] ?? null, function ($query, $technicianId) {
+                if (! empty($technicianId) && $technicianId !== 'all') {
+                    $query->where(function ($q) use ($technicianId) {
+                        $q->where('in_progress_by', $technicianId)
+                            ->orWhere('analyzing_by', $technicianId);
+                    });
                 }
             });
     }

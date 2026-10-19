@@ -244,4 +244,62 @@ class HelpdeskDashboardTest extends TestCase
             })
         );
     }
+
+    public function test_tier3_software_manager_sees_only_software_subordinates_workload(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager_software']);
+        $techSoftware = User::factory()->create(['role' => 'team_software', 'name' => 'Dev Tech', 'is_active' => true]);
+        User::factory()->create(['role' => 'team_hardware', 'name' => 'HW Tech', 'is_active' => true]);
+
+        // Create an active ticket held by techSoftware
+        HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0010',
+            'title' => 'Software Bug Issue',
+            'description' => 'Test software issue with 5W2H details',
+            'category' => 'Software',
+            'priority' => 'high',
+            'status' => 'in_progress',
+            'requester_name' => 'Requester 1',
+            'requester_phone' => '080-000-0000',
+            'location' => 'Building A',
+            'escalated_to_team' => 'Software',
+            'in_progress_by' => $techSoftware->id,
+            'sla_due_at' => now()->addHours(2),
+        ]);
+
+        $response = $this->actingAs($manager)->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Dashboard/ItStaffDashboard')
+            ->has('technician_workload', fn ($tw) => $tw
+                ->where('manager_role', 'manager_software')
+                ->where('total_technicians', 1)
+                ->where('total_active_tickets', 1)
+                ->where('technicians.0.id', $techSoftware->id)
+                ->where('technicians.0.in_progress_count', 1)
+                ->etc()
+            )
+        );
+    }
+
+    public function test_tier3_network_hardware_manager_sees_hardware_and_network_subordinates(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager_network_hardware']);
+        User::factory()->create(['role' => 'team_software', 'name' => 'Dev Tech', 'is_active' => true]);
+        User::factory()->create(['role' => 'team_hardware', 'name' => 'HW Tech', 'is_active' => true]);
+        User::factory()->create(['role' => 'team_network', 'name' => 'Net Tech', 'is_active' => true]);
+
+        $response = $this->actingAs($manager)->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Dashboard/ItStaffDashboard')
+            ->has('technician_workload', fn ($tw) => $tw
+                ->where('manager_role', 'manager_network_hardware')
+                ->where('total_technicians', 2)
+                ->etc()
+            )
+        );
+    }
 }

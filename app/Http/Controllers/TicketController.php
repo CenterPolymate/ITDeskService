@@ -181,7 +181,10 @@ class TicketController extends Controller
         }
 
         if (! in_array($ticket->status, ['pending', 'assigned']) && ! is_null($ticket->escalated_to_team)) {
-            return redirect()->back()->withErrors('ไม่สามารถแก้ไขการมอบหมายงานได้ เนื่องจากทีมได้รับงานไปแล้ว');
+            $isManagerOrAdmin = in_array(Auth::user()->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware'], true);
+            if (! $isManagerOrAdmin) {
+                return redirect()->back()->withErrors('ไม่สามารถแก้ไขการมอบหมายงานได้ เนื่องจากทีมได้รับงานไปแล้ว');
+            }
         }
 
         $request->validate([
@@ -249,7 +252,8 @@ class TicketController extends Controller
         $ticket = HelpdeskCase::findOrFail($id);
 
         // Allow manager to 'close' (review) and allow IT team to submit 'preventive_action' even if closed
-        if ($ticket->status === 'closed' && ! ($request->action === 'close' && Auth::user()->role === 'manager') && ! in_array($request->action, ['start_preventive_measure', 'preventive_action', 'close_preventive_measure'])) {
+        $isManager = in_array(Auth::user()->role, ['manager', 'manager_software', 'manager_network_hardware'], true);
+        if ($ticket->status === 'closed' && ! ($request->action === 'close' && $isManager) && ! in_array($request->action, ['start_preventive_measure', 'preventive_action', 'close_preventive_measure'])) {
             return redirect()->back()->withErrors('ไม่สามารถดำเนินการได้ เนื่องจากใบงานถูกปิดแล้ว');
         }
 
@@ -278,12 +282,12 @@ class TicketController extends Controller
                         'team_software' => 'Software',
                     ];
                     $userTeam = $teamMap[$user->role] ?? null;
-                    if ($userTeam !== $ticket->escalated_to_team && ! in_array($user->role, ['administrator', 'manager'])) {
+                    if ($userTeam !== $ticket->escalated_to_team && ! in_array($user->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware'])) {
                         return redirect()->route('tickets.show', $id)
                             ->with('error', 'ไม่อนุญาต: ใบงานนี้ถูกมอบหมายให้ทีม '.$ticket->escalated_to_team.' เท่านั้น');
                     }
                 } else {
-                    if (! in_array($user->role, ['helpdesk', 'administrator', 'manager'])) {
+                    if (! in_array($user->role, ['helpdesk', 'administrator', 'manager', 'manager_software', 'manager_network_hardware'])) {
                         return redirect()->route('tickets.show', $id)
                             ->with('error', 'ไม่อนุญาต: ใบงานนี้อยู่ในความรับผิดชอบของ Helpdesk');
                     }

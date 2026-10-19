@@ -20,7 +20,7 @@ class ReportController extends Controller
     {
         $user = Auth::user();
 
-        if (! in_array($user?->role, ['administrator', 'manager', 'helpdesk'], true)) {
+        if (! in_array($user?->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware', 'helpdesk'], true)) {
             abort(403, 'คุณไม่มีสิทธิ์เข้าถึงหน้ารายงานสถิตินี้');
         }
 
@@ -356,7 +356,7 @@ class ReportController extends Controller
     {
         $user = Auth::user();
 
-        if (! in_array($user?->role, ['administrator', 'manager', 'helpdesk'], true)) {
+        if (! in_array($user?->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware', 'helpdesk'], true)) {
             abort(403, 'คุณไม่มีสิทธิ์ดาวน์โหลดรายงานสถิตินี้');
         }
 

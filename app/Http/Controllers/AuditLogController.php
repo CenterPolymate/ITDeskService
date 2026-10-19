@@ -11,16 +11,17 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AuditLogController extends Controller
 {
-    private function authorizeAdministrator(): void
+    private function authorizeAdminOrManager(): void
     {
-        if (! request()->user() || request()->user()->role !== 'administrator') {
+        $user = request()->user();
+        if (! $user || ! in_array($user->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware'], true)) {
             abort(403, 'Unauthorized action.');
         }
     }
 
     public function index(): Response|StreamedResponse
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $perPage = (int) request()->input('per_page', 30);
         $query = AuditLog::with('user')->orderBy('created_at', 'desc');
 
@@ -128,7 +129,7 @@ class AuditLogController extends Controller
             return $log;
         });
 
-        $users = User::whereIn('role', ['administrator', 'manager'])->orderBy('name')->get(['id', 'name']);
+        $users = User::whereIn('role', ['administrator', 'manager', 'manager_software', 'manager_network_hardware'])->orderBy('name')->get(['id', 'name']);
 
         return Inertia::render('AuditLogs/Index', [
             'logs' => $logs,

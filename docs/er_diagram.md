@@ -28,7 +28,7 @@ erDiagram
         string name
         string email
         string password
-        string role "สิทธิ์: user, helpdesk, team_hardware, team_network, team_software, manager, administrator"
+        string role "สิทธิ์: user, helpdesk, team_hardware, team_network, team_software, manager, manager_software, manager_network_hardware, administrator"
         bigint company_id FK
         bigint department_id FK "เปลี่ยนจาก string เป็น FK"
         string phone
@@ -218,4 +218,6 @@ erDiagram
 > - **การแยกบริบทข้อมูลสำหรับผู้ใช้งานทั่วไป (User Dashboard PCAR Isolation):** ในหน้า Dashboard ของ Role `user` (ทั้งตารางในโหมดเดสก์ท็อปและการ์ดในโหมดมือถือ) รวมถึงส่วนหัวของหน้ารายละเอียดใบงาน จะไม่แสดงสถานะ PCAR หรือเลขที่ PCAR เพื่อแยกกระบวนการภายในของฝ่าย IT ออกจากมุมมองของผู้ใช้งาน
 > - **ระบบแจ้งเตือน SLA Overdue Warning Alert:** ตาราง `HELPDESK_CASES` มีฟิลด์ `sla_warning_sent_at` และ `sla_breached_sent_at` สำหรับบันทึกเวลาที่ส่งการแจ้งเตือนเคสใกล้หมดเวลา SLA และเคสเกินเวลา SLA ป้องกันการส่งซ้ำ
 > - **ระบบเสียงแจ้งเตือนสังเคราะห์และตัวเลือกโทนเสียง (Audio Notifications & Tone Selector):** ระบบเสียงแจ้งเตือนสังเคราะห์ผ่าน Web Audio API และบันทึกการตั้งค่าเปิด/ปิด (`itdesk_sound_enabled`) รวมถึงรูปแบบโทนเสียง (`itdesk_sound_tone`) ลงใน `localStorage` ของเบราว์เซอร์ผู้ใช้โดยตรง จึงไม่สร้าง Overhead หรือฟิลด์เพิ่มเติมในฐานข้อมูล
+> - **การแบ่งทีมหัวหน้างานระดับ Tier 3 และการติดตามภาระงาน (Tier 3 Managers & Subordinate Teams):** บทบาท Manager (Tier 3) ถูกแบ่งออกเป็น 2 ทีม ได้แก่ (1) `manager_software` (Software Manager) ดูแลลูกน้องทีม `team_software` (2) `manager_network_hardware` (Network & Hardware Manager) ดูแลลูกน้องทีม `team_hardware` และ `team_network` โดยบน Dashboard ของ Manager แต่ละทีมจะติดตามภาระงานคงค้างของช่างที่เป็นลูกน้องในทีมของตนเองโดยเฉพาะ ขณะที่ `manager` (ทั่วไป) และ `administrator` จะดูแลภาพรวมของทุกทีม
+> - **การให้สิทธิ์ Helpdesk (Tier 1) จัดการผู้ใช้งานทั่วไป:** Role `helpdesk` ได้รับสิทธิ์ในการจัดการผู้ใช้งานทั่วไป (Normal Users) เช่น การเพิ่ม, แก้ไขข้อมูล, และการระงับบัญชี (โดยไม่สามารถยกระดับสิทธิ์เป็น Administrator ได้)
 > - **External Systems (LINE OA & Email Server):** เป็นระบบภายนอกที่ไม่ได้เก็บข้อมูลเป็นตารางหลักในฐานข้อมูล แต่ระบบ ITDeskService จะเชื่อมต่อผ่าน API และ SMTP เพื่อใช้ในการแจ้งเตือน (Notifications) และยืนยันตัวตน (Email Verification)

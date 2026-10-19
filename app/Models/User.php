@@ -40,11 +40,19 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Manager roles list.
+     */
+    public static function managerRoles(): array
+    {
+        return ['manager', 'manager_software', 'manager_network_hardware'];
+    }
+
+    /**
      * Check if user is a manager.
      */
     public function isManager(): bool
     {
-        return $this->role === 'manager';
+        return in_array($this->role, self::managerRoles(), true);
     }
 
     /**

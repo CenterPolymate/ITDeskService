@@ -16,7 +16,8 @@ class UserManagementController extends Controller
 {
     private function authorizeAdminOrManager()
     {
-        if (! request()->user() || ! in_array(request()->user()->role, ['administrator', 'manager'])) {
+        $user = request()->user();
+        if (! $user || ! in_array($user->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware'], true)) {
             abort(403, 'Unauthorized action.');
         }
     }
@@ -87,11 +88,15 @@ class UserManagementController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'role' => ['required', 'string', 'in:helpdesk,team_hardware,team_network,team_software,manager,administrator'],
+            'role' => ['required', 'string', 'in:helpdesk,team_hardware,team_network,team_software,manager,manager_software,manager_network_hardware,administrator'],
             'company' => ['required', 'string', 'exists:companies,name'],
             'department' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
         ]);
+
+        if ($request->role === 'administrator' && request()->user()->role !== 'administrator') {
+            abort(403, 'Unauthorized action: only administrators can grant administrator role.');
+        }
 
         User::create([
             'name' => $request->name,
@@ -125,7 +130,7 @@ class UserManagementController extends Controller
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'role' => ['required', 'string', 'in:helpdesk,team_hardware,team_network,team_software,manager,administrator,user'],
+            'role' => ['required', 'string', 'in:helpdesk,team_hardware,team_network,team_software,manager,manager_software,manager_network_hardware,administrator,user'],
             'company' => ['required', 'string', 'exists:companies,name'],
             'department' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
@@ -136,6 +141,10 @@ class UserManagementController extends Controller
         }
 
         $request->validate($rules);
+
+        if ($request->role === 'administrator' && request()->user()->role !== 'administrator') {
+            abort(403, 'Unauthorized action: only administrators can grant administrator role.');
+        }
 
         $updateData = [
             'email' => $request->email,

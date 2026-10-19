@@ -159,10 +159,12 @@ export default function Edit({ normal_user, companies = [] }) {
                                     >
                                         <option value="user">User ทั่วไป</option>
                                         <option value="helpdesk">Helpdesk (Tier 1)</option>
-                                        <option value="team_hardware">Team Hardware</option>
-                                        <option value="team_network">Team Network</option>
-                                        <option value="team_software">Team Software</option>
-                                        <option value="manager">Manager (Tier 3)</option>
+                                        <option value="team_hardware">Team Hardware (Tier 2)</option>
+                                        <option value="team_network">Team Network (Tier 2)</option>
+                                        <option value="team_software">Team Software (Tier 2)</option>
+                                        <option value="manager_software">Software Manager (Tier 3)</option>
+                                        <option value="manager_network_hardware">Network & Hardware Manager (Tier 3)</option>
+                                        <option value="manager">IT Manager (Tier 3 - ทั่วไป)</option>
                                         {auth.user?.role === 'administrator' && (
                                             <option value="administrator">Administrator</option>
                                         )}

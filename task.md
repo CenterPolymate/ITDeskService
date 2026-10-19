@@ -177,6 +177,19 @@
 - [x] ปรับปรุงความกระชับของบริบทระบบ (Context Document Cleanup):
   - [x] ลบตารางบัญชีทดสอบระบบ (Test Accounts) ออกจาก `CONTEXT.md` อย่างถาวรตามคำสั่งของผู้ใช้งาน
 - [x] ตรวจสอบและอัปเดตเอกสารหลักทั้ง 6 ไฟล์ (`er_diagram.md`, `glossary.md`, `implementation_plan.md`, `task.md`, `CONTEXT.md`, `AGENTS.md`) ให้เป็นปัจจุบัน
+- [x] มอบสิทธิ์การจัดการผู้ใช้งานทั่วไป (Normal Users Management) ให้กับ Helpdesk (Tier 1):
+  - [x] ปรับปรุง `NormalUserController` ให้ Role `helpdesk` สามารถเข้าถึง Index, Create, Store, Edit, Update, Toggle Status, และ Send Reset Link
+  - [x] ป้องกันความปลอดภัย: ไม่ให้ Helpdesk ยกระดับสิทธิ์เป็น Administrator
+  - [x] เพิ่มลิงก์เมนูนำทาง "ผู้ใช้งานทั่วไป" บน Navbar สำหรับ Helpdesk
+  - [x] อัปเดตและรันชุดทดสอบ `NormalUserManagementTest.php` ผ่านครบ 100%
+- [x] แบ่งโครงสร้างบทบาท Tier 3 ออกเป็น 2 ทีม พร้อมระบบติดตามภาระงานของทีมช่าง (Technician Workload Tracking):
+  - [x] สร้าง Role `manager_software` (Software Manager) ดูแลลูกน้องทีม `team_software` (Tier 2)
+  - [x] สร้าง Role `manager_network_hardware` (Network & Hardware Manager) ดูแลลูกน้องทีม `team_hardware` และ `team_network` (Tier 2)
+  - [x] อัปเดต Model `User` (`managerRoles()`, `isManager()`) และ Controllers ทั้งหมดที่เกี่ยวข้อง
+  - [x] พัฒนา Widget "ภาระงานของทีมช่าง" บน IT Staff Dashboard แสดงเฉพาะช่างที่เป็นลูกน้องในทีมของตนเอง พร้อมสถิติต่างๆ และปุ่มกรองงานด่วน 1-Click
+  - [x] เพิ่มตัวกรองช่าง (`technician_id`) ในแบบฟอร์มค้นหา Dashboard
+  - [x] ให้สิทธิ์ Tier 3 Manager เข้าถึงและจัดการ บริษัท, หมวดหมู่, วันหยุด, Audit Logs และส่งต่องานในทุกสถานะงาน
+  - [x] รันชุดทดสอบ `HelpdeskDashboardTest.php` และ Build Frontend ผ่าน 100%
 - **All current tasks are completed.**
 
 

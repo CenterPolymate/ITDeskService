@@ -12,7 +12,7 @@ class HolidayController extends Controller
     private function authorizeAdminOrManager(): void
     {
         $user = request()->user();
-        if (! $user || ! in_array($user->role, ['administrator', 'manager'], true)) {
+        if (! $user || ! in_array($user->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware'], true)) {
             abort(403, 'Unauthorized action.');
         }
     }

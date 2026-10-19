@@ -16,6 +16,21 @@ export default function Index({ users, filters = {} }) {
         return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
     };
 
+    const formatRole = (role) => {
+        const roleMap = {
+            administrator: 'Administrator',
+            manager: 'IT Manager (Tier 3)',
+            manager_software: 'Software Manager (Tier 3)',
+            manager_network_hardware: 'Network & Hardware Manager (Tier 3)',
+            helpdesk: 'Helpdesk (Tier 1)',
+            team_hardware: 'Team Hardware (Tier 2)',
+            team_network: 'Team Network (Tier 2)',
+            team_software: 'Team Software (Tier 2)',
+            user: 'User ทั่วไป',
+        };
+        return roleMap[role] || role;
+    };
+
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         router.get(
@@ -166,7 +181,7 @@ export default function Index({ users, filters = {} }) {
                                                     <span className={`px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full ${
                                                         user.is_active ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-500'
                                                     } shadow-sm`}>
-                                                        {user.role}
+                                                        {formatRole(user.role)}
                                                     </span>
                                                     {!user.is_active ? (
                                                         <span className="px-2 py-1 inline-flex text-[10px] leading-4 font-bold rounded-full bg-red-100 text-red-800 shadow-sm">
@@ -302,7 +317,7 @@ export default function Index({ users, filters = {} }) {
                                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                                             user.is_active ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-500'
                                                         }`}>
-                                                            {user.role}
+                                                            {formatRole(user.role)}
                                                         </span>
                                                     </td>
                                                     <td className={`px-4 py-2 text-sm ${user.is_active ? 'text-gray-500' : 'text-gray-400'}`}>

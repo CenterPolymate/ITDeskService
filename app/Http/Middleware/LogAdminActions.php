@@ -23,7 +23,7 @@ class LogAdminActions
     {
         $user = Auth::user();
         $impersonatedBy = session('impersonated_by');
-        $isPrivilegedUser = (Auth::check() && in_array($user?->role, ['administrator', 'manager'], true)) || ($impersonatedBy !== null);
+        $isPrivilegedUser = (Auth::check() && in_array($user?->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware'], true)) || ($impersonatedBy !== null);
         $method = $request->method();
         $isModifyingAction = in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE']);
         $shouldLog = $isPrivilegedUser && $isModifyingAction;

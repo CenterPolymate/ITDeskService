@@ -27,13 +27,23 @@ class NormalUserManagementTest extends TestCase
         );
     }
 
-    public function test_non_admin_cannot_view_normal_users_index(): void
+    public function test_helpdesk_and_manager_can_view_normal_users_index(): void
+    {
+        $helpdesk = User::factory()->create(['role' => 'helpdesk']);
+        $managerSoftware = User::factory()->create(['role' => 'manager_software']);
+        User::factory()->count(2)->create(['role' => 'user']);
+
+        $this->actingAs($helpdesk)->get(route('normal_users.index'))->assertOk();
+        $this->actingAs($managerSoftware)->get(route('normal_users.index'))->assertOk();
+    }
+
+    public function test_regular_user_and_tier2_cannot_view_normal_users_index(): void
     {
         $user = User::factory()->create(['role' => 'user']);
-        $helpdesk = User::factory()->create(['role' => 'helpdesk']);
+        $tier2 = User::factory()->create(['role' => 'team_hardware']);
 
         $this->actingAs($user)->get(route('normal_users.index'))->assertForbidden();
-        $this->actingAs($helpdesk)->get(route('normal_users.index'))->assertForbidden();
+        $this->actingAs($tier2)->get(route('normal_users.index'))->assertForbidden();
     }
 
     public function test_admin_can_create_normal_user(): void

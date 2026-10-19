@@ -12,16 +12,17 @@ use Inertia\Inertia;
 
 class CompanyController extends Controller
 {
-    private function authorizeAdministrator()
+    private function authorizeAdminOrManager(): void
     {
-        if (! request()->user() || request()->user()->role !== 'administrator') {
+        $user = request()->user();
+        if (! $user || ! in_array($user->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware'], true)) {
             abort(403, 'Unauthorized action.');
         }
     }
 
     public function index()
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $companies = Company::orderBy('name')->get();
 
         return Inertia::render('Companies/Index', [
@@ -31,14 +32,14 @@ class CompanyController extends Controller
 
     public function create()
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
 
         return Inertia::render('Companies/Create');
     }
 
     public function store(Request $request)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $request->validate([
             'name' => 'required|string|max:255|unique:companies,name',
             'short_name' => 'nullable|string|max:50',
@@ -81,7 +82,7 @@ class CompanyController extends Controller
 
     public function edit(Company $company)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
 
         $company->load('departments');
         $mappedDepartments = $company->departments->pluck('name')->toArray();
@@ -99,7 +100,7 @@ class CompanyController extends Controller
 
     public function update(Request $request, Company $company)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $request->validate([
             'name' => 'required|string|max:255|unique:companies,name,'.$company->id,
             'short_name' => 'nullable|string|max:50',
@@ -131,7 +132,7 @@ class CompanyController extends Controller
 
     public function destroy(Company $company)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
 
         if (! $company->hasHistory()) {
             Sla::where('company', $company->name)->delete();
@@ -150,7 +151,7 @@ class CompanyController extends Controller
 
     public function toggleStatus(Company $company)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
 
         $company->update(['is_active' => ! $company->is_active]);
 
@@ -161,7 +162,7 @@ class CompanyController extends Controller
 
     public function storeDepartment(Request $request, Company $company)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $request->validate([
             'name' => 'required|string|max:255',
         ]);
@@ -173,7 +174,7 @@ class CompanyController extends Controller
 
     public function mapDepartment(Request $request, Company $company)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $request->validate([
             'original_name' => 'required|string|max:255',
             'action' => 'required|in:create,merge',
@@ -221,7 +222,7 @@ class CompanyController extends Controller
 
     public function updateDepartment(Request $request, Department $department)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $request->validate([
             'name' => 'required|string|max:255',
         ]);
@@ -249,7 +250,7 @@ class CompanyController extends Controller
 
     public function destroyDepartment(Department $department)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $companyId = $department->company_id;
         $department->delete();
 
@@ -258,7 +259,7 @@ class CompanyController extends Controller
 
     public function import(Request $request)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $request->validate([
             'csv_file' => ['required', 'file', 'max:2048', function (string $attribute, mixed $value, \Closure $fail): void {
                 if (! in_array(strtolower($value->getClientOriginalExtension()), ['csv', 'txt'], true)) {
@@ -330,7 +331,7 @@ class CompanyController extends Controller
 
     public function export()
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
 
         $companies = Company::with('departments')->orderBy('name')->get();
 
