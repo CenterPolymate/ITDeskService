@@ -9,16 +9,17 @@ use Inertia\Inertia;
 
 class HolidayController extends Controller
 {
-    private function authorizeAdministrator()
+    private function authorizeAdminOrManager(): void
     {
-        if (! request()->user() || request()->user()->role !== 'administrator') {
+        $user = request()->user();
+        if (! $user || ! in_array($user->role, ['administrator', 'manager'], true)) {
             abort(403, 'Unauthorized action.');
         }
     }
 
     public function index(Request $request)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $holidays = Holiday::orderBy('date', 'asc')->get();
 
         $suggestedHolidays = [];
@@ -99,7 +100,7 @@ class HolidayController extends Controller
 
     public function store(Request $request)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
         $request->validate([
             'name' => 'required|string|max:255',
             'date' => [
@@ -124,7 +125,7 @@ class HolidayController extends Controller
 
     public function destroy(Holiday $holiday)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
 
         if ($holiday->date->lt(now()->startOfDay())) {
             return redirect()->route('holidays.index')->with('error', 'ไม่สามารถลบวันหยุดที่ผ่านมาแล้วได้');
@@ -137,7 +138,7 @@ class HolidayController extends Controller
 
     public function storeBulk(Request $request)
     {
-        $this->authorizeAdministrator();
+        $this->authorizeAdminOrManager();
 
         $request->validate([
             'holidays' => 'required|array',

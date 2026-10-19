@@ -55,18 +55,12 @@
                         </div>
                     @endif
 
-                    @if(Auth::user()?->role === 'manager')
-                        <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')" class="whitespace-nowrap">
-                            {{ __('จัดการหมวดหมู่ปัญหา') }}
-                        </x-nav-link>
-                    @endif
-
-                    @if(Auth::user()?->role === 'administrator')
+                    @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
                         <div class="hidden sm:flex sm:items-center">
                             <x-dropdown align="left" width="48">
                                 <x-slot name="trigger">
-                                    <button class="inline-flex items-center px-2.5 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 whitespace-nowrap {{ request()->routeIs('categories.*') || request()->routeIs('slas.*') || request()->routeIs('settings.*') || request()->routeIs('audit_logs.*') ? 'border-b-2 border-indigo-400 text-gray-900 focus:border-indigo-700' : '' }}">
-                                        <span>ตั้งค่าระบบ (Admin)</span>
+                                    <button class="inline-flex items-center px-2.5 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 whitespace-nowrap {{ request()->routeIs('categories.*') || request()->routeIs('holidays.*') || request()->routeIs('companies.*') || request()->routeIs('settings.*') || request()->routeIs('audit_logs.*') || request()->routeIs('backups.*') ? 'border-b-2 border-indigo-400 text-gray-900 focus:border-indigo-700' : '' }}">
+                                        <span>{{ Auth::user()?->role === 'administrator' ? 'ตั้งค่าระบบ (Admin)' : 'ตั้งค่าระบบ' }}</span>
                                         <div class="ms-1">
                                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -76,9 +70,12 @@
                                 </x-slot>
 
                                 <x-slot name="content">
-                                    <x-dropdown-link :href="route('companies.index')">
-                                        {{ __('จัดการรายชื่อบริษัท') }}
-                                    </x-dropdown-link>
+                                    @if(Auth::user()?->role === 'administrator')
+                                        <x-dropdown-link :href="route('companies.index')">
+                                            {{ __('จัดการรายชื่อบริษัท') }}
+                                        </x-dropdown-link>
+                                    @endif
+
                                     <x-dropdown-link :href="route('categories.index')">
                                         {{ __('จัดการหมวดหมู่ปัญหา') }}
                                     </x-dropdown-link>
@@ -86,15 +83,18 @@
                                     <x-dropdown-link :href="route('holidays.index')">
                                         {{ __('ตั้งค่าวันหยุด (Holidays)') }}
                                     </x-dropdown-link>
-                                    <x-dropdown-link :href="route('settings.index')">
-                                        {{ __('ตั้งค่าระบบ') }}
-                                    </x-dropdown-link>
-                                    <x-dropdown-link :href="route('audit_logs.index')">
-                                        {{ __('ประวัติการใช้งาน') }}
-                                    </x-dropdown-link>
-                                    <x-dropdown-link :href="route('backups.index')">
-                                        {{ __('ระบบสำรองข้อมูล (Backup)') }}
-                                    </x-dropdown-link>
+
+                                    @if(Auth::user()?->role === 'administrator')
+                                        <x-dropdown-link :href="route('settings.index')">
+                                            {{ __('ตั้งค่าระบบ') }}
+                                        </x-dropdown-link>
+                                        <x-dropdown-link :href="route('audit_logs.index')">
+                                            {{ __('ประวัติการใช้งาน') }}
+                                        </x-dropdown-link>
+                                        <x-dropdown-link :href="route('backups.index')">
+                                            {{ __('ระบบสำรองข้อมูล (Backup)') }}
+                                        </x-dropdown-link>
+                                    @endif
                                 </x-slot>
                             </x-dropdown>
                         </div>
@@ -432,17 +432,15 @@
                 @endif
             @endif
 
-            @if(Auth::user()?->role === 'manager')
-                <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">
-                    {{ __('จัดการหมวดหมู่ปัญหา') }}
-                </x-responsive-nav-link>
-            @endif
-
-            @if(Auth::user()?->role === 'administrator')
-                <div class="px-4 py-2 mt-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">ตั้งค่าระบบ (Admin)</div>
-                <x-responsive-nav-link :href="route('companies.index')" :active="request()->routeIs('companies.*')" class="pl-8">
-                    {{ __('จัดการรายชื่อบริษัท') }}
-                </x-responsive-nav-link>
+            @if(in_array(Auth::user()?->role, ['manager', 'administrator']))
+                <div class="px-4 py-2 mt-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {{ Auth::user()?->role === 'administrator' ? 'ตั้งค่าระบบ (Admin)' : 'ตั้งค่าระบบ' }}
+                </div>
+                @if(Auth::user()?->role === 'administrator')
+                    <x-responsive-nav-link :href="route('companies.index')" :active="request()->routeIs('companies.*')" class="pl-8">
+                        {{ __('จัดการรายชื่อบริษัท') }}
+                    </x-responsive-nav-link>
+                @endif
                 <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')" class="pl-8">
                     {{ __('จัดการหมวดหมู่ปัญหา') }}
                 </x-responsive-nav-link>
@@ -450,15 +448,18 @@
                 <x-responsive-nav-link :href="route('holidays.index')" :active="request()->routeIs('holidays.*')" class="pl-8">
                     {{ __('ตั้งค่าวันหยุด (Holidays)') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('settings.index')" :active="request()->routeIs('settings.*')" class="pl-8">
-                    {{ __('ตั้งค่าระบบ') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('audit_logs.index')" :active="request()->routeIs('audit_logs.*')" class="pl-8">
-                    {{ __('ประวัติการใช้งาน') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('backups.index')" :active="request()->routeIs('backups.*')" class="pl-8">
-                    {{ __('ระบบสำรองข้อมูล (Backup)') }}
-                </x-responsive-nav-link>
+
+                @if(Auth::user()?->role === 'administrator')
+                    <x-responsive-nav-link :href="route('settings.index')" :active="request()->routeIs('settings.*')" class="pl-8">
+                        {{ __('ตั้งค่าระบบ') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('audit_logs.index')" :active="request()->routeIs('audit_logs.*')" class="pl-8">
+                        {{ __('ประวัติการใช้งาน') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('backups.index')" :active="request()->routeIs('backups.*')" class="pl-8">
+                        {{ __('ระบบสำรองข้อมูล (Backup)') }}
+                    </x-responsive-nav-link>
+                @endif
             @endif
         </div>
 
