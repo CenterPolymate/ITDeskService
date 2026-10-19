@@ -238,6 +238,7 @@
   - [x] หากพยายามเข้าหน้าเปิดเคส จะถูก Redirect ไปยัง Dashboard พร้อมข้อความแจ้งเตือน หรือปฏิเสธคำขอด้วย HTTP 403 Forbidden
   - [x] เพิ่มชุดทดสอบอัตโนมัติใน `TicketManagementTest.php` ครอบคลุมทุกบทบาท
 - [x] แก้ไขบั๊ก Class "App\Http\Controllers\Team" not found ใน `ReportController.php` (เพิ่ม `use App\Models\Team;`)
+- [x] ปรับปรุงเมนู Dropdown "ตั้งค่าระบบ (Admin)" ตามแนวทางที่ 1 (จัดกลุ่ม Service & Organization และ System & Security พร้อม Divider และ Icons สวยงาม)
 
 
 
