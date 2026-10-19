@@ -144,8 +144,8 @@ class TicketController extends Controller
         }
 
         // Tier 2 technicians should not see CSAT rating and feedback
-        $tier2Roles = ['team_hardware', 'team_network', 'team_software'];
-        if (in_array($user->role, $tier2Roles)) {
+        $tier2Roles = ['technician', 'team_hardware', 'team_network', 'team_software'];
+        if (in_array($user->role, $tier2Roles, true)) {
             $ticket->makeHidden(['rating', 'feedback']);
         }
 

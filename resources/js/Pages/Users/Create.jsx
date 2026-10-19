@@ -138,16 +138,11 @@ export default function Create({ companies = [] }) {
                                         className="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                                         required
                                     >
-                                        <option value="helpdesk">Helpdesk (Tier 1)</option>
-                                        <option value="technician">เจ้าหน้าที่ทีมงาน (Tier 2 Team Member - ระบุทีมได้อิสระ)</option>
-                                        <option value="team_hardware">Team Hardware (Tier 2)</option>
-                                        <option value="team_network">Team Network (Tier 2)</option>
-                                        <option value="team_software">Team Software (Tier 2)</option>
-                                        <option value="manager_software">Software Manager (Tier 3)</option>
-                                        <option value="manager_network_hardware">Network & Hardware Manager (Tier 3)</option>
-                                        <option value="manager">IT Manager (Tier 3 - ทั่วไป)</option>
+                                        <option value="helpdesk">Service Desk Agent (Tier 1)</option>
+                                        <option value="technician">Technical Specialist (Tier 2)</option>
+                                        <option value="manager">IT Service Manager (Tier 3)</option>
                                         {auth.user?.role === 'administrator' && (
-                                            <option value="administrator">Administrator</option>
+                                            <option value="administrator">System Administrator</option>
                                         )}
                                     </select>
                                     {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role}</p>}

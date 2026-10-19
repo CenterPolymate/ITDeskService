@@ -56,11 +56,20 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check if user is an administrator.
+     */
+    public function isAdministrator(): bool
+    {
+        return $this->role === 'administrator';
+    }
+
+    /**
      * Check if user is a technician / Tier 2 specialist.
      */
     public function isTechnician(): bool
     {
-        return in_array($this->role, ['technician', 'team_hardware', 'team_network', 'team_software'], true);
+        return in_array($this->role, ['technician', 'team_hardware', 'team_network', 'team_software'], true)
+            || $this->teams()->exists();
     }
 
     /**

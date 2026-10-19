@@ -10,6 +10,7 @@ export default function Index({
     priorityDistribution = [],
     pcarIncidents = [],
     companies = [],
+    teams = [],
     thaiMonthNames = {},
     years = [],
     selectedMonthName = '',
@@ -276,9 +277,19 @@ export default function Index({
                                 >
                                     <option value="all">ทุกทีม (All Teams)</option>
                                     <option value="helpdesk">Helpdesk (Tier 1)</option>
-                                    <option value="team_hardware">ทีม Hardware</option>
-                                    <option value="team_network">ทีม Network</option>
-                                    <option value="team_software">ทีม Software</option>
+                                    {teams && teams.length > 0 ? (
+                                        teams.map((t) => (
+                                            <option key={t.id} value={t.name}>
+                                                ทีม {t.name}
+                                            </option>
+                                        ))
+                                    ) : (
+                                        <>
+                                            <option value="Hardware">ทีม Hardware</option>
+                                            <option value="Network">ทีม Network</option>
+                                            <option value="Software">ทีม Software</option>
+                                        </>
+                                    )}
                                 </select>
                             </div>
 

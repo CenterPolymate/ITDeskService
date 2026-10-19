@@ -34,16 +34,16 @@ const KEY_MAP = {
 };
 
 const ROLE_MAP = {
-    administrator: 'ผู้ดูแลระบบสูงสุด',
-    manager: 'IT Manager (Tier 3)',
+    administrator: 'System Administrator (ผู้ดูแลระบบ)',
+    manager: 'IT Service Manager (Tier 3)',
+    technician: 'Technical Specialist (Tier 2)',
+    helpdesk: 'Service Desk Agent (Tier 1)',
+    user: 'End User (ผู้ใช้งานทั่วไป)',
     manager_software: 'Software Manager (Tier 3)',
     manager_network_hardware: 'Network & Hardware Manager (Tier 3)',
-    helpdesk: 'ฝ่ายรับเรื่อง (Helpdesk)',
-    team_hardware: 'ช่างฮาร์ดแวร์',
-    team_network: 'ช่างระบบเครือข่าย',
-    team_software: 'โปรแกรมเมอร์/ซอฟต์แวร์',
-    technician: 'เจ้าหน้าที่ทีมงาน (Tier 2 Team Member)',
-    user: 'ผู้ใช้งานทั่วไป',
+    team_hardware: 'Team Hardware (Tier 2)',
+    team_network: 'Team Network (Tier 2)',
+    team_software: 'Team Software (Tier 2)',
 };
 
 const IGNORED_KEYS = ['id', 'created_at', 'updated_at', 'deleted_at', 'email_verified_at', 'remember_token', 'password'];

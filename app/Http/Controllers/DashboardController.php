@@ -188,7 +188,7 @@ class DashboardController extends Controller
             $waitingTickets = (clone $baseQuery)
                 ->where('status', 'resolved')
                 ->orderBy('resolved_at', 'desc')
-                ->get(['id', 'ticket_no', 'title', 'category', 'resolved_at']);
+                ->get(['id', 'ticket_no', 'title', 'category', 'status', 'resolved_at']);
 
             return Inertia::render('Dashboard/UserDashboard', [
                 'cases' => $cases,
@@ -207,14 +207,21 @@ class DashboardController extends Controller
         // 2. Data Scope for IT Staff (Helpdesk, Team, Manager)
         $baseQuery = HelpdeskCase::query();
 
-        // ถ้าเป็นทีมเฉพาะทาง (Tier 2) ให้เห็นเฉพาะงานที่ Assign/Escalate มาที่ทีมตัวเอง
-        if (in_array($user->role, ['team_hardware', 'team_network', 'team_software'])) {
-            $teamMapping = [
-                'team_hardware' => 'Hardware',
-                'team_network' => 'Network',
-                'team_software' => 'Software',
-            ];
-            $baseQuery->where('escalated_to_team', $teamMapping[$user->role]);
+        // ถ้าเป็นช่างเฉพาะทาง (Tier 2) ให้เห็นเฉพาะงานที่ Assign/Escalate มาที่ทีมตัวเอง
+        if ($user->role === 'technician' || in_array($user->role, ['team_hardware', 'team_network', 'team_software'], true)) {
+            if ($user->teams()->exists()) {
+                $userTeamNames = $user->teams()->pluck('name')->toArray();
+                $baseQuery->whereIn('escalated_to_team', $userTeamNames);
+            } else {
+                $teamMapping = [
+                    'team_hardware' => 'Hardware',
+                    'team_network' => 'Network',
+                    'team_software' => 'Software',
+                ];
+                if (isset($teamMapping[$user->role])) {
+                    $baseQuery->where('escalated_to_team', $teamMapping[$user->role]);
+                }
+            }
         } elseif ($user->teams()->exists() && ! in_array($user->role, ['administrator', 'manager', 'helpdesk'])) {
             $userTeamNames = $user->teams()->pluck('name')->toArray();
             $baseQuery->whereIn('escalated_to_team', $userTeamNames);
@@ -284,34 +291,43 @@ class DashboardController extends Controller
         $technicianWorkload = null;
 
         if ($isManager || $isAdmin) {
-            $targetRoles = match ($user->role) {
-                'manager_software' => ['team_software'],
-                'manager_network_hardware' => ['team_hardware', 'team_network'],
-                default => ['team_hardware', 'team_network', 'team_software'],
-            };
+            $managedTeams = $user->managedTeams()->with('members')->get();
 
-            $teamNames = match ($user->role) {
-                'manager_software' => ['Software'],
-                'manager_network_hardware' => ['Hardware', 'Network'],
-                default => ['Hardware', 'Network', 'Software'],
-            };
-
-            $teamTitle = match ($user->role) {
-                'manager_software' => 'ทีม Software (Tier 2 ในความรับผิดชอบ)',
-                'manager_network_hardware' => 'ทีม Network & Hardware (Tier 2 ในความรับผิดชอบ)',
-                default => 'ทีมช่าง IT ทั้งหมด (Tier 2)',
-            };
+            if ($user->role === 'manager_software') {
+                $targetRoles = ['team_software'];
+                $teamNames = ['Software'];
+                $teamTitle = 'ทีม Software (Tier 2 ในความรับผิดชอบ)';
+                $technicians = User::whereIn('role', $targetRoles)->where('is_active', true)->orderBy('name')->get();
+            } elseif ($user->role === 'manager_network_hardware') {
+                $targetRoles = ['team_hardware', 'team_network'];
+                $teamNames = ['Hardware', 'Network'];
+                $teamTitle = 'ทีม Network & Hardware (Tier 2 ในความรับผิดชอบ)';
+                $technicians = User::whereIn('role', $targetRoles)->where('is_active', true)->orderBy('name')->get();
+            } elseif ($managedTeams->isNotEmpty()) {
+                $teamNames = $managedTeams->pluck('name')->toArray();
+                $teamTitle = 'ทีมในความรับผิดชอบ ('.$managedTeams->pluck('name')->join(', ').')';
+                $technicianIds = DB::table('team_user')
+                    ->whereIn('team_id', $managedTeams->pluck('id'))
+                    ->pluck('user_id');
+                $technicians = User::whereIn('id', $technicianIds)->where('is_active', true)->orderBy('name')->get();
+            } else {
+                $teamNames = Team::where('is_active', true)->pluck('name')->toArray();
+                if (empty($teamNames)) {
+                    $teamNames = ['Hardware', 'Network', 'Software'];
+                }
+                $teamTitle = 'ทีมช่าง IT ทั้งหมด (Tier 2)';
+                $technicians = User::where(function ($q) {
+                    $q->whereIn('role', ['technician', 'team_hardware', 'team_network', 'team_software'])
+                        ->orWhereHas('teams');
+                })->where('is_active', true)->orderBy('name')->get();
+            }
 
             $roleLabelMap = [
+                'technician' => 'Technical Specialist',
                 'team_hardware' => 'Team Hardware',
                 'team_network' => 'Team Network',
                 'team_software' => 'Team Software',
             ];
-
-            $technicians = User::whereIn('role', $targetRoles)
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get();
 
             $technicianList = [];
             foreach ($technicians as $tech) {
@@ -379,7 +395,7 @@ class DashboardController extends Controller
         // คำนวณสถิติสำหรับ Quick Tabs ของช่าง Tier 2 และ Helpdesk Tier 1
         $myWorkCount = 0;
         $teamQueueCount = 0;
-        if (in_array($user->role, ['team_hardware', 'team_network', 'team_software'], true)) {
+        if ($user->role === 'technician' || in_array($user->role, ['team_hardware', 'team_network', 'team_software'], true) || $user->teams()->exists()) {
             $myWorkCount = (clone $baseQuery)
                 ->where(function ($q) use ($user) {
                     $q->where('in_progress_by', $user->id)

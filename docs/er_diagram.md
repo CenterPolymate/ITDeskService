@@ -28,7 +28,7 @@ erDiagram
         string name
         string email
         string password
-        string role "สิทธิ์: user, helpdesk, team_hardware, team_network, team_software, manager, manager_software, manager_network_hardware, administrator"
+        string role "สิทธิ์หลัก 5 ระดับ (ITIL 4 Standard): user, helpdesk, technician, manager, administrator (พร้อมรองรับ legacy roles เดิม)"
         bigint company_id FK
         bigint department_id FK "เปลี่ยนจาก string เป็น FK"
         string phone
@@ -36,6 +36,26 @@ erDiagram
         boolean is_active "สถานะบัญชี (True = ใช้งานได้, False = ระงับ)"
         timestamp last_login_at "เวลาเข้าสู่ระบบล่าสุด (Nullable)"
         timestamp email_verified_at "เวลายืนยันอีเมล (Nullable สำหรับผู้สมัครใหม่, บันทึกอัตโนมัติหาก Admin สร้าง/Import)"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    TEAMS {
+        bigint id PK
+        string name "ชื่อทีม (Unique)"
+        string code "รหัสย่อทีม (Unique 2-5 ตัวอักษร)"
+        text description "รายละเอียดทีม (Nullable)"
+        bigint manager_id FK "หัวหน้าทีม (Nullable -> USERS)"
+        boolean is_active "สถานะเปิดใช้งาน (True = ใช้งานได้, False = ระงับ)"
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    TEAM_USER {
+        bigint id PK
+        bigint team_id FK "ตาราง TEAMS"
+        bigint user_id FK "ตาราง USERS"
+        string role_in_team "บทบาทในทีม (lead, member)"
         timestamp created_at
         timestamp updated_at
     }
@@ -188,6 +208,9 @@ erDiagram
     
     COMPANIES ||--o{ DEPARTMENTS : "มีแผนกย่อย"
     DEPARTMENTS ||--o{ USERS : "สังกัดแผนก"
+    USERS ||--o{ TEAMS : "กำกับดูแลทีม (manager_id)"
+    TEAMS ||--o{ TEAM_USER : "มีสมาชิก"
+    USERS ||--o{ TEAM_USER : "สังกัดทีม"
     USERS ||--o{ AUDIT_LOGS : "ผู้กระทำรายการ"
     USERS ||--o{ NOTIFICATIONS : "รับการแจ้งเตือน"
     
@@ -214,10 +237,10 @@ erDiagram
 > - **การคำนวณ SLA และตารางวันหยุด (SLA 8x5 & Holidays Relation):** ฟิลด์ `COMPANIES.sla_type` สัมพันธ์กับตาราง `HOLIDAYS` โดยหากเป็นรูปแบบ 8x5 ระบบจะคำนวณเฉพาะช่วงเวลาทำการ (08:00-12:00, 13:00-17:00 จันทร์-ศุกร์) และเว้นวันหยุดนักขัตฤกษ์ที่มีสถานะ Active
 > - **การส่งมอบงานและการหยุดนับเวลา SLA (Handover & SLA Pausing):** ช่างสามารถบันทึกข้อความการแก้ไขเฉพาะหน้า (`resolution_notes`) ได้ตลอดเวลาในระหว่างซ่อม (`in_progress`) และเมื่อส่งงานให้ผู้แจ้งแล้วจริง ๆ จึงกด Action "ส่งมอบงานให้ผู้แจ้ง" เพื่อเปลี่ยนสถานะเป็น `resolved` ("รอผู้แจ้งกดรับงาน") พร้อมหยุดนับเวลา SLA ทันที
 > - **การรับทราบผลงาน (Acceptance & CSAT):** ผู้แจ้งเป็นผู้กดรับงานและให้คะแนนความพึงพอใจ CSAT เพื่อเปลี่ยนสถานะเป็นปิดใบงาน (`closed`) ทันที (Helpdesk กดแทนได้เมื่อเวลาผ่านไปครบ 5 นาที)
-> - **การตรวจสอบย้อนหลัง (Manager Review) และสิทธิ์การเริ่ม Task 2:** หลังจากใบงานปิดแล้ว Manager (Tier 3) เข้ามาตรวจสอบเพื่อระบุว่าต้องการมาตรการป้องกันปัญหา (Preventive Measure - Task 2) หรือไม่ โดยสิทธิ์การกดเริ่มดำเนินการป้องกัน (`start_preventive_measure`) ถูกจำกัดให้เฉพาะช่างเฉพาะทาง (Tier 2: Hardware, Network, Software) ของทีมที่ได้รับมอบหมายเท่านั้น
+> - **การตรวจสอบย้อนหลัง (Manager Review) และสิทธิ์การเริ่ม Task 2:** หลังจากใบงานปิดแล้ว Manager (Tier 3) เข้ามาตรวจสอบเพื่อระบุว่าต้องการมาตรการป้องกันปัญหา (Preventive Measure - Task 2) หรือไม่ โดยสิทธิ์การกดเริ่มดำเนินการป้องกัน (`start_preventive_measure`) ถูกจำกัดให้เฉพาะช่างเฉพาะทาง (Tier 2 Technical Specialist) ของทีมที่ได้รับมอบหมายเท่านั้น
 > - **การแยกบริบทข้อมูลสำหรับผู้ใช้งานทั่วไป (User Dashboard PCAR Isolation):** ในหน้า Dashboard ของ Role `user` (ทั้งตารางในโหมดเดสก์ท็อปและการ์ดในโหมดมือถือ) รวมถึงส่วนหัวของหน้ารายละเอียดใบงาน จะไม่แสดงสถานะ PCAR หรือเลขที่ PCAR เพื่อแยกกระบวนการภายในของฝ่าย IT ออกจากมุมมองของผู้ใช้งาน
 > - **ระบบแจ้งเตือน SLA Overdue Warning Alert:** ตาราง `HELPDESK_CASES` มีฟิลด์ `sla_warning_sent_at` และ `sla_breached_sent_at` สำหรับบันทึกเวลาที่ส่งการแจ้งเตือนเคสใกล้หมดเวลา SLA และเคสเกินเวลา SLA ป้องกันการส่งซ้ำ
 > - **ระบบเสียงแจ้งเตือนสังเคราะห์และตัวเลือกโทนเสียง (Audio Notifications & Tone Selector):** ระบบเสียงแจ้งเตือนสังเคราะห์ผ่าน Web Audio API และบันทึกการตั้งค่าเปิด/ปิด (`itdesk_sound_enabled`) รวมถึงรูปแบบโทนเสียง (`itdesk_sound_tone`) ลงใน `localStorage` ของเบราว์เซอร์ผู้ใช้โดยตรง จึงไม่สร้าง Overhead หรือฟิลด์เพิ่มเติมในฐานข้อมูล
-> - **การแบ่งทีมหัวหน้างานระดับ Tier 3 และการติดตามภาระงาน (Tier 3 Managers & Subordinate Teams):** บทบาท Manager (Tier 3) ถูกแบ่งออกเป็น 2 ทีม ได้แก่ (1) `manager_software` (Software Manager) ดูแลลูกน้องทีม `team_software` (2) `manager_network_hardware` (Network & Hardware Manager) ดูแลลูกน้องทีม `team_hardware` และ `team_network` โดยบน Dashboard ของ Manager แต่ละทีมจะติดตามภาระงานคงค้างของช่างที่เป็นลูกน้องในทีมของตนเองโดยเฉพาะ ขณะที่ `manager` (ทั่วไป) และ `administrator` จะดูแลภาพรวมของทุกทีม
+> - **สถาปัตยกรรม 5 บทบาทสากล (ITIL 4 Standard Core Roles) และระบบทีมงานแบบไดนามิก (Dynamic Teams):** ระบบยึดโครงสร้างระดับสิทธิ์ 5 บทบาทหลัก (`administrator`, `manager`, `technician`, `helpdesk`, `user`) โดยแยกสายงานความเชี่ยวชาญ (Hardware, Network, Software หรือทีมอื่นๆ ในอนาคต) ออกจาก Role และบริหารจัดการผ่านตาราง `TEAMS` และ `TEAM_USER` แทน โดยหัวหน้างาน (`manager`) จะติดตามภาระงาน (Technician Workload) ของช่างในทีมตนเองตามความสัมพันธ์ `managedTeams()` แบบไดนามิก 100% ขณะที่ `administrator` และ General Manager สามารถติดตามภาพรวมของทุกทีมได้
 > - **การให้สิทธิ์ Helpdesk (Tier 1) จัดการผู้ใช้งานทั่วไป:** Role `helpdesk` ได้รับสิทธิ์ในการจัดการผู้ใช้งานทั่วไป (Normal Users) เช่น การเพิ่ม, แก้ไขข้อมูล, และการระงับบัญชี (โดยไม่สามารถยกระดับสิทธิ์เป็น Administrator ได้)
 > - **External Systems (LINE OA & Email Server):** เป็นระบบภายนอกที่ไม่ได้เก็บข้อมูลเป็นตารางหลักในฐานข้อมูล แต่ระบบ ITDeskService จะเชื่อมต่อผ่าน API และ SMTP เพื่อใช้ในการแจ้งเตือน (Notifications) และยืนยันตัวตน (Email Verification)

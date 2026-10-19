@@ -19,16 +19,16 @@ export default function Index({ users, filters = {} }) {
 
     const formatRole = (role) => {
         const roleMap = {
-            administrator: 'Administrator',
-            manager: 'IT Manager (Tier 3)',
+            administrator: 'System Administrator',
+            manager: 'IT Service Manager (Tier 3)',
+            technician: 'Technical Specialist (Tier 2)',
+            helpdesk: 'Service Desk Agent (Tier 1)',
+            user: 'End User / ผู้ใช้งานทั่วไป',
             manager_software: 'Software Manager (Tier 3)',
             manager_network_hardware: 'Network & Hardware Manager (Tier 3)',
-            helpdesk: 'Helpdesk (Tier 1)',
-            technician: 'เจ้าหน้าที่ทีมงาน (Tier 2 Team Member)',
             team_hardware: 'Team Hardware (Tier 2)',
             team_network: 'Team Network (Tier 2)',
             team_software: 'Team Software (Tier 2)',
-            user: 'User ทั่วไป',
         };
         return roleMap[role] || role;
     };

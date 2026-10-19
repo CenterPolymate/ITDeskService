@@ -224,10 +224,12 @@
     - [x] เพิ่มแถบเรียงลำดับ Mobile Sort Bar บนทั้งสองหน้าจอ และคงค่าการ Sort ในการค้นหาและเปลี่ยนสถานะ
 - [ ] Phase 14: ปรับปรุงโครงสร้างสถาปัตยกรรมสู่ Commercial-Ready (ระบบทีมและสายการบังคับบัญชาแบบไดนามิก):
   - [x] Sprint 14.1: สร้างตาราง `teams` และ Pivot `team_user` พร้อมหน้าจัดการทีมงานและสายการบังคับบัญชา (กำหนดหัวหน้าทีมผ่าน UI)
-  - [/] Sprint 14.2: ยกเลิก Hardcode บทบาท (`manager_software`, `team_software`) ใน Controllers & Policies และปรับใช้วิธีดึงข้อมูลผ่านความสัมพันธ์ทีมจริง:
-    - [x] ปรับเมนูส่งต่องาน (Triage & Manager Task 2) เป็นไดนามิก ดึงจากตาราง `teams` อัตโนมัติในรูปแบบสากล `[CODE] Team Name`
-    - [x] รองรับการตรวจสอบสิทธิ์การทำงานของช่าง Tier 2 ผ่านความสัมพันธ์ `user->teams` ควบคู่กับบทบาทเดิม
-    - [x] อัปเดตตัวกรองทีมใน Dashboard ของเจ้าหน้าที่ IT ให้แสดงรายการทีมจริงแบบไดนามิก
+  - [x] Sprint 14.2: มาตรฐาน 5 บทบาทสากล (ITIL 4 Standard Clean Architecture) และยกเลิก Hardcode บทบาทใน Controllers & Policies:
+    - [x] ปรับลดและกำหนดบทบาทหลัก 5 บทบาทสากล: System Administrator, IT Service Manager (Tier 3), Technical Specialist (Tier 2), Service Desk Agent (Tier 1), และ End User
+    - [x] สร้าง Database Migration `2026_10_19_164000_standardize_user_roles_to_core_five.php` เพื่อ Map ข้อมูลเดิมและผูกความสัมพันธ์ทีมอัตโนมัติ
+    - [x] พัฒนาระบบ Technician Workload บน Dashboard ของ Manager และ Administrator ให้ดึงข้อมูลทีมตาม `$user->managedTeams()` แบบไดนามิก 100%
+    - [x] ปรับเมนูตัวเลือกบทบาทและตารางในหน้า `Users/Create.jsx`, `Users/Edit.jsx`, `NormalUsers/Edit.jsx`, `Users/Index.jsx`, และ `AuditLogs/Index.jsx` เป็นมาตรฐานสากล
+    - [x] ปรับเมนูส่งต่องาน (Triage & Manager Task 2) และตัวกรองใน Dashboard/Report เป็นไดนามิก ดึงจากตาราง `teams` อัตโนมัติ
   - [ ] Sprint 14.3: Dynamic Ticket Routing เชื่อมโยงหมวดหมู่ปัญหากับทีมรับผิดชอบเริ่มต้น
   - [ ] Sprint 14.4: White-Labeling & Corporate Branding Settings (อัปโหลดโลโก้, ชื่อระบบ, ข้อมูลติดต่อ)
 

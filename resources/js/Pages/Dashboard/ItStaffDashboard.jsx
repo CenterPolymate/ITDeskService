@@ -57,7 +57,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
 
                 if (t.priority === 'urgent') {
                     title = `🚨 เคสด่วนที่สุดใหม่: #${t.ticket_no}`;
-                } else if (userRole.startsWith('team_')) {
+                } else if (userRole === 'technician' || userRole.startsWith('team_')) {
                     title = `🛠️ มีเคสใหม่ส่งถึงทีมคุณ: #${t.ticket_no}`;
                 } else if (userRole === 'helpdesk') {
                     title = `📥 มีเคสใหม่รอคัดกรอง (Triage): #${t.ticket_no}`;
@@ -1150,7 +1150,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                     {/* Table Section */}
                     <div id="tickets-table" className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-6 scroll-mt-6">
                         {/* Tier 2 Quick Tabs for Technicians */}
-                        {userRole.startsWith('team_') && (
+                        {(userRole === 'technician' || userRole.startsWith('team_')) && (
                             <div className="flex items-center gap-2 px-6 pt-4 border-b border-gray-200 bg-white overflow-x-auto">
                                 <button
                                     type="button"

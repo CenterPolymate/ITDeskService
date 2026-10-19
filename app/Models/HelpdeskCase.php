@@ -401,7 +401,7 @@ class HelpdeskCase extends Model
             'approved' => 'รอหัวหน้าปิดใบงาน',
             'closed' => 'ปิดใบงาน',
             'cancelled' => 'ยกเลิกเคส',
-            default => $this->status,
+            default => (string) ($this->status ?: 'รอดำเนินการ'),
         };
     }
 

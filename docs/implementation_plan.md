@@ -331,14 +331,25 @@
   - [x] มีปุ่มทางลัด **[เปิดดูเคสนี้ →]** บนการ์ดแจ้งเตือนเพื่อเปิดหน้าเคสนั้นได้ทันที
   - [x] มีแถบเวลานับถอยหลัง (Countdown Progress Bar) 8 วินาที พร้อมระบบหยุดเวลาชั่วคราวเมื่อนำเมาส์ไปชี้ (Hover Pause)
 - [x] **ระบบไฮไลต์เรืองแสงบนรายการเคส (Visual Ticket Highlighting):**
-  - [x] เมื่อมีเคสใหม่เข้ามา หรือเคสมีการเปลี่ยนสถานะ แถวในตาราง (Desktop Table) หรือ การ์ด (Mobile Cards) จะเรืองแสงสีส้ม (Amber Ring/Border) พร้อมติดป้ายกะพริบ `NEW / เพิ่งเข้ามา` (สำหรับเจ้าหน้าที่) หรือ `UPDATE / อัปเดตล่าสุด` (สำหรับผู้แจ้ง) เป็นเวลา 30 วินาที ทั้งใน `ItStaffDashboard.jsx` และ `UserDashboard.jsx`
+- [x] **ระบบจัดเรียงข้อมูลหัวตารางแบบโต้ตอบตามหลักสากล (Interactive Sortable Table Headers & Mobile Sorting):**
+  - [x] **ระยะที่ 1: Dashboard รายการใบงาน (`ItStaffDashboard.jsx` และ `UserDashboard.jsx`):**
+    - สร้าง Reusable Component `SortableHeader.jsx` พร้อม Accessibility `aria-sort`, ไอคอนลูกศรทิศทางกำกับ, Sublabel สองภาษา
+    - ระบบ Server-side Sorting ใน `DashboardController.php` (Whitelist, Business Logic Ordering สำหรับ Priority และ Status Lifecycle, Tie-breaker `id desc`)
+    - แถบเรียงลำดับสำหรับมุมมองมือถือ (Mobile Sort Bar) พร้อม Dropdown และปุ่มสลับทิศทาง
+  - [x] **ระยะที่ 2: หน้าจัดการทีมงานและสายการบังคับบัญชา (`Teams/Index.jsx` & `TeamController.php`):**
+    - Backend Sorting: รองรับการเรียงตามชื่อทีม (`name`), รหัสทีม (`code`), หัวหน้าทีม (`manager_id`), จำนวนสมาชิก (`members_count`), และสถานะ (`is_active`)
+    - Frontend เชื่อมต่อ `SortableHeader` ทุกคอลัมน์สำคัญ พร้อม Mobile Sort Bar และคงค่า Filter
+    - กำหนดข้อจำกัดรหัสย่อทีม (Team Code) ให้มีความยาวไม่เกิน 5 ตัวอักษร
+  - [x] **ระยะที่ 3: หน้าจัดการผู้ใช้งาน (`Users/Index.jsx` และ `NormalUsers/Index.jsx`):**
+    - ปรับใช้ `SortableHeader` ในหน้าจัดการผู้ใช้งานทีม IT (`Users/Index.jsx`) และหน้าจัดการผู้ใช้งานทั่วไป (`NormalUsers/Index.jsx`)
+    - เพิ่มแถบเรียงลำดับ Mobile Sort Bar บนทั้งสองหน้าจอ และคงค่าการ Sort ในการค้นหาและเปลี่ยนสถานะ
 
 ## Phase 14: Commercial Readiness & Dynamic Organizational Structure (📋 แผนงานระยะถัดไป)
 > [!NOTE]
 > **นโยบาย SLA:** ระบบการนับเวลา การคำนวณระยะเวลา และการแจ้งเตือน SLA ให้คงเดิมตามระบบปัจจุบัน (4 ชั่วโมง / ทบเวลาทำการ 8x5 / แจ้งเตือนล่วงหน้า) โดยไม่มีการปรับเปลี่ยน
 
 - [x] **Sprint 14.1: Dynamic Teams & Subordination Management (ระบบทีมและสายการบังคับบัญชาแบบไดนามิก):**
-  - [x] สร้าง Database Migration ตาราง `teams`: `id`, `name`, `code`, `description`, `manager_id` (foreign key ชี้ไปที่ `users.id`), `is_active`, `timestamps`
+  - [x] สร้าง Database Migration ตาราง `teams`: `id`, `name`, `code` (จำกัด 5 ตัวอักษร), `description`, `manager_id` (foreign key ชี้ไปที่ `users.id`), `is_active`, `timestamps`
   - [x] สร้าง Database Migration Pivot Table `team_user`: `id`, `team_id`, `user_id`, `role_in_team` (enum: `lead`, `member`), `timestamps`
   - [x] พัฒนาระบบ CRUD "จัดการทีมงานและสายการบังคับบัญชา" (Team Management) ในฝั่ง Administrator: สามารถสร้างทีม, กำหนดหรือเปลี่ยนหัวหน้าทีม (`manager_id`), และเพิ่ม/ลดช่างผู้รับผิดชอบในทีมได้อิสระผ่านหน้าเว็บ
   - [x] กำหนด Core Roles มาตรฐาน 5 ระดับสำหรับผลิตภัณฑ์:
@@ -347,10 +358,13 @@
     - `technician`: ช่างเฉพาะทาง / เจ้าหน้าที่ผู้ปฏิบัติงาน Tier 2 (สังกัดทีมผ่าน `team_user`)
     - `helpdesk`: เจ้าหน้าที่รับเรื่อง / คัดกรองงาน Tier 1
     - `user`: ผู้ใช้งาน / ผู้แจ้งปัญหาทั่วไป
-- [ ] **Sprint 14.2: Controller & Policy Refactoring (ยกเลิกการ Hardcode บทบาทและสายบังคับบัญชา):**
-  - [ ] ปรับปรุง `DashboardController`, `TicketController`, และ `TicketPolicy` ให้ตรวจสอบสิทธิ์และดึงข้อมูลลูกน้องผ่านความสัมพันธ์ในฐานข้อมูล (`$user->managedTeams` และ `$user->teams`) แทนการใช้ `match ($user->role)` หรือเงื่อนไข `manager_software`, `team_software` แบบเดิม
-  - [ ] ปรับปรุง Widget "ภาระงานของทีมช่าง (Technician Workload Tracking)" ในแดชบอร์ด ให้ดึงข้อมูลช่างตามทีมที่ Manager คนนั้นเป็นผู้ดูแลจริงจากฐานข้อมูล
-  - [ ] ปรับหน้า Triage ให้ Dropdown รายชื่อทีมที่ส่งต่อ ดึงข้อมูลมาจากตาราง `teams` แบบ Dynamic
+- [x] **Sprint 14.2: Controller & Policy Refactoring (ยกเลิกการ Hardcode บทบาทและสายบังคับบัญชา):**
+  - [x] สร้าง Database Migration `2026_10_19_164000_standardize_user_roles_to_core_five.php` เพื่อ Map บทบาทเดิมสู่ 5 Core Roles สากลและเชื่อมโยงทีมอัตโนมัติ
+  - [x] ปรับปรุง `DashboardController`, `TicketController`, `ReportController`, และ `User.php` ตรวจสอบสิทธิ์และดึงข้อมูลลูกน้องผ่าน `$user->managedTeams()` และ `team_user` แบบไดนามิก 100%
+  - [x] ปรับปรุง Widget "ภาระงานของทีมช่าง (Technician Workload Tracking)" ในแดชบอร์ด ให้ดึงข้อมูลช่างตามทีมที่ Manager เป็นผู้ดูแลจริงจากฐานข้อมูล
+  - [x] ปรับเมนูตัวเลือกบทบาทและตารางในหน้า `Users/Create.jsx`, `Users/Edit.jsx`, `NormalUsers/Edit.jsx`, `Users/Index.jsx`, และ `AuditLogs/Index.jsx` เป็นมาตรฐานสากล
+  - [x] ปรับเมนูส่งต่องาน (Triage & Manager Task 2) และตัวกรองใน Dashboard/Report เป็นไดนามิก ดึงจากตาราง `teams` อัตโนมัติ
+  - [x] ปรับปรุง `getStatusLabelAttribute()` ใน `HelpdeskCase.php` และ query select list ให้รองรับ Null-safety ป้องกัน TypeError 100%
 - [ ] **Sprint 14.3: Dynamic Ticket Routing & Category Mapping (การจับคู่หมวดหมู่กับทีมรับผิดชอบ):**
   - [ ] เพิ่มฟิลด์ `default_team_id` ในตารางหมวดหมู่ปัญหา (`categories`)
   - [ ] ในหน้าจอ Triage เมื่อ Helpdesk เลือกหมวดหมู่ปัญหา ระบบจะ Auto-suggest หรือเลือกทีมที่รับผิดชอบเริ่มต้นให้อัตโนมัติตามที่ตั้งค่าไว้
@@ -362,5 +376,6 @@
     - สีธีมหลัก (Brand Primary Color)
     - ข้อมูลติดต่อฝ่ายบริการ (Support Contact / Hotline / Extension)
   - [ ] ปรับปรุงโค้ดส่วนหน้า (Blade Navigation, Header, Footers, Print Report) ให้ดึงข้อมูลการแสดงผลจากค่า System Settings แทนการระบุชื่อหรือสัญลักษณ์แบรนด์เดิมแบบตายตัว เพื่อให้เป็นระบบที่พร้อมขายได้ทันที (Commercial-ready)
+
 
 

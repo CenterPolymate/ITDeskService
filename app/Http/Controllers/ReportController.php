@@ -238,16 +238,43 @@ class ReportController extends Controller
         // 4. Team Distribution
         $teamsMap = [
             'helpdesk' => ['label' => 'Helpdesk (Tier 1)', 'count' => 0, 'color' => '#6366f1'],
-            'team_hardware' => ['label' => 'Hardware', 'count' => 0, 'color' => '#3b82f6'],
-            'team_network' => ['label' => 'Network', 'count' => 0, 'color' => '#06b6d4'],
-            'team_software' => ['label' => 'Software', 'count' => 0, 'color' => '#8b5cf6'],
+            'Hardware' => ['label' => 'Hardware', 'count' => 0, 'color' => '#3b82f6'],
+            'Network' => ['label' => 'Network', 'count' => 0, 'color' => '#06b6d4'],
+            'Software' => ['label' => 'Software', 'count' => 0, 'color' => '#8b5cf6'],
         ];
+
+        $dynamicTeams = Team::where('is_active', true)->get();
+        $palette = ['#3b82f6', '#06b6d4', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899'];
+        $cIdx = 0;
+        foreach ($dynamicTeams as $dTeam) {
+            if (! isset($teamsMap[$dTeam->name])) {
+                $teamsMap[$dTeam->name] = [
+                    'label' => $dTeam->name,
+                    'count' => 0,
+                    'color' => $palette[$cIdx % count($palette)],
+                ];
+                $cIdx++;
+            }
+        }
 
         foreach ($allTickets as $t) {
             $team = $t->escalated_to_team;
-            if ($team && isset($teamsMap[$team])) {
-                $teamsMap[$team]['count']++;
-            } elseif ($team) {
+            $normalizedTeam = match ($team) {
+                'team_hardware' => 'Hardware',
+                'team_network' => 'Network',
+                'team_software' => 'Software',
+                default => $team,
+            };
+
+            if ($normalizedTeam && isset($teamsMap[$normalizedTeam])) {
+                $teamsMap[$normalizedTeam]['count']++;
+            } elseif (! empty($normalizedTeam)) {
+                $teamsMap[$normalizedTeam] = [
+                    'label' => $normalizedTeam,
+                    'count' => 1,
+                    'color' => '#64748b',
+                ];
+            } else {
                 $teamsMap['helpdesk']['count']++;
             }
         }
@@ -342,6 +369,7 @@ class ReportController extends Controller
             'priorityDistribution' => $priorityDistribution,
             'pcarIncidents' => $pcarIncidentList,
             'companies' => $companies,
+            'teams' => Team::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']),
             'thaiMonthNames' => $thaiMonthNames,
             'years' => $years,
             'selectedMonthName' => $thaiMonthNames[$selectedMonth] ?? '',
