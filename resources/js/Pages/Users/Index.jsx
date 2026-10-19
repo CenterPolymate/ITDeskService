@@ -208,12 +208,6 @@ export default function Index({ users, filters = {} }) {
                                                 </div>
                                                 <div className="flex items-start gap-2">
                                                     <svg className="w-4 h-4 mt-0.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                                    </svg>
-                                                    <span>แผนก: {user.department || '-'}</span>
-                                                </div>
-                                                <div className="flex items-start gap-2">
-                                                    <svg className="w-4 h-4 mt-0.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                     </svg>
                                                     <span className="text-[11px] mt-0.5">
@@ -264,25 +258,13 @@ export default function Index({ users, filters = {} }) {
                                                 onClick={() => handleSort('name')}
                                                 className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                                             >
-                                                ชื่อ {renderSortIcon('name')}
-                                            </th>
-                                            <th
-                                                onClick={() => handleSort('email')}
-                                                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                            >
-                                                อีเมล {renderSortIcon('email')}
+                                                ผู้ใช้งาน {renderSortIcon('name')}
                                             </th>
                                             <th
                                                 onClick={() => handleSort('role')}
                                                 className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                                             >
                                                 ตำแหน่ง (Role) {renderSortIcon('role')}
-                                            </th>
-                                            <th
-                                                onClick={() => handleSort('department')}
-                                                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                                            >
-                                                แผนก {renderSortIcon('department')}
                                             </th>
                                             <th
                                                 onClick={() => handleSort('is_active')}
@@ -299,41 +281,45 @@ export default function Index({ users, filters = {} }) {
                                         {users.data && users.data.length > 0 ? (
                                             users.data.map((user) => (
                                                 <tr key={user.id} className={user.is_active ? '' : 'bg-red-50/50'}>
-                                                    <td className="px-4 py-2 whitespace-nowrap">
-                                                        <div className={`text-sm font-medium ${user.is_active ? 'text-gray-900' : 'text-gray-400 line-through'}`}>
-                                                            {user.name}
+                                                    <td className="px-4 py-2.5 whitespace-nowrap">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
+                                                                {user.name ? user.name.charAt(0).toUpperCase() : '?'}
+                                                            </div>
+                                                            <div>
+                                                                <div className={`text-sm font-semibold ${user.is_active ? 'text-gray-900' : 'text-gray-400 line-through'}`}>
+                                                                    {user.name}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500">
+                                                                    {user.email}
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </td>
-                                                    <td className={`px-4 py-2 text-sm ${user.is_active ? 'text-gray-500' : 'text-gray-400'}`}>
-                                                        {user.email}
-                                                    </td>
-                                                    <td className="px-4 py-2 whitespace-nowrap">
-                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                    <td className="px-4 py-2.5 whitespace-nowrap">
+                                                        <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                                             user.is_active ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-500'
-                                                        }`}>
+                                                        } shadow-sm`}>
                                                             {formatRole(user.role)}
                                                         </span>
                                                     </td>
-                                                    <td className={`px-4 py-2 text-sm ${user.is_active ? 'text-gray-500' : 'text-gray-400'}`}>
-                                                        {user.department || '-'}
-                                                    </td>
-                                                    <td className="px-4 py-2 whitespace-nowrap">
+                                                    <td className="px-4 py-2.5 whitespace-nowrap">
                                                         {!user.is_active ? (
-                                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                            <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 shadow-sm">
                                                                 Inactive
                                                             </span>
                                                         ) : !user.email_verified_at ? (
-                                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                                                            <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800 shadow-sm">
                                                                 รอการยืนยันอีเมล
                                                             </span>
                                                         ) : (
-                                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                            <span className="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 shadow-sm">
                                                                 Active
                                                             </span>
                                                         )}
                                                         <div className="text-[11px] text-gray-400 mt-1 whitespace-nowrap">
                                                             {user.last_login_at ? (
-                                                                <>ใช้งานล่าสุด: <br />{formatThaiDate(user.last_login_at)}</>
+                                                                <>เข้าใช้งาน: {formatThaiDate(user.last_login_at)}</>
                                                             ) : (
                                                                 'ไม่เคยเข้าใช้งาน'
                                                             )}
@@ -371,7 +357,7 @@ export default function Index({ users, filters = {} }) {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan="7" className="px-4 py-6 text-center text-gray-500 text-sm">
+                                                <td colSpan="4" className="px-4 py-6 text-center text-gray-500 text-sm">
                                                     ไม่พบข้อมูลผู้ใช้งาน
                                                 </td>
                                             </tr>
