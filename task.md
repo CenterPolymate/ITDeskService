@@ -237,6 +237,7 @@
   - [x] ป้องกันผลประโยชน์ทับซ้อน (Conflict of Interest) โดยห้ามทีมงานไอที (Tier 1-3) และ Administrator เปิดเคสเอง
   - [x] หากพยายามเข้าหน้าเปิดเคส จะถูก Redirect ไปยัง Dashboard พร้อมข้อความแจ้งเตือน หรือปฏิเสธคำขอด้วย HTTP 403 Forbidden
   - [x] เพิ่มชุดทดสอบอัตโนมัติใน `TicketManagementTest.php` ครอบคลุมทุกบทบาท
+- [x] แก้ไขบั๊ก Class "App\Http\Controllers\Team" not found ใน `ReportController.php` (เพิ่ม `use App\Models\Team;`)
 
 
 
