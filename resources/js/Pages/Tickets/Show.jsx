@@ -198,16 +198,45 @@ export default function Show({ ticket, categories = [] }) {
         { id: 'Hardware', name: 'อุปกรณ์ Hardware' },
         { id: 'Software', name: 'โปรแกรม Software' },
         { id: 'Network', name: 'ระบบ Network' },
-        { id: 'Other', name: 'อื่นๆ' },
     ];
-    const categoryList = categories && categories.length > 0 ? categories : defaultCategories;
+    const rawCategories = categories && categories.length > 0 ? categories : defaultCategories;
+    const filteredCategories = rawCategories.filter((cat) => {
+        const n = (cat.name || '').trim().toLowerCase();
+        return n !== 'other' && n !== 'อื่นๆ' && n !== 'อื่น ๆ';
+    });
+
+    const isStandardCategory = ticket.status !== 'pending' &&
+        ticket.category &&
+        filteredCategories.some((c) => c.name === ticket.category);
+
+    const isCustomCategory = ticket.status !== 'pending' &&
+        ticket.category &&
+        ticket.category !== 'Other' &&
+        ticket.category !== 'อื่นๆ' &&
+        ticket.category !== 'อื่น ๆ' &&
+        !isStandardCategory;
+
+    const [selectedCategory, setSelectedCategory] = useState(
+        isStandardCategory ? ticket.category : (isCustomCategory ? 'other' : '')
+    );
+    const [customCategory, setCustomCategory] = useState(
+        isCustomCategory ? ticket.category : ''
+    );
 
     // Triage Form
     const { data: triageData, setData: setTriageData, put: putTriage, processing: triageProcessing, errors: triageErrors } = useForm({
-        category: ticket.status !== 'pending' && ticket.category !== 'Other' ? (ticket.category || '') : '',
+        category: isStandardCategory ? ticket.category : (isCustomCategory ? ticket.category : ''),
         priority: ticket.status !== 'pending' ? (ticket.priority || '') : '',
         escalated_to_team: ticket.status !== 'pending' ? (ticket.escalated_to_team || 'None') : '',
     });
+
+    useEffect(() => {
+        if (selectedCategory === 'other') {
+            setTriageData('category', customCategory);
+        } else {
+            setTriageData('category', selectedCategory);
+        }
+    }, [selectedCategory, customCategory]);
 
     const submitTriage = (e) => {
         e.preventDefault();
@@ -1538,19 +1567,55 @@ export default function Show({ ticket, categories = [] }) {
                                         <label className="block text-xs font-bold text-slate-700 mb-1">
                                             หมวดหมู่ปัญหา (Category) <span className="text-rose-500">*</span>
                                         </label>
-                                        <select
-                                            required
-                                            value={triageData.category}
-                                            onChange={(e) => setTriageData('category', e.target.value)}
-                                            className="w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                        >
-                                            <option value="" disabled>-- เลือกหมวดหมู่ปัญหา --</option>
-                                            {categoryList.map((cat) => (
-                                                <option key={cat.id || cat.name} value={cat.name}>
-                                                    {cat.name}
-                                                </option>
-                                            ))}
-                                        </select>
+
+                                        {selectedCategory !== 'other' ? (
+                                            <div className="relative">
+                                                <select
+                                                    required
+                                                    value={selectedCategory}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        setSelectedCategory(val);
+                                                        if (val === 'other') {
+                                                            setCustomCategory('');
+                                                        }
+                                                    }}
+                                                    className="w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                >
+                                                    <option value="" disabled>-- เลือกหมวดหมู่ปัญหา --</option>
+                                                    {filteredCategories.map((cat) => (
+                                                        <option key={cat.id || cat.name} value={cat.name}>
+                                                            {cat.name}
+                                                        </option>
+                                                    ))}
+                                                    <option value="other">อื่นๆ (พิมพ์ระบุเอง)</option>
+                                                </select>
+                                            </div>
+                                        ) : (
+                                            <div className="relative">
+                                                <input
+                                                    id="custom_category"
+                                                    type="text"
+                                                    value={customCategory}
+                                                    onChange={(e) => setCustomCategory(e.target.value)}
+                                                    placeholder="พิมพ์ระบุหมวดหมู่ปัญหาเอง"
+                                                    required
+                                                    autoFocus
+                                                    className="w-full rounded-xl border-slate-300 text-sm focus:border-indigo-500 focus:ring-indigo-500 pr-24"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedCategory('');
+                                                        setCustomCategory('');
+                                                    }}
+                                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs text-indigo-600 hover:text-indigo-800 font-bold"
+                                                >
+                                                    กลับไปเลือก
+                                                </button>
+                                            </div>
+                                        )}
+
                                         {triageErrors?.category && (
                                             <p className="text-xs text-rose-500 mt-1">{triageErrors.category}</p>
                                         )}
