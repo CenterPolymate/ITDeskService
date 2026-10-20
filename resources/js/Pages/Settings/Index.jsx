@@ -382,15 +382,15 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                             <div className="bg-slate-50/70 rounded-2xl p-6 sm:p-7 border border-slate-200/80 space-y-6">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2.5 rounded-xl text-white shadow-xs" style={{ backgroundColor: brandPrimaryColor }}>
+                                        <div className="p-2.5 rounded-xl text-white shadow-xs shrink-0" style={{ backgroundColor: brandPrimaryColor }}>
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                                             </svg>
                                         </div>
                                         <div>
-                                            <h3 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                                            <h3 className="text-base font-bold text-slate-900 tracking-tight flex flex-wrap items-center gap-2">
                                                 <span>ปรับแต่งแบรนด์และตราสัญลักษณ์ (Corporate Branding & White-Labeling)</span>
-                                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-100 text-indigo-800 whitespace-nowrap shrink-0">
                                                     Commercial Ready
                                                 </span>
                                             </h3>
