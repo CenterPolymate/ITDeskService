@@ -964,36 +964,36 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {/* 1. Scheduler Cron Heartbeat */}
-                                    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                                    <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-md hover:shadow-lg hover:border-slate-700 transition-all duration-200 flex flex-col justify-between text-slate-100">
                                         <div>
                                             {/* Top Row: Icon on left, Status Badge on right */}
                                             <div className="flex items-center justify-between gap-2 mb-3">
-                                                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 shadow-2xs">
+                                                <div className="w-10 h-10 rounded-xl bg-indigo-950/80 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0 shadow-inner">
                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                     </svg>
                                                 </div>
                                                 {diagnostics?.scheduler?.status === 'active' ? (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 shrink-0">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
                                                         ปกติ
                                                     </span>
                                                 ) : diagnostics?.scheduler?.status === 'warning' ? (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 shrink-0">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-950/80 text-amber-300 border border-amber-500/30 shrink-0">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
                                                         ดีเลย์
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80 shrink-0">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-950/80 text-rose-300 border border-rose-500/30 shrink-0">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(248,113,113,0.8)]" />
                                                         ไม่ทำงาน
                                                     </span>
                                                 )}
                                             </div>
 
-                                            {/* Title & Subtitle - Full Width (No truncate) */}
+                                            {/* Title & Subtitle */}
                                             <div className="mb-3">
-                                                <h5 className="text-sm font-bold text-slate-900 leading-snug">
+                                                <h5 className="text-sm font-bold text-white tracking-wide leading-snug">
                                                     งานอัตโนมัติ (Cron Job)
                                                 </h5>
                                                 <p className="text-xs text-slate-400 font-medium mt-0.5">
@@ -1005,7 +1005,7 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                             <div className="space-y-0.5 mb-3">
                                                 {diagnostics?.scheduler?.last_heartbeat ? (
                                                     <>
-                                                        <div className="text-sm font-bold text-slate-900 leading-snug">
+                                                        <div className="text-sm font-bold text-slate-100 leading-snug">
                                                             {diagnostics.scheduler.minutes_ago !== null && diagnostics.scheduler.minutes_ago < 1
                                                                 ? 'ทำงานเมื่อสักครู่ (< 1 นาที)'
                                                                 : `ทำงานเมื่อ ${Math.round(diagnostics.scheduler.minutes_ago || 1)} นาทีที่แล้ว`}
@@ -1016,45 +1016,45 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <div className="text-sm font-bold text-slate-400">ยังไม่มีการรัน Cron</div>
-                                                        <div className="text-[11px] text-rose-500">โปรดตั้งค่า Cron บน CloudPanel</div>
+                                                        <div className="text-sm font-bold text-slate-500">ยังไม่มีการรัน Cron</div>
+                                                        <div className="text-[11px] text-rose-400">โปรดตั้งค่า Cron บน CloudPanel</div>
                                                     </>
                                                 )}
                                             </div>
                                         </div>
 
-                                        <div className="border-t border-slate-100 pt-2.5 mt-1">
-                                            <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2">
+                                        <div className="border-t border-slate-800/80 pt-2.5 mt-1">
+                                            <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">
                                                 ตรวจจับแจ้งเตือน SLA, สำรองข้อมูลประจำวัน และเคลียร์ Audit Log
                                             </p>
                                         </div>
                                     </div>
 
                                     {/* 2. Database Connection */}
-                                    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                                    <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-md hover:shadow-lg hover:border-slate-700 transition-all duration-200 flex flex-col justify-between text-slate-100">
                                         <div>
                                             {/* Top Row: Icon on left, Status Badge on right */}
                                             <div className="flex items-center justify-between gap-2 mb-3">
-                                                <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0 shadow-2xs">
+                                                <div className="w-10 h-10 rounded-xl bg-blue-950/80 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0 shadow-inner">
                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
                                                     </svg>
                                                 </div>
                                                 {diagnostics?.database?.status === 'connected' ? (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 shrink-0">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
                                                         เชื่อมต่อแล้ว
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80 shrink-0">
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-950/80 text-rose-300 border border-rose-500/30 shrink-0">
                                                         ขาดการเชื่อมต่อ
                                                     </span>
                                                 )}
                                             </div>
 
-                                            {/* Title & Subtitle - Full Width (No truncate) */}
+                                            {/* Title & Subtitle */}
                                             <div className="mb-3">
-                                                <h5 className="text-sm font-bold text-slate-900 leading-snug">
+                                                <h5 className="text-sm font-bold text-white tracking-wide leading-snug">
                                                     ฐานข้อมูล (Database)
                                                 </h5>
                                                 <p className="text-xs text-slate-400 font-medium mt-0.5">
@@ -1064,13 +1064,13 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
 
                                             {/* Metric & Details */}
                                             <div className="space-y-0.5 mb-3">
-                                                <div className="text-sm font-bold text-slate-900 leading-snug flex items-center gap-1.5 flex-wrap">
+                                                <div className="text-sm font-bold text-slate-300 leading-snug flex items-center gap-1.5 flex-wrap">
                                                     <span>ไดรเวอร์:</span>
-                                                    <span className="font-black text-blue-600 uppercase tracking-wide">
+                                                    <span className="font-black text-blue-400 uppercase tracking-wider">
                                                         {diagnostics?.database?.server || diagnostics?.database?.driver || 'MySQL'}
                                                     </span>
                                                     {diagnostics?.database?.version && (
-                                                        <span className="text-[11px] font-mono font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                                                        <span className="text-[11px] font-mono font-bold text-slate-300 bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">
                                                             v{diagnostics.database.version}
                                                         </span>
                                                     )}
@@ -1081,38 +1081,38 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                             </div>
                                         </div>
 
-                                        <div className="border-t border-slate-100 pt-2.5 mt-1">
-                                            <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2">
+                                        <div className="border-t border-slate-800/80 pt-2.5 mt-1">
+                                            <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">
                                                 จัดเก็บข้อมูลใบงานแจ้งซ่อม, บัญชีผู้ใช้งาน และประวัติ Audit Log
                                             </p>
                                         </div>
                                     </div>
 
                                     {/* 3. Storage Symlink */}
-                                    <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                                    <div className="bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-md hover:shadow-lg hover:border-slate-700 transition-all duration-200 flex flex-col justify-between text-slate-100">
                                         <div>
                                             {/* Top Row: Icon on left, Status Badge on right */}
                                             <div className="flex items-center justify-between gap-2 mb-3">
-                                                <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shrink-0 shadow-2xs">
+                                                <div className="w-10 h-10 rounded-xl bg-purple-950/80 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0 shadow-inner">
                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                                                     </svg>
                                                 </div>
                                                 {diagnostics?.storage?.linked ? (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 shrink-0">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
                                                         พร้อมใช้งาน
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80 shrink-0">
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-950/80 text-rose-300 border border-rose-500/30 shrink-0">
                                                         ยังไม่เชื่อมโยง
                                                     </span>
                                                 )}
                                             </div>
 
-                                            {/* Title & Subtitle - Full Width (No truncate) */}
+                                            {/* Title & Subtitle */}
                                             <div className="mb-3">
-                                                <h5 className="text-sm font-bold text-slate-900 leading-snug">
+                                                <h5 className="text-sm font-bold text-white tracking-wide leading-snug">
                                                     ระบบไฟล์แนบ (Storage)
                                                 </h5>
                                                 <p className="text-xs text-slate-400 font-medium mt-0.5">
@@ -1122,7 +1122,7 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
 
                                             {/* Metric & Details */}
                                             <div className="space-y-0.5 mb-3">
-                                                <div className="text-sm font-mono font-bold text-slate-900 leading-snug">
+                                                <div className="text-sm font-mono font-bold text-purple-300 leading-snug">
                                                     {diagnostics?.storage?.linked ? 'public/storage' : 'storage:link'}
                                                 </div>
                                                 <div className="text-[11px] text-slate-400 font-mono">
@@ -1131,8 +1131,8 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                             </div>
                                         </div>
 
-                                        <div className="border-t border-slate-100 pt-2.5 mt-1">
-                                            <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2">
+                                        <div className="border-t border-slate-800/80 pt-2.5 mt-1">
+                                            <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">
                                                 โฟลเดอร์จัดเก็บภาพหลักฐานแจ้งซ่อม, ไฟล์แนบแชท และตราสัญลักษณ์
                                             </p>
                                         </div>
