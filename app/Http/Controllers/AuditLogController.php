@@ -216,6 +216,29 @@ class AuditLogController extends Controller
                 }
             }
 
+            // กรองข้อมูลส่วนเกินที่ไม่จำเป็นสำหรับประวัติการตั้งค่าระบบ (เช่น token ตรวจสอบ, flag ชั่วคราว หรือฟิลด์ที่ไม่ได้ปรับปรุง)
+            if (($log->target_type === 'settings.update' || str_contains((string) $log->action, 'settings')) && is_array($log->changes)) {
+                $noiseKeys = ['smtp_verified_token', 'remove_app_logo', 'remove_app_logo_login', 'remove_app_favicon'];
+                $filteredChanges = [];
+                $filteredOldValues = is_array($log->old_values) ? $log->old_values : [];
+
+                foreach ($log->changes as $key => $val) {
+                    if (in_array($key, $noiseKeys, true)) {
+                        continue;
+                    }
+                    if ($key === 'smtp_password' && ($val === '' || $val === 'ว่างเปล่า' || is_null($val))) {
+                        continue;
+                    }
+                    // หากมี old_values และค่าเดิมกับค่าใหม่ตรงกัน แปลว่าไม่ได้ปรับปรุงฟิลด์นี้
+                    if (array_key_exists($key, $filteredOldValues) && trim((string) $filteredOldValues[$key]) === trim((string) $val)) {
+                        continue;
+                    }
+                    $filteredChanges[$key] = $val;
+                }
+
+                $log->changes = $filteredChanges;
+            }
+
             return $log;
         });
 

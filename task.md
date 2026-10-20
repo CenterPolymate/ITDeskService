@@ -242,11 +242,11 @@
   - [x] หากพยายามเข้าหน้าเปิดเคส จะถูก Redirect ไปยัง Dashboard พร้อมข้อความแจ้งเตือน หรือปฏิเสธคำขอด้วย HTTP 403 Forbidden
   - [x] เพิ่มชุดทดสอบอัตโนมัติใน `TicketManagementTest.php` ครอบคลุมทุกบทบาท
 - [x] แก้ไขบั๊ก Class "App\Http\Controllers\Team" not found ใน `ReportController.php` (เพิ่ม `use App\Models\Team;`)
-- [x] ปรับปรุงหน้าตั้งค่าระบบ (Settings/Index.jsx) ตามแนวทางที่ 2 (3 Sectioned Cards with Quick Anchors & Sticky Bar):
-  - [x] แยกหมวดหมู่การตั้งค่าออกเป็น 3 การ์ดหลักชัดเจน:
-    - [x] หมวดที่ 1: ปรับแต่งแบรนด์และตราสัญลักษณ์ (App Name, Company Name, Support Contact, สีธีม, กล่องอัปโหลดโลโก้ทั้ง 3 แบบที่มีความสูงสมดุล, Live Preview)
-    - [x] หมวดที่ 2: อีเมลและการแจ้งเตือน (2.1 SMTP server + Status badge + Test Connection Modal, 2.2 SLA Overdue Alert toggle + threshold + Run Check button, 2.3 LINE OA Integration)
-    - [x] หมวดที่ 3: ระบบและการดูแลรักษา (3.1 System Health: Cron Job heartbeat, Database, Storage, PHP/Laravel pill, 3.2 Data Retention Policy: Audit Log years)
-  - [x] เพิ่มแท็บ Quick Anchor Navigation Pills ด้านบนเพื่อให้คลิกเลื่อนหน้าจอไปยังแต่ละหมวดได้อย่างสะดวกรวดเร็ว
-  - [x] เพิ่ม Sticky Bottom Action Bar ด้านล่างพร้อมข้อความกำกับความปลอดภัยและปุ่มบันทึกการตั้งค่าทั้งหมด
+- [x] ปรับปรุงระบบบันทึกประวัติการใช้งาน (Audit Log) สำหรับการตั้งค่าระบบ (Settings Delta Tracking):
+  - [x] แก้ไข `LogAdminActions.php` ให้ดึงค่าคอนฟิกเดิม (`$oldValues`) มาเปรียบเทียบกับค่าใหม่ก่อนบันทึกลง Audit Log
+  - [x] กรองและบันทึกเฉพาะฟิลด์ที่มีการเปลี่ยนแปลงจริงเท่านั้น (พร้อมระบุค่าเดิมและค่าใหม่) โดยไม่บันทึกฟิลด์ที่ไม่มีการปรับปรุง
+  - [x] คัดกรองและตัดคีย์ข้อมูลชั่วคราวออกทั้งหมด (`smtp_verified_token`, `remove_app_logo`, `remove_app_logo_login`, `remove_app_favicon`, รหัสผ่านว่างเปล่า)
+  - [x] ปรับปรุง `AuditLogs/Index.jsx` ให้แสดงผลชื่อภาษาไทยที่ถูกต้องใน `KEY_MAP` พร้อมกรองฟิลด์ที่ไม่ได้เปลี่ยนแปลงออกจากการแสดงผล
+  - [x] เพิ่มชุดทดสอบอัตโนมัติ `test_settings_update_logs_only_actually_changed_fields_in_audit_log` ใน `AuditLogTest.php` ผ่าน 100%
+
 

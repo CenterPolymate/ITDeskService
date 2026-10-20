@@ -29,8 +29,19 @@ const KEY_MAP = {
     smtp_host: 'SMTP Host',
     smtp_port: 'SMTP Port',
     smtp_username: 'SMTP Username / อีเมลผู้ส่ง',
+    smtp_password: 'รหัสผ่าน SMTP',
     smtp_encryption: 'การเข้ารหัส SMTP',
     smtp_from_address: 'อีเมลผู้ส่ง (From Address)',
+    app_name: 'ชื่อระบบ (App Name)',
+    company_name: 'ชื่อองค์กร / บริษัท (Company Name)',
+    support_contact: 'ข้อมูลติดต่อฝ่ายบริการ (Support Contact)',
+    brand_primary_color: 'สีธีมหลัก (Brand Primary Color)',
+    app_logo: 'โลโก้ส่วนหัว (Header Logo)',
+    app_logo_login: 'โลโก้หน้าเข้าสู่ระบบ (Login Logo)',
+    app_favicon: 'ไอคอนเบราว์เซอร์ (Favicon)',
+    sla_alert_enabled: 'สถานะระบบแจ้งเตือน SLA',
+    sla_warning_threshold_minutes: 'ระยะเวลาแจ้งเตือน SLA ล่วงหน้า',
+    audit_log_retention_years: 'ระยะเวลาเก็บ Audit Logs (ปี)',
 };
 
 const ROLE_MAP = {
@@ -46,7 +57,10 @@ const ROLE_MAP = {
     team_software: 'Team Software (Tier 2)',
 };
 
-const IGNORED_KEYS = ['id', 'created_at', 'updated_at', 'deleted_at', 'email_verified_at', 'remember_token', 'password'];
+const IGNORED_KEYS = [
+    'id', 'created_at', 'updated_at', 'deleted_at', 'email_verified_at', 'remember_token', 'password',
+    'smtp_verified_token', 'remove_app_logo', 'remove_app_logo_login', 'remove_app_favicon'
+];
 
 function getActionBadge(action = '') {
     if (action.includes('impersonate.leave')) {
@@ -213,7 +227,16 @@ function LogChangesDisplay({ log }) {
     }
 
     if (log.changes && typeof log.changes === 'object') {
-        const keys = Object.keys(log.changes).filter((k) => !IGNORED_KEYS.includes(k));
+        const keys = Object.keys(log.changes).filter((k) => {
+            if (IGNORED_KEYS.includes(k)) return false;
+            if (k === 'smtp_password' && (!log.changes[k] || log.changes[k] === 'ว่างเปล่า')) return false;
+            if (log.old_values && Object.prototype.hasOwnProperty.call(log.old_values, k)) {
+                if (String(log.old_values[k]).trim() === String(log.changes[k]).trim()) {
+                    return false;
+                }
+            }
+            return true;
+        });
 
         if (keys.length === 0) {
             return <em className="text-gray-400">ไม่มีการเปลี่ยนแปลงข้อมูลสำคัญ</em>;

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\AuditLog;
 use App\Models\Company;
+use App\Models\Setting;
 use App\Models\Team;
 use App\Models\User;
 use Closure;
@@ -43,7 +44,10 @@ class LogAdminActions
                 $shouldLog = false;
             }
 
-            if ($routeName === 'impersonate.leave' && $impersonatedBy) {
+            if ($routeName === 'settings.update') {
+                $targetId = 'system';
+                $oldValues = Setting::pluck('value', 'key')->all();
+            } elseif ($routeName === 'impersonate.leave' && $impersonatedBy) {
                 $actorId = $impersonatedBy;
                 $targetId = (string) $user?->id;
             } elseif ($shouldLog && $request->route() && $request->route()->parameterNames()) {
@@ -252,7 +256,84 @@ class LogAdminActions
 
             $finalOldValues = null;
 
-            if ($method === 'DELETE' && $oldValues) {
+            if ($routeName === 'settings.update') {
+                $actualChanges = [];
+                $finalOldValues = [];
+
+                // 1. ตรวจสอบไฟล์แนบ / โลโก้
+                $fileKeys = ['app_logo', 'app_logo_login', 'app_favicon'];
+                foreach ($fileKeys as $fKey) {
+                    if ($request->hasFile($fKey)) {
+                        $actualChanges[$fKey] = 'ไฟล์: '.$request->file($fKey)->getClientOriginalName();
+                        $finalOldValues[$fKey] = ! empty($oldValues[$fKey]) ? 'มีไฟล์เดิม' : 'ค่าเริ่มต้น';
+                    } elseif ($request->boolean('remove_'.$fKey)) {
+                        if (! empty($oldValues[$fKey])) {
+                            $actualChanges[$fKey] = 'ลบไฟล์ (คืนค่าเริ่มต้น)';
+                            $finalOldValues[$fKey] = 'มีไฟล์เดิม';
+                        }
+                    }
+                }
+
+                // 2. ตรวจสอบรหัสผ่าน SMTP
+                if ($request->filled('smtp_password')) {
+                    $actualChanges['smtp_password'] = '******** (เปลี่ยนรหัสผ่านใหม่)';
+                    $finalOldValues['smtp_password'] = ! empty($oldValues['smtp_password']) ? '********' : 'ว่างเปล่า';
+                }
+
+                // 3. ตรวจสอบฟิลด์ข้อความและการตั้งค่าทั่วไป
+                $fieldKeys = [
+                    'app_name',
+                    'company_name',
+                    'support_contact',
+                    'brand_primary_color',
+                    'line_channel_access_token',
+                    'line_channel_secret',
+                    'smtp_host',
+                    'smtp_port',
+                    'smtp_username',
+                    'smtp_encryption',
+                    'audit_log_retention_years',
+                    'sla_alert_enabled',
+                    'sla_warning_threshold_minutes',
+                ];
+
+                foreach ($fieldKeys as $fKey) {
+                    if (! $request->has($fKey)) {
+                        continue;
+                    }
+
+                    $newVal = $request->input($fKey);
+                    $newValStr = is_null($newVal) ? '' : trim((string) $newVal);
+                    $oldVal = $oldValues[$fKey] ?? null;
+                    $oldValStr = is_null($oldVal) ? '' : trim((string) $oldVal);
+
+                    if ($fKey === 'sla_alert_enabled') {
+                        $newValStr = $request->boolean('sla_alert_enabled') ? '1' : '0';
+                        $oldValStr = ($oldVal === '0') ? '0' : '1';
+                    }
+
+                    if ($fKey === 'smtp_encryption') {
+                        if ($newValStr === 'none' || $newValStr === 'null') {
+                            $newValStr = '';
+                        }
+                        if ($oldValStr === 'none' || $oldValStr === 'null') {
+                            $oldValStr = '';
+                        }
+                    }
+
+                    if ($oldValStr !== $newValStr) {
+                        $actualChanges[$fKey] = ($newValStr !== '') ? $newValStr : 'ว่างเปล่า';
+                        $finalOldValues[$fKey] = ($oldValStr !== '') ? $oldValStr : 'ว่างเปล่า';
+                    }
+                }
+
+                // หากไม่มีการเปลี่ยนแปลงใดๆ ให้ข้ามการบันทึก Audit Log
+                if (empty($actualChanges)) {
+                    return $response;
+                }
+
+                $changes = $actualChanges;
+            } elseif ($method === 'DELETE' && $oldValues) {
                 // For DELETE, the request body is empty. Log the old values so we know what was deleted.
                 $changes = $oldValues;
             } elseif ($oldValues && $changes) {
