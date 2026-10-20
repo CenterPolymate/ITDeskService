@@ -215,21 +215,24 @@ export default function SuperadminDashboard({ stats, chartLabels = [], chartData
                             href={route('backups.index')}
                             className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center justify-between transition-all duration-200 hover:-translate-y-1 hover:border-amber-300 hover:shadow-md cursor-pointer group"
                         >
-                            <div>
-                                <p className="text-sm font-medium text-gray-500 mb-1 group-hover:text-amber-600 transition-colors">
+                            <div className="min-w-0 pr-2">
+                                <p className="text-sm font-medium text-gray-500 mb-1 group-hover:text-amber-600 transition-colors truncate">
                                     ระบบสำรองข้อมูล (Backup)
                                 </p>
                                 {latestBackup ? (
                                     <>
-                                        <h3 className="text-base font-black text-gray-900 truncate max-w-[170px]" title={latestBackup.last_modified}>
-                                            {latestBackup.last_modified}
+                                        <h3 className="text-base font-black text-gray-900 leading-tight">
+                                            {latestBackup.date || (latestBackup.last_modified?.split(' ')?.slice(0, 3)?.join(' ') || latestBackup.last_modified)}
                                         </h3>
-                                        <p className="text-xs text-green-600 mt-2 font-medium flex items-center">
-                                            <span className="relative flex h-2 w-2 mr-1.5">
+                                        <div className="text-xs font-bold text-slate-500 font-mono mt-0.5">
+                                            เวลา {latestBackup.time ? `${latestBackup.time} น.` : (latestBackup.last_modified?.split(' ')?.[3] ? `${latestBackup.last_modified.split(' ')[3]} น.` : '')}
+                                        </div>
+                                        <p className="text-xs text-green-600 mt-1.5 font-medium flex items-center">
+                                            <span className="relative flex h-2 w-2 mr-1.5 shrink-0">
                                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                                             </span>
-                                            ขนาด: {latestBackup.size}
+                                            <span>ขนาด: {latestBackup.size}</span>
                                         </p>
                                     </>
                                 ) : (

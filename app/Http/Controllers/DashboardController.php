@@ -110,6 +110,8 @@ class DashboardController extends Controller
                         $latestBackup = [
                             'file_name' => $latest['file_name'],
                             'last_modified' => $latest['timestamp']->locale('th')->translatedFormat('d F Y H:i:s'),
+                            'date' => $latest['timestamp']->locale('th')->translatedFormat('d F Y'),
+                            'time' => $latest['timestamp']->timezone('Asia/Bangkok')->format('H:i:s'),
                             'size' => round($disk->size($latest['file']) / 1048576, 2).' MB',
                         ];
                     }
