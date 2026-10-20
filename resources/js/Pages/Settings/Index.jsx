@@ -966,36 +966,42 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                     {/* 1. Scheduler Cron Heartbeat */}
                                     <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
                                         <div>
-                                            <div className="flex items-start justify-between gap-2 mb-3">
-                                                <div className="flex items-center gap-2.5 min-w-0">
-                                                    <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
-                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                        </svg>
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <h5 className="text-xs font-bold text-slate-800 truncate">งานอัตโนมัติ (Cron Job)</h5>
-                                                        <p className="text-[10px] text-slate-400 font-medium truncate">Laravel Scheduler (1 นาที)</p>
-                                                    </div>
+                                            {/* Top Row: Icon on left, Status Badge on right */}
+                                            <div className="flex items-center justify-between gap-2 mb-3">
+                                                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 shadow-2xs">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
                                                 </div>
                                                 {diagnostics?.scheduler?.status === 'active' ? (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                                         ปกติ
                                                     </span>
                                                 ) : diagnostics?.scheduler?.status === 'warning' ? (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 shrink-0">
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 shrink-0">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                                                         ดีเลย์
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80 shrink-0">
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80 shrink-0">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                                                         ไม่ทำงาน
                                                     </span>
                                                 )}
                                             </div>
 
+                                            {/* Title & Subtitle - Full Width (No truncate) */}
+                                            <div className="mb-3">
+                                                <h5 className="text-sm font-bold text-slate-900 leading-snug">
+                                                    งานอัตโนมัติ (Cron Job)
+                                                </h5>
+                                                <p className="text-xs text-slate-400 font-medium mt-0.5">
+                                                    Laravel Scheduler (ทุก 1 นาที)
+                                                </p>
+                                            </div>
+
+                                            {/* Metric & Details */}
                                             <div className="space-y-0.5 mb-3">
                                                 {diagnostics?.scheduler?.last_heartbeat ? (
                                                     <>
@@ -1004,7 +1010,7 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                                                 ? 'ทำงานเมื่อสักครู่ (< 1 นาที)'
                                                                 : `ทำงานเมื่อ ${Math.round(diagnostics.scheduler.minutes_ago || 1)} นาทีที่แล้ว`}
                                                         </div>
-                                                        <div className="text-[11px] text-slate-400 font-mono truncate" title={diagnostics.scheduler.last_heartbeat}>
+                                                        <div className="text-[11px] text-slate-400 font-mono" title={diagnostics.scheduler.last_heartbeat}>
                                                             ล่าสุด: {diagnostics.scheduler.last_time ? `${diagnostics.scheduler.last_time} น.` : ''} ({diagnostics.scheduler.last_heartbeat.split(' ')[0]} {diagnostics.scheduler.last_heartbeat.split(' ')[1]})
                                                         </div>
                                                     </>
@@ -1027,30 +1033,36 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                     {/* 2. Database Connection */}
                                     <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
                                         <div>
-                                            <div className="flex items-start justify-between gap-2 mb-3">
-                                                <div className="flex items-center gap-2.5 min-w-0">
-                                                    <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-                                                        </svg>
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <h5 className="text-xs font-bold text-slate-800 truncate">ฐานข้อมูล (Database)</h5>
-                                                        <p className="text-[10px] text-slate-400 font-medium truncate">Primary Relational Engine</p>
-                                                    </div>
+                                            {/* Top Row: Icon on left, Status Badge on right */}
+                                            <div className="flex items-center justify-between gap-2 mb-3">
+                                                <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0 shadow-2xs">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                                                    </svg>
                                                 </div>
                                                 {diagnostics?.database?.status === 'connected' ? (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                                         เชื่อมต่อแล้ว
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80 shrink-0">
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80 shrink-0">
                                                         ขาดการเชื่อมต่อ
                                                     </span>
                                                 )}
                                             </div>
 
+                                            {/* Title & Subtitle - Full Width (No truncate) */}
+                                            <div className="mb-3">
+                                                <h5 className="text-sm font-bold text-slate-900 leading-snug">
+                                                    ฐานข้อมูล (Database)
+                                                </h5>
+                                                <p className="text-xs text-slate-400 font-medium mt-0.5">
+                                                    Primary Relational Engine
+                                                </p>
+                                            </div>
+
+                                            {/* Metric & Details */}
                                             <div className="space-y-0.5 mb-3">
                                                 <div className="text-sm font-bold text-slate-900 leading-snug flex items-center gap-1.5 flex-wrap">
                                                     <span>ไดรเวอร์:</span>
@@ -1079,30 +1091,36 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                     {/* 3. Storage Symlink */}
                                     <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
                                         <div>
-                                            <div className="flex items-start justify-between gap-2 mb-3">
-                                                <div className="flex items-center gap-2.5 min-w-0">
-                                                    <div className="w-9 h-9 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shrink-0">
-                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                                                        </svg>
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <h5 className="text-xs font-bold text-slate-800 truncate">ระบบไฟล์แนบ (Storage)</h5>
-                                                        <p className="text-[10px] text-slate-400 font-medium truncate">Public Symbolic Link</p>
-                                                    </div>
+                                            {/* Top Row: Icon on left, Status Badge on right */}
+                                            <div className="flex items-center justify-between gap-2 mb-3">
+                                                <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 shrink-0 shadow-2xs">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                                    </svg>
                                                 </div>
                                                 {diagnostics?.storage?.linked ? (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                                         พร้อมใช้งาน
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80 shrink-0">
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80 shrink-0">
                                                         ยังไม่เชื่อมโยง
                                                     </span>
                                                 )}
                                             </div>
 
+                                            {/* Title & Subtitle - Full Width (No truncate) */}
+                                            <div className="mb-3">
+                                                <h5 className="text-sm font-bold text-slate-900 leading-snug">
+                                                    ระบบไฟล์แนบ (Storage)
+                                                </h5>
+                                                <p className="text-xs text-slate-400 font-medium mt-0.5">
+                                                    Public Symbolic Link
+                                                </p>
+                                            </div>
+
+                                            {/* Metric & Details */}
                                             <div className="space-y-0.5 mb-3">
                                                 <div className="text-sm font-mono font-bold text-slate-900 leading-snug">
                                                     {diagnostics?.storage?.linked ? 'public/storage' : 'storage:link'}
