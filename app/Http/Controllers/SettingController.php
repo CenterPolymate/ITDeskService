@@ -85,7 +85,8 @@ class SettingController extends Controller
         $diagnostics = [
             'scheduler' => [
                 'status' => $schedulerStatus,
-                'last_heartbeat' => $schedulerHeartbeat ? Carbon::parse($schedulerHeartbeat)->timezone('Asia/Bangkok')->translatedFormat('d F Y H:i:s') : null,
+                'last_heartbeat' => $schedulerHeartbeat ? Carbon::parse($schedulerHeartbeat)->locale('th')->timezone('Asia/Bangkok')->translatedFormat('d F Y H:i:s') : null,
+                'last_time' => $schedulerHeartbeat ? Carbon::parse($schedulerHeartbeat)->timezone('Asia/Bangkok')->format('H:i') : null,
                 'minutes_ago' => $schedulerMinutesAgo,
             ],
             'storage' => [
