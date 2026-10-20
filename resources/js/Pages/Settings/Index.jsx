@@ -6,7 +6,6 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
 
     // Corporate Branding states
     const [appName, setAppName] = useState(settings.app_name || branding?.app_name || 'ITDeskService');
-    const [companyName, setCompanyName] = useState(settings.company_name || branding?.company_name || 'IT Service Desk');
     const [supportContact, setSupportContact] = useState(settings.support_contact || branding?.support_contact || '');
 
     // Logo states
@@ -195,7 +194,6 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
 
         router.post(route('settings.update'), {
             app_name: appName,
-            company_name: companyName,
             support_contact: supportContact,
             app_logo: appLogoFile,
             remove_app_logo: removeAppLogo ? 1 : 0,
@@ -334,21 +332,6 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                        ชื่อองค์กร / บริษัท (Company Name)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={companyName}
-                                        onChange={(e) => setCompanyName(e.target.value)}
-                                        placeholder="เช่น บริษัท ตัวอย่าง จำกัด หรือ IT Division"
-                                        className="w-full border-slate-300 rounded-xl shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm py-2.5 px-3.5 bg-white"
-                                    />
-                                    <p className="mt-1 text-[11px] text-slate-400">ใช้ในเอกสารทางการและหัวรายงานสถิติ P-CAR</p>
-                                    {errors.company_name && <p className="mt-1 text-xs text-rose-500">{errors.company_name}</p>}
-                                </div>
-
-                                <div className="md:col-span-2">
                                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                                         ข้อมูลติดต่อฝ่ายบริการไอที (Support Contact / Hotline)
                                     </label>
@@ -535,11 +518,6 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                                 <span className="text-sm font-bold text-indigo-600 truncate leading-tight">
                                                     {appName || 'ITDeskService'}
                                                 </span>
-                                                {companyName && (
-                                                    <span className="text-[10px] text-slate-500 font-medium truncate leading-tight mt-0.5">
-                                                        {companyName}
-                                                    </span>
-                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -556,9 +534,6 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                             <div className="text-xs font-bold text-gray-800 leading-tight">
                                                 {appName || 'ITDeskService'}
                                             </div>
-                                            {companyName && (
-                                                <div className="text-[10px] font-semibold text-slate-500">{companyName}</div>
-                                            )}
                                             {supportContact && (
                                                 <div className="text-[10px] text-slate-400">📞 {supportContact}</div>
                                             )}

@@ -19,7 +19,6 @@ class WhiteLabelingTest extends TestCase
         $admin = User::factory()->create(['role' => 'administrator']);
 
         Setting::updateOrCreate(['key' => 'app_name'], ['value' => 'Helpdesk Enterprise', 'group' => 'branding']);
-        Setting::updateOrCreate(['key' => 'company_name'], ['value' => 'Acme Corporation', 'group' => 'branding']);
         Setting::updateOrCreate(['key' => 'support_contact'], ['value' => 'support@acme.com', 'group' => 'branding']);
         Setting::clearBrandingCache();
 
@@ -29,7 +28,6 @@ class WhiteLabelingTest extends TestCase
         $response->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Settings/Index')
             ->where('branding.app_name', 'Helpdesk Enterprise')
-            ->where('branding.company_name', 'Acme Corporation')
             ->where('branding.support_contact', 'support@acme.com')
         );
     }
@@ -40,7 +38,6 @@ class WhiteLabelingTest extends TestCase
 
         $response = $this->actingAs($admin)->post(route('settings.update'), [
             'app_name' => 'Custom Service Desk',
-            'company_name' => 'Global Logistics Inc.',
             'support_contact' => '02-999-8888 ext 100',
         ]);
 
@@ -52,17 +49,12 @@ class WhiteLabelingTest extends TestCase
             'value' => 'Custom Service Desk',
         ]);
         $this->assertDatabaseHas('settings', [
-            'key' => 'company_name',
-            'value' => 'Global Logistics Inc.',
-        ]);
-        $this->assertDatabaseHas('settings', [
             'key' => 'support_contact',
             'value' => '02-999-8888 ext 100',
         ]);
 
         $branding = Setting::getBranding();
         $this->assertSame('Custom Service Desk', $branding['app_name']);
-        $this->assertSame('Global Logistics Inc.', $branding['company_name']);
         $this->assertSame('02-999-8888 ext 100', $branding['support_contact']);
     }
 

@@ -283,7 +283,6 @@ class LogAdminActions
                 // 3. ตรวจสอบฟิลด์ข้อความและการตั้งค่าทั่วไป
                 $fieldKeys = [
                     'app_name',
-                    'company_name',
                     'support_contact',
                     'line_channel_access_token',
                     'line_channel_secret',

@@ -67,12 +67,12 @@ class AuditLogTest extends TestCase
         $admin = User::factory()->create(['role' => 'administrator']);
 
         Setting::updateOrCreate(['key' => 'app_name'], ['value' => 'Old App Name']);
-        Setting::updateOrCreate(['key' => 'company_name'], ['value' => 'Old Company']);
+        Setting::updateOrCreate(['key' => 'support_contact'], ['value' => '02-111-1111']);
         Setting::updateOrCreate(['key' => 'smtp_host'], ['value' => 'smtp.old.com']);
 
         $response = $this->actingAs($admin)->post(route('settings.update'), [
             'app_name' => 'Old App Name',
-            'company_name' => 'New Polymate Company',
+            'support_contact' => '02-999-9999',
             'smtp_host' => 'smtp.old.com',
             'remove_app_logo' => '0',
             'smtp_verified_token' => 'dummy-token',
@@ -82,12 +82,12 @@ class AuditLogTest extends TestCase
 
         $log = AuditLog::where('target_type', 'settings.update')->latest('id')->first();
         $this->assertNotNull($log);
-        $this->assertArrayHasKey('company_name', $log->changes);
-        $this->assertSame('New Polymate Company', $log->changes['company_name']);
+        $this->assertArrayHasKey('support_contact', $log->changes);
+        $this->assertSame('02-999-9999', $log->changes['support_contact']);
         $this->assertArrayNotHasKey('app_name', $log->changes);
         $this->assertArrayNotHasKey('smtp_host', $log->changes);
         $this->assertArrayNotHasKey('smtp_verified_token', $log->changes);
         $this->assertArrayNotHasKey('remove_app_logo', $log->changes);
-        $this->assertSame('Old Company', $log->old_values['company_name']);
+        $this->assertSame('02-111-1111', $log->old_values['support_contact']);
     }
 }

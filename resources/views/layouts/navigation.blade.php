@@ -13,11 +13,6 @@
                             <span class="text-base sm:text-lg font-bold text-indigo-600 whitespace-nowrap leading-tight">
                                 {{ $branding['app_name'] ?? 'ITDeskService' }}
                             </span>
-                            @if(!empty($branding['company_name']))
-                                <span class="text-[10px] sm:text-[11px] text-slate-500 font-semibold whitespace-nowrap leading-none mt-0.5">
-                                    {{ $branding['company_name'] }}
-                                </span>
-                            @endif
                         </div>
                     </a>
                 </div>

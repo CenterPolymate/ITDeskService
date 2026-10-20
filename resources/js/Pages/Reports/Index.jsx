@@ -130,11 +130,6 @@ export default function Index({
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
                                     P-CAR 5M Analytics
                                 </span>
-                                {branding?.company_name && (
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                        🏢 {branding.company_name}
-                                    </span>
-                                )}
                             </div>
                             <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                                 รายงานสถิติประจำเดือน {selectedMonthName} พ.ศ. {buddhistYear}
@@ -856,7 +851,7 @@ export default function Index({
                     {/* Report Footer Note */}
                     <div className="text-center text-xs text-slate-400 py-4 print-card">
                         <p>
-                            ระบบ {branding?.app_name || 'ITDeskService'} {branding?.company_name ? `(${branding.company_name})` : ''} — รายงานสถิติและวิเคราะห์สาเหตุปัญหา P-CAR ประจำเดือน {selectedMonthName} พ.ศ. {buddhistYear}
+                            ระบบ {branding?.app_name || 'ITDeskService'} — รายงานสถิติและวิเคราะห์สาเหตุปัญหา P-CAR ประจำเดือน {selectedMonthName} พ.ศ. {buddhistYear}
                         </p>
                     </div>
 

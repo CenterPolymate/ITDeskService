@@ -114,7 +114,6 @@ class SettingController extends Controller
 
         $request->validate([
             'app_name' => 'nullable|string|max:100',
-            'company_name' => 'nullable|string|max:150',
             'support_contact' => 'nullable|string|max:255',
             'app_logo' => 'nullable|file|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
             'app_logo_login' => 'nullable|file|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
