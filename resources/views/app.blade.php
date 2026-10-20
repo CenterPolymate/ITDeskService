@@ -6,8 +6,8 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         
         <title inertia>{{ $branding['app_name'] ?? config('app.name', 'ITDeskService') }}</title>
-        <link rel="icon" type="image/png" href="{{ $branding['app_favicon'] ?? asset('images/favicon.png') }}">
-        <link rel="shortcut icon" href="{{ $branding['app_favicon'] ?? asset('favicon.ico') }}">
+        <link rel="icon" href="{{ $branding['app_favicon'] ?? asset('images/favicon.png') }}">
+        <link rel="shortcut icon" href="{{ $branding['app_favicon'] ?? asset('images/favicon.png') }}">
         <link rel="apple-touch-icon" href="{{ $branding['app_favicon'] ?? asset('images/favicon.png') }}">
 
         <!-- PWA & Mobile Web App -->

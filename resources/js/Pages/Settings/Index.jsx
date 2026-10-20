@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
+import { updateBrowserFavicon } from '../../Utils/branding';
 
 export default function Index({ settings = {}, branding = {}, initialSmtpToken = '', savedVerified = false, diagnostics = {} }) {
     const { auth, flash, errors } = usePage().props;
@@ -25,21 +26,27 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
 
     const [saving, setSaving] = useState(false);
 
-    const handleLogoChange = (file, setFile, setPreview, setRemove) => {
+    const handleLogoChange = (file, setFile, setPreview, setRemove, isFavicon = false) => {
         if (!file) return;
         setFile(file);
         setRemove(false);
         const reader = new FileReader();
         reader.onloadend = () => {
             setPreview(reader.result);
+            if (isFavicon) {
+                updateBrowserFavicon(reader.result);
+            }
         };
         reader.readAsDataURL(file);
     };
 
-    const handleResetLogo = (setFile, setPreview, setRemove) => {
+    const handleResetLogo = (setFile, setPreview, setRemove, isFavicon = false) => {
         setFile(null);
         setPreview(null);
         setRemove(true);
+        if (isFavicon) {
+            updateBrowserFavicon('/images/favicon.png');
+        }
     };
 
     // Form states
@@ -457,7 +464,7 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                             <label className="block text-xs font-bold text-slate-800 mb-1">
                                                 ไอคอนเบราว์เซอร์ (Favicon)
                                             </label>
-                                            <p className="text-[11px] text-slate-400 leading-tight">ไฟล์ .ico หรือ .png (ขนาดไม่เกิน 1MB)</p>
+                                            <p className="text-[11px] text-slate-400 leading-tight">ไฟล์ .ico, .png, .jpg, .svg, .webp (ขนาดไม่เกิน 2MB)</p>
                                         </div>
                                         
                                         <div className="h-16 flex items-center justify-center bg-white border border-dashed border-slate-300 rounded-lg p-2 mb-3">
@@ -476,14 +483,14 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                         <input
                                             type="file"
                                             id="app_favicon_input"
-                                            accept=".ico,image/png,image/svg+xml"
-                                            onChange={(e) => handleLogoChange(e.target.files[0], setAppFaviconFile, setAppFaviconPreview, setRemoveAppFavicon)}
+                                            accept=".ico,image/x-icon,image/vnd.microsoft.icon,image/png,image/jpeg,image/jpg,image/svg+xml,image/webp"
+                                            onChange={(e) => handleLogoChange(e.target.files[0], setAppFaviconFile, setAppFaviconPreview, setRemoveAppFavicon, true)}
                                             className="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
                                         />
                                         {(appFaviconPreview || appFaviconFile) && !removeAppFavicon && (
                                             <button
                                                 type="button"
-                                                onClick={() => handleResetLogo(setAppFaviconFile, setAppFaviconPreview, setRemoveAppFavicon)}
+                                                onClick={() => handleResetLogo(setAppFaviconFile, setAppFaviconPreview, setRemoveAppFavicon, true)}
                                                 className="text-[11px] text-rose-600 hover:text-rose-800 font-semibold block w-full text-right cursor-pointer"
                                             >
                                                 ลบและใช้ค่าเริ่มต้น
@@ -504,9 +511,9 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                 <div className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                                     <span>👁️ ตัวอย่างการแสดงผลจำลอง (Live Preview)</span>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                     {/* Navbar Preview */}
-                                    <div className="bg-slate-100 p-3 rounded-xl border border-slate-200">
+                                    <div className="bg-slate-100 p-3 rounded-xl border border-slate-200 flex flex-col justify-between">
                                         <div className="text-[10px] text-slate-500 font-semibold mb-1.5">จำลองแถบนำทาง (Navbar Header)</div>
                                         <div className="bg-white h-12 rounded-lg px-3 flex items-center gap-2.5 shadow-xs border border-slate-100">
                                             <img
@@ -523,7 +530,7 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                     </div>
 
                                     {/* Login Card Preview */}
-                                    <div className="bg-slate-100 p-3 rounded-xl border border-slate-200">
+                                    <div className="bg-slate-100 p-3 rounded-xl border border-slate-200 flex flex-col justify-between">
                                         <div className="text-[10px] text-slate-500 font-semibold mb-1.5">จำลองหน้าเข้าสู่ระบบ (Login Card)</div>
                                         <div className="bg-white p-3 rounded-lg text-center shadow-xs border border-slate-100 space-y-1">
                                             <img
@@ -537,6 +544,24 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                             {supportContact && (
                                                 <div className="text-[10px] text-slate-400">📞 {supportContact}</div>
                                             )}
+                                        </div>
+                                    </div>
+
+                                    {/* Browser Tab Preview */}
+                                    <div className="bg-slate-100 p-3 rounded-xl border border-slate-200 flex flex-col justify-between">
+                                        <div className="text-[10px] text-slate-500 font-semibold mb-1.5">จำลองแท็บเบราว์เซอร์ (Browser Tab & Favicon)</div>
+                                        <div className="bg-slate-200/70 h-12 rounded-lg px-2 flex items-end">
+                                            <div className="bg-white h-9 px-2.5 rounded-t-lg flex items-center gap-2 shadow-xs border-t border-x border-slate-300 max-w-[180px] w-full">
+                                                <img
+                                                    src={appFaviconPreview && !removeAppFavicon ? appFaviconPreview : '/images/favicon.png'}
+                                                    alt="Preview Favicon"
+                                                    className="w-4 h-4 shrink-0 object-contain"
+                                                />
+                                                <span className="text-xs font-medium text-slate-700 truncate">
+                                                    {appName || 'ITDeskService'}
+                                                </span>
+                                                <span className="text-slate-400 text-[10px] ml-auto shrink-0">✕</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

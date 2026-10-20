@@ -39,9 +39,9 @@ class Setting extends Model
             return [
                 'app_name' => ! empty($settings['app_name']) ? $settings['app_name'] : config('app.name', 'ITDeskService'),
                 'support_contact' => $settings['support_contact'] ?? '',
-                'app_logo' => ! empty($settings['app_logo']) ? asset('storage/'.$settings['app_logo']) : null,
-                'app_logo_login' => ! empty($settings['app_logo_login']) ? asset('storage/'.$settings['app_logo_login']) : null,
-                'app_favicon' => ! empty($settings['app_favicon']) ? asset('storage/'.$settings['app_favicon']) : null,
+                'app_logo' => ! empty($settings['app_logo']) ? asset('storage/'.$settings['app_logo']).'?v='.substr(md5($settings['app_logo']), 0, 8) : null,
+                'app_logo_login' => ! empty($settings['app_logo_login']) ? asset('storage/'.$settings['app_logo_login']).'?v='.substr(md5($settings['app_logo_login']), 0, 8) : null,
+                'app_favicon' => ! empty($settings['app_favicon']) ? asset('storage/'.$settings['app_favicon']).'?v='.substr(md5($settings['app_favicon']), 0, 8) : null,
             ];
         });
     }

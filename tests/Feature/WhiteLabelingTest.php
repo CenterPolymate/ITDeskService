@@ -95,6 +95,28 @@ class WhiteLabelingTest extends TestCase
         $this->assertStringContainsString($faviconPath, $branding['app_favicon']);
     }
 
+    public function test_administrator_can_upload_png_or_webp_favicon(): void
+    {
+        Storage::fake('public');
+        $admin = User::factory()->create(['role' => 'administrator']);
+
+        $pngFavicon = UploadedFile::fake()->create('custom_favicon.png', 20, 'image/png');
+
+        $response = $this->actingAs($admin)->post(route('settings.update'), [
+            'app_favicon' => $pngFavicon,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $faviconPath = Setting::where('key', 'app_favicon')->value('value');
+        $this->assertNotNull($faviconPath);
+        Storage::disk('public')->assertExists($faviconPath);
+
+        $branding = Setting::getBranding();
+        $this->assertStringContainsString($faviconPath, $branding['app_favicon']);
+    }
+
     public function test_administrator_can_remove_custom_branding_logos(): void
     {
         Storage::fake('public');

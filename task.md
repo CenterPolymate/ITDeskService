@@ -257,6 +257,13 @@
 - [x] ขยายสิทธิ์การแก้ไขข้อมูลย้อนหลังผ่าน Inline Edit ให้ครอบคลุมช่วงดำเนินงาน Task 2 (Preventive Measure) จนกว่าจะปิดงาน (`done`)
 - [x] ถอดฟังก์ชันสีธีมหลัก (Brand Primary Color) ออกและคืนค่าชุดสีหลักกลับเป็น Indigo/Slate มาตรฐาน
 - [x] ถอดระบบชื่อองค์กร / บริษัท (Company Name) ออกจากการตั้งค่าแบรนด์และการแสดงผลทั่วทั้งระบบ
+- [x] แก้ไขปัญหาไอคอนเบราว์เซอร์ (Favicon) ไม่แสดงผลตามรูปที่อัพโหลด:
+  - [x] นำ `type="image/png"` ออกจาก `<link rel="icon">` ใน `app.blade.php` และปรับ Fallback ให้รองรับไฟล์ .ico, .svg, .webp, .jpg, .png อย่างสมบูรณ์
+  - [x] ขยายการตรวจสอบ Validation ใน `SettingController.php` ให้รองรับ mimes `ico,png,jpg,jpeg,svg,webp` ขนาดไม่เกิน 2MB
+  - [x] เพิ่มระบบ Cache-busting (`?v=...`) ใน `Setting::getBranding()` ป้องกันเบราว์เซอร์จำ Cache เก่า
+  - [x] เพิ่มยูทิลิตี้ `updateBrowserFavicon` ใน `branding.js` และเชื่อมต่อกับ Inertia Router Event (`navigate`, `success`) และ Live Preview เพื่ออัปเดตแท็บเบราว์เซอร์แบบเรียลไทม์ทันที
+  - [x] เพิ่มการ์ดตัวอย่าง "จำลองแท็บเบราว์เซอร์ (Browser Tab & Favicon)" ใน Live Preview Card
+  - [x] เพิ่มชุดทดสอบอัตโนมัติใน `WhiteLabelingTest.php` ผ่านครบถ้วน 100% (154/154 tests)
 
 
 

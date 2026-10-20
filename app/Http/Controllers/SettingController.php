@@ -117,13 +117,14 @@ class SettingController extends Controller
             'support_contact' => 'nullable|string|max:255',
             'app_logo' => 'nullable|file|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
             'app_logo_login' => 'nullable|file|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
-            'app_favicon' => 'nullable|file|mimes:ico,png,svg|max:1024',
+            'app_favicon' => 'nullable|file|mimes:ico,png,jpg,jpeg,svg,webp|max:2048',
         ], [
             'app_logo.image' => 'ไฟล์โลโก้ส่วนหัวต้องเป็นไฟล์รูปภาพเท่านั้น',
             'app_logo.max' => 'ขนาดไฟล์โลโก้ส่วนหัวต้องไม่เกิน 2MB',
             'app_logo_login.image' => 'ไฟล์โลโก้หน้าเข้าสู่ระบบต้องเป็นไฟล์รูปภาพเท่านั้น',
             'app_logo_login.max' => 'ขนาดไฟล์โลโก้หน้าเข้าสู่ระบบต้องไม่เกิน 2MB',
-            'app_favicon.max' => 'ขนาดไฟล์ Favicon ต้องไม่เกิน 1MB',
+            'app_favicon.mimes' => 'ไฟล์ Favicon ต้องเป็นนามสกุล ico, png, jpg, jpeg, svg หรือ webp เท่านั้น',
+            'app_favicon.max' => 'ขนาดไฟล์ Favicon ต้องไม่เกิน 2MB',
         ]);
 
         // Process branding files
