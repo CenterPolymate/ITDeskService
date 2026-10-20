@@ -732,12 +732,12 @@ export default function Index({
                                     <table className="w-full text-left text-xs">
                                         <thead className="bg-slate-50/80 text-slate-600 uppercase font-black tracking-wider border-b border-slate-100">
                                             <tr>
-                                                <th className="py-3.5 px-5">Ticket / PCAR No</th>
-                                                <th className="py-3.5 px-4">หัวข้อปัญหา</th>
-                                                <th className="py-3.5 px-4">บริษัท / แผนก</th>
-                                                <th className="py-3.5 px-4">หมวดหมู่ 5M</th>
-                                                <th className="py-3.5 px-4">สถานะมาตรการ</th>
-                                                <th className="py-3.5 px-4">วันที่เปิด</th>
+                                                <th className="py-3.5 px-5 text-left">Ticket / PCAR No</th>
+                                                <th className="py-3.5 px-4 text-left">หัวข้อปัญหา</th>
+                                                <th className="py-3.5 px-4 text-left">บริษัท / แผนก</th>
+                                                <th className="py-3.5 px-4 text-left">หมวดหมู่ 5M</th>
+                                                <th className="py-3.5 px-4 text-left">สถานะมาตรการ</th>
+                                                <th className="py-3.5 px-4 text-left">วันที่เปิด</th>
                                                 <th className="py-3.5 px-5 text-right no-print">การจัดการ</th>
                                             </tr>
                                         </thead>

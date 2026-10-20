@@ -359,7 +359,7 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                                             <tr>
                                                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">วันที่</th>
                                                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ชื่อวันหยุด</th>
-                                                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">สถานะ</th>
+                                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">สถานะ</th>
                                                 <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">จัดการ</th>
                                             </tr>
                                         </thead>
@@ -381,7 +381,7 @@ export default function Index({ holidays, suggestedHolidays, fetchYear }) {
                                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                                                             {holiday?.name}
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-left text-sm">
                                                             {isPast ? (
                                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200/60">
                                                                     <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>

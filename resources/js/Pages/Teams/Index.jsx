@@ -396,7 +396,6 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
                                                     onSort={handleSort}
                                                     label="สถานะ"
                                                     subLabel="STATUS"
-                                                    align="center"
                                                 />
                                                 <th scope="col" className="px-6 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-gray-500">
                                                     <div>จัดการ</div>
@@ -464,7 +463,7 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
                                                         )}
                                                     </td>
 
-                                                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-left">
                                                         <button
                                                             type="button"
                                                             onClick={() => handleToggleStatus(team)}
