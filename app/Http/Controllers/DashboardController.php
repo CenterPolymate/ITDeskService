@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\Company;
 use App\Models\HelpdeskCase;
 use App\Models\Sla;
@@ -73,18 +74,50 @@ class DashboardController extends Controller
                     $files = $disk->files($backupName);
                     $files = array_filter($files, fn ($file) => substr($file, -4) === '.zip');
                     if (! empty($files)) {
-                        $latestFile = end($files); // last element is usually the newest if sorted alphabetically by timestamp
+                        $parsedFiles = [];
+                        foreach ($files as $file) {
+                            $fileName = str_replace($backupName.'/', '', $file);
+                            $timestamp = null;
+                            if (preg_match('/(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})/', $fileName, $matches)) {
+                                try {
+                                    $timestamp = Carbon::createFromFormat(
+                                        'Y-m-d-H-i-s',
+                                        "{$matches[1]}-{$matches[2]}-{$matches[3]}-{$matches[4]}-{$matches[5]}-{$matches[6]}",
+                                        config('app.timezone', 'Asia/Bangkok')
+                                    );
+                                } catch (\Throwable $e) {
+                                    $timestamp = null;
+                                }
+                            }
+                            if (! $timestamp) {
+                                $timestamp = Carbon::createFromTimestamp($disk->lastModified($file), config('app.timezone', 'Asia/Bangkok'));
+                            }
+                            $parsedFiles[] = [
+                                'file' => $file,
+                                'file_name' => $fileName,
+                                'timestamp' => $timestamp,
+                            ];
+                        }
+                        usort($parsedFiles, function ($a, $b) {
+                            if ($b['timestamp']->timestamp === $a['timestamp']->timestamp) {
+                                return strcmp($b['file_name'], $a['file_name']);
+                            }
+
+                            return $b['timestamp']->timestamp <=> $a['timestamp']->timestamp;
+                        });
+
+                        $latest = $parsedFiles[0];
                         $latestBackup = [
-                            'file_name' => str_replace($backupName.'/', '', $latestFile),
-                            'last_modified' => Carbon::createFromTimestamp($disk->lastModified($latestFile))->translatedFormat('d F Y H:i'),
-                            'size' => round($disk->size($latestFile) / 1048576, 2).' MB',
+                            'file_name' => $latest['file_name'],
+                            'last_modified' => $latest['timestamp']->locale('th')->translatedFormat('d F Y H:i:s'),
+                            'size' => round($disk->size($latest['file']) / 1048576, 2).' MB',
                         ];
                     }
                 } catch (\Exception $e) {
                     // Ignore error if backup disk is missing or unreadable
                 }
 
-                $recentAuditLogs = \App\Models\AuditLog::with('user:id,name,role')
+                $recentAuditLogs = AuditLog::with('user:id,name,role')
                     ->latest()
                     ->take(5)
                     ->get()

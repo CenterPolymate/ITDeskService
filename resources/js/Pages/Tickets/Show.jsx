@@ -47,6 +47,76 @@ export default function Show({ ticket, categories = [], teams = [] }) {
         { id: 3, code: 'SW', name: 'Software' },
     ];
 
+    // Helper to intelligently resolve the team that handled Task 1
+    const getTask1DefaultTeam = () => {
+        if (!ticket) return '';
+
+        // 1. Check ticket.escalated_to_team (exact name, code, case-insensitive, or legacy role)
+        if (ticket.escalated_to_team) {
+            const raw = String(ticket.escalated_to_team).trim();
+
+            // Direct exact match by name
+            const exactName = availableTeams.find((t) => t.name === raw);
+            if (exactName) return exactName.name;
+
+            // Direct exact match by code (e.g. 'HW' -> 'Hardware')
+            const exactCode = availableTeams.find((t) => t.code === raw);
+            if (exactCode) return exactCode.name;
+
+            // Case-insensitive match by name or code
+            const ciMatch = availableTeams.find(
+                (t) => t.name.toLowerCase() === raw.toLowerCase() || t.code.toLowerCase() === raw.toLowerCase()
+            );
+            if (ciMatch) return ciMatch.name;
+
+            // Legacy role mapping (e.g. 'team_hardware' -> 'Hardware')
+            const legacyMap = {
+                team_hardware: 'Hardware',
+                team_network: 'Network',
+                team_software: 'Software',
+            };
+            const mappedRole = legacyMap[raw.toLowerCase()];
+            if (mappedRole) {
+                const legacyMatch = availableTeams.find(
+                    (t) => t.name.toLowerCase() === mappedRole.toLowerCase() || t.code.toLowerCase() === mappedRole.toLowerCase()
+                );
+                if (legacyMatch) return legacyMatch.name;
+            }
+        }
+
+        // 2. Fallback: Find team from the technician who resolved, worked on, or analyzed Task 1
+        const tech = ticket.resolved_by || ticket.in_progress_by || ticket.analyzing_by || ticket.assigned_by;
+        if (tech) {
+            // Check tech's teams relationship
+            if (Array.isArray(tech.teams) && tech.teams.length > 0) {
+                const teamMatch = availableTeams.find((t) =>
+                    tech.teams.some((tt) => tt.id === t.id || tt.name === t.name || tt.code === t.code)
+                );
+                if (teamMatch) return teamMatch.name;
+            }
+
+            // Check tech's legacy role
+            if (tech.role) {
+                const legacyMap = {
+                    team_hardware: 'Hardware',
+                    team_network: 'Network',
+                    team_software: 'Software',
+                };
+                const mappedRole = legacyMap[tech.role];
+                if (mappedRole) {
+                    const legacyMatch = availableTeams.find(
+                        (t) => t.name.toLowerCase() === mappedRole.toLowerCase()
+                    );
+                    if (legacyMatch) return legacyMatch.name;
+                }
+            }
+        }
+
+        return '';
+    };
+
+    const defaultTask1Team = getTask1DefaultTeam();
+
     // Determine permissions
     const isRequester = user.email === ticket.requester_email;
     const isHelpdesk = user.role === 'helpdesk';
@@ -334,7 +404,7 @@ export default function Show({ ticket, categories = [], teams = [] }) {
     const { data: managerData, setData: setManagerData, put: putManager, processing: managerProcessing } = useForm({
         action: 'close',
         requires_preventive_measure: ticket.requires_preventive_measure === true ? '1' : (ticket.requires_preventive_measure === false ? '0' : ''),
-        escalated_to_team: ticket.escalated_to_team || '',
+        escalated_to_team: defaultTask1Team || ticket.escalated_to_team || '',
     });
 
     // Task 2: Preventive Action Form
@@ -1064,7 +1134,14 @@ export default function Show({ ticket, categories = [], teams = [] }) {
                                                     name="requires_preventive_measure"
                                                     value="1"
                                                     checked={managerData.requires_preventive_measure === '1'}
-                                                    onChange={(e) => setManagerData('requires_preventive_measure', e.target.value)}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        setManagerData((prev) => ({
+                                                            ...prev,
+                                                            requires_preventive_measure: val,
+                                                            escalated_to_team: val === '1' && !prev.escalated_to_team ? (defaultTask1Team || '') : prev.escalated_to_team,
+                                                        }));
+                                                    }}
                                                     className="text-slate-800 focus:ring-slate-800"
                                                 />
                                                 <span className="text-sm font-semibold text-slate-800">ต้องการมาตรการป้องกัน</span>
@@ -1090,7 +1167,7 @@ export default function Show({ ticket, categories = [], teams = [] }) {
                                             </label>
                                             <select
                                                 required
-                                                value={managerData.escalated_to_team}
+                                                value={managerData.escalated_to_team || ''}
                                                 onChange={(e) => setManagerData('escalated_to_team', e.target.value)}
                                                 className="w-full rounded-xl border-slate-300 text-sm focus:border-slate-800 focus:ring-slate-800"
                                             >
@@ -1101,6 +1178,12 @@ export default function Show({ ticket, categories = [], teams = [] }) {
                                                     </option>
                                                 ))}
                                             </select>
+                                            {defaultTask1Team && (
+                                                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+                                                    <span className="text-amber-500">💡</span>
+                                                    <span>ดึงค่าเริ่มต้นจากทีมที่รับผิดชอบ Task 1 (ท่านสามารถคลิกเปลี่ยนทีมได้ตามความเหมาะสม)</span>
+                                                </p>
+                                            )}
                                         </div>
                                     )}
 

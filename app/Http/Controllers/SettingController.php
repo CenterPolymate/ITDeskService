@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -100,6 +101,7 @@ class SettingController extends Controller
 
         return Inertia::render('Settings/Index', [
             'settings' => $settingsMap,
+            'branding' => Setting::getBranding(),
             'initialSmtpToken' => $initialSmtpToken,
             'savedVerified' => $savedVerified,
             'diagnostics' => $diagnostics,
@@ -109,6 +111,42 @@ class SettingController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $this->authorizeAdministrator();
+
+        $request->validate([
+            'app_name' => 'nullable|string|max:100',
+            'company_name' => 'nullable|string|max:150',
+            'support_contact' => 'nullable|string|max:255',
+            'brand_primary_color' => ['nullable', 'string', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
+            'app_logo' => 'nullable|file|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
+            'app_logo_login' => 'nullable|file|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
+            'app_favicon' => 'nullable|file|mimes:ico,png,svg|max:1024',
+        ], [
+            'brand_primary_color.regex' => 'รูปแบบรหัสสี Hex Color ไม่ถูกต้อง (เช่น #4f46e5)',
+            'app_logo.image' => 'ไฟล์โลโก้ส่วนหัวต้องเป็นไฟล์รูปภาพเท่านั้น',
+            'app_logo.max' => 'ขนาดไฟล์โลโก้ส่วนหัวต้องไม่เกิน 2MB',
+            'app_logo_login.image' => 'ไฟล์โลโก้หน้าเข้าสู่ระบบต้องเป็นไฟล์รูปภาพเท่านั้น',
+            'app_logo_login.max' => 'ขนาดไฟล์โลโก้หน้าเข้าสู่ระบบต้องไม่เกิน 2MB',
+            'app_favicon.max' => 'ขนาดไฟล์ Favicon ต้องไม่เกิน 1MB',
+        ]);
+
+        // Process branding files
+        $fileFields = ['app_logo', 'app_logo_login', 'app_favicon'];
+        foreach ($fileFields as $field) {
+            if ($request->hasFile($field)) {
+                $oldPath = Setting::where('key', $field)->value('value');
+                if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+                $storedPath = $request->file($field)->store('branding', 'public');
+                Setting::updateOrCreate(['key' => $field], ['value' => $storedPath, 'group' => 'branding']);
+            } elseif ($request->boolean('remove_'.$field)) {
+                $oldPath = Setting::where('key', $field)->value('value');
+                if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
+                Setting::updateOrCreate(['key' => $field], ['value' => null, 'group' => 'branding']);
+            }
+        }
 
         $smtpHost = trim((string) $request->input('smtp_host', ''));
         $smtpPort = trim((string) $request->input('smtp_port', ''));
@@ -151,7 +189,19 @@ class SettingController extends Controller
             }
         }
 
-        $data = $request->except(['_token', '_method', 'smtp_verified_token']);
+        $excludedKeys = [
+            '_token',
+            '_method',
+            'smtp_verified_token',
+            'app_logo',
+            'app_logo_login',
+            'app_favicon',
+            'remove_app_logo',
+            'remove_app_logo_login',
+            'remove_app_favicon',
+        ];
+
+        $data = $request->except($excludedKeys);
 
         // หากไม่ได้กรอกรหัสผ่านใหม่ ให้คงรหัสผ่านเดิมไว้
         if ($request->has('smtp_password') && $smtpPasswordInput === '' && ! empty($savedPassword)) {
@@ -178,6 +228,8 @@ class SettingController extends Controller
             Setting::updateOrCreate(['key' => 'smtp_verified'], ['value' => '1']);
             Setting::updateOrCreate(['key' => 'smtp_verified_at'], ['value' => now()->toDateTimeString()]);
         }
+
+        Setting::clearBrandingCache();
 
         return redirect()->back()->with('success', 'บันทึกการตั้งค่าระบบเรียบร้อยแล้ว');
     }

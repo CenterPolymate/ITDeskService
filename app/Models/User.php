@@ -7,6 +7,8 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -75,7 +77,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Teams supervised by this user as a Manager.
      */
-    public function managedTeams(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function managedTeams(): HasMany
     {
         return $this->hasMany(Team::class, 'manager_id');
     }
@@ -83,7 +85,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Teams this user belongs to as a member/technician.
      */
-    public function teams(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function teams(): BelongsToMany
     {
         return $this->belongsToMany(Team::class, 'team_user')
             ->withPivot('role_in_team')

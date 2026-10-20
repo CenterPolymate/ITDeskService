@@ -344,7 +344,7 @@
     - ปรับใช้ `SortableHeader` ในหน้าจัดการผู้ใช้งานทีม IT (`Users/Index.jsx`) และหน้าจัดการผู้ใช้งานทั่วไป (`NormalUsers/Index.jsx`)
     - เพิ่มแถบเรียงลำดับ Mobile Sort Bar บนทั้งสองหน้าจอ และคงค่าการ Sort ในการค้นหาและเปลี่ยนสถานะ
 
-## Phase 14: Commercial Readiness & Dynamic Organizational Structure (📋 แผนงานระยะถัดไป)
+## Phase 14: Commercial Readiness & Dynamic Organizational Structure (✅ ดำเนินการแล้วเสร็จ)
 > [!NOTE]
 > **นโยบาย SLA:** ระบบการนับเวลา การคำนวณระยะเวลา และการแจ้งเตือน SLA ให้คงเดิมตามระบบปัจจุบัน (4 ชั่วโมง / ทบเวลาทำการ 8x5 / แจ้งเตือนล่วงหน้า) โดยไม่มีการปรับเปลี่ยน
 
@@ -368,17 +368,16 @@
   - [x] **มาตรการแบ่งแยกหน้าที่และความรับผิดชอบ (Separation of Duties):** จำกัดสิทธิ์การเปิดเคสแจ้งซ่อม (`/tickets/create`, `POST /tickets`, และ LINE OA) ให้เฉพาะผู้ใช้งานทั่วไป (Role `user`) เท่านั้น ป้องกันผลประโยชน์ทับซ้อน (Conflict of Interest) โดยทีมงานไอทีและผู้ดูแลระบบทุกบทบาทจะไม่มีสิทธิ์เปิดเคสแจ้งซ่อม
   - [x] **การจัดระเบียบเมนูตั้งค่าระบบ (Admin Navigation IA):** ปรับปรุงโครงสร้างเมนูดรอปดาวน์ "ตั้งค่าระบบ (Admin)" ให้จัดหมวดหมู่ย่อย 2 กลุ่มงานชัดเจน ได้แก่ "บริการและองค์กร (Service)" และ "ระบบและความปลอดภัย (System)" พร้อมไอคอน SVG, Badges, Divider และปรับความกว้างเป็น `w-60` ทั้งเดสก์ท็อปและมือถือ
   - [x] **การแก้ไขข้อผิดพลาดและการบำรุงรักษาฐานข้อมูล:** แก้ไข Class "App\Http\Controllers\Team" not found ใน `ReportController.php` และสร้าง Migration ลบข้อมูลวันหยุดทดสอบ (`2026_10_19_174000_delete_test_holiday_record.php`)
-- [ ] **Sprint 14.3: Dynamic Ticket Routing & Category Mapping (การจับคู่หมวดหมู่กับทีมรับผิดชอบ):**
-  - [ ] เพิ่มฟิลด์ `default_team_id` ในตารางหมวดหมู่ปัญหา (`categories`)
-  - [ ] ในหน้าจอ Triage เมื่อ Helpdesk เลือกหมวดหมู่ปัญหา ระบบจะ Auto-suggest หรือเลือกทีมที่รับผิดชอบเริ่มต้นให้อัตโนมัติตามที่ตั้งค่าไว้
-- [ ] **Sprint 14.4: White-Labeling & System Personalization (การปรับแต่งแบรนด์และตราสัญลักษณ์องค์กร):**
-  - [ ] เพิ่มส่วนการตั้งค่า Corporate Branding ในหน้า System Settings ให้ Administrator สามารถอัปโหลด:
+- [x] **Sprint 14.3: White-Labeling & System Personalization (การปรับแต่งแบรนด์และตราสัญลักษณ์องค์กร):**
+  - [x] เพิ่มส่วนการตั้งค่า Corporate Branding ในหน้า System Settings ให้ Administrator สามารถอัปโหลด:
     - โลโก้ระบบ (Header Logo & Login Logo)
     - Favicon
     - ชื่อระบบ / ชื่อองค์กร (App Name)
     - สีธีมหลัก (Brand Primary Color)
     - ข้อมูลติดต่อฝ่ายบริการ (Support Contact / Hotline / Extension)
-  - [ ] ปรับปรุงโค้ดส่วนหน้า (Blade Navigation, Header, Footers, Print Report) ให้ดึงข้อมูลการแสดงผลจากค่า System Settings แทนการระบุชื่อหรือสัญลักษณ์แบรนด์เดิมแบบตายตัว เพื่อให้เป็นระบบที่พร้อมขายได้ทันที (Commercial-ready)
+  - [x] ปรับปรุงโค้ดส่วนหน้า (Blade Navigation, Header, Footers, Print Report) ให้ดึงข้อมูลการแสดงผลจากค่า System Settings แทนการระบุชื่อหรือสัญลักษณ์แบรนด์เดิมแบบตายตัว เพื่อให้เป็นระบบที่พร้อมขายได้ทันที (Commercial-ready)
+  - [x] Live Preview จำลองการแสดงผล Header และ Login Card แบบเรียลไทม์
+  - [x] ชุดทดสอบ `WhiteLabelingTest.php` ครอบคลุมการอนุญาตสิทธิ์, อัปโหลดไฟล์, ล้างแคช, และการรีเซ็ตกลับเป็นค่าเริ่มต้น 100% (6/6 tests ผ่าน)
 
 
 

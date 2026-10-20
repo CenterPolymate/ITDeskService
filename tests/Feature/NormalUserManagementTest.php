@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\HelpdeskCase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
@@ -158,7 +159,7 @@ class NormalUserManagementTest extends TestCase
         $this->actingAs($helpdesk)->get(route('normal_users.export'))->assertForbidden();
 
         // import
-        $file = \Illuminate\Http\UploadedFile::fake()->createWithContent('users.csv', "name,email,company\r\n");
+        $file = UploadedFile::fake()->createWithContent('users.csv', "name,email,company\r\n");
         $this->actingAs($helpdesk)->post(route('normal_users.import'), ['csv_file' => $file])->assertForbidden();
     }
 
@@ -210,5 +211,3 @@ class NormalUserManagementTest extends TestCase
             ->assertRedirect(route('normal_users.index'));
     }
 }
-
-

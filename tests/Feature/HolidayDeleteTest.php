@@ -166,7 +166,7 @@ class HolidayDeleteTest extends TestCase
             $response->assertForbidden();
 
             $responseStore = $this->actingAs($user)->post(route('holidays.store'), [
-                'name' => 'Unauthorized Holiday ' . $role,
+                'name' => 'Unauthorized Holiday '.$role,
                 'date' => now()->addDays(5)->format('Y-m-d'),
             ]);
             $responseStore->assertForbidden();

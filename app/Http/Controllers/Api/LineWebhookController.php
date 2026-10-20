@@ -99,7 +99,7 @@ class LineWebhookController extends Controller
             }
 
             if ($user->role !== 'user') {
-                $replyText = "⚠️ ขออภัยครับ บัญชีของคุณมีบทบาทเป็นทีมงานไอที/ผู้ดูแลระบบ เฉพาะผู้ใช้งานทั่วไป (User) เท่านั้นที่มีสิทธิ์เปิดใบงานแจ้งซ่อม";
+                $replyText = '⚠️ ขออภัยครับ บัญชีของคุณมีบทบาทเป็นทีมงานไอที/ผู้ดูแลระบบ เฉพาะผู้ใช้งานทั่วไป (User) เท่านั้นที่มีสิทธิ์เปิดใบงานแจ้งซ่อม';
                 $this->bot->replyMessage($replyToken, new TextMessageBuilder($replyText));
 
                 return;

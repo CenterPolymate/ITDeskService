@@ -7,10 +7,10 @@
                 <div class="shrink-0 flex items-center gap-3">
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
                         <div>
-                            <img src="{{ asset('images/polymate-logo.png') }}" alt="Polymate Logo" class="h-8 w-auto">
+                            <img src="{{ $branding['app_logo'] ?? asset('images/polymate-logo.png') }}" alt="{{ $branding['app_name'] ?? 'ITDeskService' }}" class="h-8 max-w-[140px] w-auto object-contain">
                         </div>
                         <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600 hidden sm:block whitespace-nowrap">
-                            ITDeskService
+                            {{ $branding['app_name'] ?? 'ITDeskService' }}
                         </span>
                     </a>
                 </div>

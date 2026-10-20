@@ -155,11 +155,13 @@ class TeamManagementTest extends TestCase
     public function test_administrator_can_toggle_team_status(): void
     {
         $admin = User::factory()->create(['role' => 'administrator']);
+        $tech = User::factory()->create(['role' => 'technician']);
         $team = Team::create([
             'name' => 'Status Test Team',
             'code' => 'STT',
             'is_active' => true,
         ]);
+        $team->members()->attach($tech->id, ['role_in_team' => 'member']);
 
         $response = $this->actingAs($admin)->patch(route('teams.toggle_status', $team->id));
 

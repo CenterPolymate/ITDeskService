@@ -5,7 +5,7 @@ import Modal from '@/Components/Modal';
 import SortableHeader from '@/Components/SortableHeader';
 
 export default function UserDashboard({ cases, stats, active_tickets = [], waiting_tickets = [], filters = {} }) {
-    const { auth, flash } = usePage().props;
+    const { auth, flash, branding } = usePage().props;
     const [search, setSearch] = useState(filters.search || '');
     const currentStatus = filters.status || 'all';
     const [highlightedTicketIds, setHighlightedTicketIds] = useState(new Set());
@@ -403,7 +403,7 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                     <span className="inline-block animate-wave text-xl">👋</span>
                                 </h3>
                                 <p className="mt-1 text-sm text-gray-500">
-                                    ยินดีต้อนรับสู่ระบบแจ้งซ่อม ITDeskService คุณสามารถติดตามสถานะการแจ้งซ่อม หรือเปิดใบงานใหม่ได้ที่นี่
+                                    ยินดีต้อนรับสู่ระบบแจ้งซ่อม {branding?.app_name || 'ITDeskService'} คุณสามารถติดตามสถานะการแจ้งซ่อม หรือเปิดใบงานใหม่ได้ที่นี่
                                 </p>
                             </div>
                             <div className="w-full sm:w-auto shrink-0">

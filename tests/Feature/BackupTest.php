@@ -47,6 +47,31 @@ class BackupTest extends TestCase
         );
     }
 
+    public function test_backup_history_is_sorted_by_date_descending(): void
+    {
+        $admin = User::factory()->create(['role' => 'administrator']);
+
+        Storage::fake('local');
+        $backupName = config('backup.backup.name', 'ITDeskService');
+
+        // ใส่ไฟล์ที่มี Prefix ต่างกันและวันที่สลับกัน
+        Storage::disk('local')->put("{$backupName}/FULL_2026-10-16-14-41-44.zip", 'fake-content');
+        Storage::disk('local')->put("{$backupName}/FULL_2026-10-14-21-44-10.zip", 'fake-content');
+        Storage::disk('local')->put("{$backupName}/2026-10-20-00-00-02.zip", 'fake-content');
+        Storage::disk('local')->put("{$backupName}/2026-10-18-00-00-02.zip", 'fake-content');
+
+        $response = $this->actingAs($admin)->get(route('backups.index'));
+        $response->assertOk();
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Backups/Index')
+            ->has('backups', 4)
+            ->where('backups.0.file_name', '2026-10-20-00-00-02.zip')
+            ->where('backups.1.file_name', '2026-10-18-00-00-02.zip')
+            ->where('backups.2.file_name', 'FULL_2026-10-16-14-41-44.zip')
+            ->where('backups.3.file_name', 'FULL_2026-10-14-21-44-10.zip')
+        );
+    }
+
     public function test_administrator_can_trigger_database_backup_with_disabled_notifications(): void
     {
         $admin = User::factory()->create(['role' => 'administrator']);

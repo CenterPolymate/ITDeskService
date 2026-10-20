@@ -38,6 +38,19 @@ class AppServiceProvider extends ServiceProvider
             }
         );
 
+        // โหลดข้อมูล White-Labeling & Corporate Branding ให้ใช้งานร่วมกันทั่วทั้งระบบ
+        try {
+            if (Schema::hasTable('settings')) {
+                $branding = Setting::getBranding();
+                view()->share('branding', $branding);
+                if (! empty($branding['app_name'])) {
+                    config(['app.name' => $branding['app_name']]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // ป้องกันข้อผิดพลาดระหว่างรัน CLI หรือ Migration
+        }
+
         // นำการตั้งค่า SMTP จากฐานข้อมูล (หากมีกำหนดไว้) มาใช้ในระบบส่งอีเมลอัตโนมัติ
         try {
             if (Schema::hasTable('settings')) {

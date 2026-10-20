@@ -1,8 +1,59 @@
 import React, { useState } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
 
-export default function Index({ settings = {}, initialSmtpToken = '', savedVerified = false, diagnostics = {} }) {
+export default function Index({ settings = {}, branding = {}, initialSmtpToken = '', savedVerified = false, diagnostics = {} }) {
     const { auth, flash, errors } = usePage().props;
+
+    // Corporate Branding states
+    const [appName, setAppName] = useState(settings.app_name || branding?.app_name || 'ITDeskService');
+    const [companyName, setCompanyName] = useState(settings.company_name || branding?.company_name || 'IT Service Desk');
+    const [supportContact, setSupportContact] = useState(settings.support_contact || branding?.support_contact || '');
+    const [brandPrimaryColor, setBrandPrimaryColor] = useState(settings.brand_primary_color || branding?.brand_primary_color || '#4f46e5');
+
+    // Logo states
+    const [appLogoFile, setAppLogoFile] = useState(null);
+    const [appLogoPreview, setAppLogoPreview] = useState(branding?.app_logo || null);
+    const [removeAppLogo, setRemoveAppLogo] = useState(false);
+
+    // Login Logo states
+    const [appLogoLoginFile, setAppLogoLoginFile] = useState(null);
+    const [appLogoLoginPreview, setAppLogoLoginPreview] = useState(branding?.app_logo_login || null);
+    const [removeAppLogoLogin, setRemoveAppLogoLogin] = useState(false);
+
+    // Favicon states
+    const [appFaviconFile, setAppFaviconFile] = useState(null);
+    const [appFaviconPreview, setAppFaviconPreview] = useState(branding?.app_favicon || null);
+    const [removeAppFavicon, setRemoveAppFavicon] = useState(false);
+
+    const [saving, setSaving] = useState(false);
+
+    const presetColors = [
+        { name: 'Indigo (ค่าเริ่มต้น)', hex: '#4f46e5' },
+        { name: 'Royal Blue', hex: '#2563eb' },
+        { name: 'Sky Cyan', hex: '#0284c7' },
+        { name: 'Emerald', hex: '#059669' },
+        { name: 'Violet', hex: '#7c3aed' },
+        { name: 'Rose', hex: '#e11d48' },
+        { name: 'Amber', hex: '#d97706' },
+        { name: 'Slate Dark', hex: '#334155' },
+    ];
+
+    const handleLogoChange = (file, setFile, setPreview, setRemove) => {
+        if (!file) return;
+        setFile(file);
+        setRemove(false);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleResetLogo = (setFile, setPreview, setRemove) => {
+        setFile(null);
+        setPreview(null);
+        setRemove(true);
+    };
 
     // Form states
     const [lineAccessToken, setLineAccessToken] = useState(settings.line_channel_access_token || '');
@@ -152,7 +203,19 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
             return;
         }
 
+        setSaving(true);
+
         router.post(route('settings.update'), {
+            app_name: appName,
+            company_name: companyName,
+            support_contact: supportContact,
+            brand_primary_color: brandPrimaryColor,
+            app_logo: appLogoFile,
+            remove_app_logo: removeAppLogo ? 1 : 0,
+            app_logo_login: appLogoLoginFile,
+            remove_app_logo_login: removeAppLogoLogin ? 1 : 0,
+            app_favicon: appFaviconFile,
+            remove_app_favicon: removeAppFavicon ? 1 : 0,
             line_channel_access_token: lineAccessToken,
             line_channel_secret: lineSecret,
             smtp_host: smtpHost,
@@ -162,6 +225,11 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
             smtp_encryption: smtpEncryption,
             smtp_verified_token: smtpVerifiedToken,
             audit_log_retention_years: auditRetentionYears,
+            sla_alert_enabled: slaAlertEnabled ? '1' : '0',
+            sla_warning_threshold_minutes: slaWarningThreshold,
+        }, {
+            forceFormData: true,
+            onFinish: () => setSaving(false),
         });
     };
 
@@ -310,6 +378,300 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
 
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-100 p-6 sm:p-8">
                         <form onSubmit={handleSubmit} className="space-y-8">
+                            {/* Section: Corporate Branding & White-Labeling */}
+                            <div className="bg-slate-50/70 rounded-2xl p-6 sm:p-7 border border-slate-200/80 space-y-6">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2.5 rounded-xl text-white shadow-xs" style={{ backgroundColor: brandPrimaryColor }}>
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                                                <span>ปรับแต่งแบรนด์และตราสัญลักษณ์ (Corporate Branding & White-Labeling)</span>
+                                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
+                                                    Commercial Ready
+                                                </span>
+                                            </h3>
+                                            <p className="text-xs text-slate-500 mt-0.5">
+                                                กำหนดชื่อระบบ ตราสัญลักษณ์ (Logo), Favicon และข้อมูลติดต่อ เพื่อสะท้อนอัตลักษณ์ขององค์กรคุณ
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Form Inputs Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            ชื่อระบบ / แอปพลิเคชัน (App Name) <span className="text-rose-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={appName}
+                                            onChange={(e) => setAppName(e.target.value)}
+                                            placeholder="เช่น IT Service Desk หรือ Helpdesk Pro"
+                                            required
+                                            className="w-full border-slate-300 rounded-xl shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm py-2.5 px-3.5 bg-white"
+                                        />
+                                        <p className="mt-1 text-[11px] text-slate-400">แสดงบนแท็บเบราว์เซอร์ แถบนำทาง (Navbar) และหัวรายงานเอกสาร</p>
+                                        {errors.app_name && <p className="mt-1 text-xs text-rose-500">{errors.app_name}</p>}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            ชื่อองค์กร / บริษัท (Company Name)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={companyName}
+                                            onChange={(e) => setCompanyName(e.target.value)}
+                                            placeholder="เช่น บริษัท ตัวอย่าง จำกัด หรือ IT Division"
+                                            className="w-full border-slate-300 rounded-xl shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm py-2.5 px-3.5 bg-white"
+                                        />
+                                        <p className="mt-1 text-[11px] text-slate-400">ใช้ในเอกสารทางการและหัวรายงานสถิติ P-CAR</p>
+                                        {errors.company_name && <p className="mt-1 text-xs text-rose-500">{errors.company_name}</p>}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            ข้อมูลติดต่อฝ่ายบริการไอที (Support Contact / Hotline)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={supportContact}
+                                            onChange={(e) => setSupportContact(e.target.value)}
+                                            placeholder="เช่น โทร. 02-123-4567 ต่อ 101 หรือ support@company.com"
+                                            className="w-full border-slate-300 rounded-xl shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm py-2.5 px-3.5 bg-white"
+                                        />
+                                        <p className="mt-1 text-[11px] text-slate-400">แสดงที่หน้าเข้าสู่ระบบ (Login) เพื่อให้ผู้ใช้งานติดต่อสอบถามได้สะดวก</p>
+                                        {errors.support_contact && <p className="mt-1 text-xs text-rose-500">{errors.support_contact}</p>}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                            สีธีมหลักของระบบ (Brand Primary Color)
+                                        </label>
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="color"
+                                                value={brandPrimaryColor}
+                                                onChange={(e) => setBrandPrimaryColor(e.target.value)}
+                                                className="w-10 h-10 rounded-xl border border-slate-300 p-0.5 cursor-pointer bg-white shrink-0"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={brandPrimaryColor}
+                                                onChange={(e) => setBrandPrimaryColor(e.target.value)}
+                                                placeholder="#4f46e5"
+                                                className="w-28 border-slate-300 rounded-xl shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm py-2 px-3 font-mono uppercase bg-white shrink-0"
+                                            />
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                {presetColors.map((color) => (
+                                                    <button
+                                                        key={color.hex}
+                                                        type="button"
+                                                        onClick={() => setBrandPrimaryColor(color.hex)}
+                                                        title={color.name}
+                                                        className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${
+                                                            brandPrimaryColor.toLowerCase() === color.hex.toLowerCase() ? 'border-slate-800 scale-110 ring-2 ring-indigo-400' : 'border-white shadow-xs'
+                                                        }`}
+                                                        style={{ backgroundColor: color.hex }}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                        {errors.brand_primary_color && <p className="mt-1 text-xs text-rose-500">{errors.brand_primary_color}</p>}
+                                    </div>
+                                </div>
+
+                                {/* Logo & Asset Uploaders */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-4 border-t border-slate-200">
+                                    {/* 1. Header Logo */}
+                                    <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-800 mb-1">
+                                                โลโก้แถบนำทาง (Header Logo)
+                                            </label>
+                                            <p className="text-[11px] text-slate-400 mb-3">แนะนำ PNG โปร่งใส แนวนอน (ไม่เกิน 2MB)</p>
+                                            
+                                            <div className="h-16 flex items-center justify-center bg-slate-50 border border-dashed border-slate-300 rounded-lg p-2 mb-3">
+                                                {appLogoPreview && !removeAppLogo ? (
+                                                    <img src={appLogoPreview} alt="Header Logo Preview" className="max-h-12 max-w-full object-contain" />
+                                                ) : (
+                                                    <div className="flex items-center gap-2 text-slate-400 text-xs">
+                                                        <img src="/images/polymate-logo.png" alt="Default Logo" className="max-h-8 max-w-full object-contain opacity-60" />
+                                                        <span className="text-[10px]">(ค่าเริ่มต้น)</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <input
+                                                type="file"
+                                                id="app_logo_input"
+                                                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                                                onChange={(e) => handleLogoChange(e.target.files[0], setAppLogoFile, setAppLogoPreview, setRemoveAppLogo)}
+                                                className="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+                                            />
+                                            {(appLogoPreview || appLogoFile) && !removeAppLogo && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleResetLogo(setAppLogoFile, setAppLogoPreview, setRemoveAppLogo)}
+                                                    className="text-[11px] text-rose-600 hover:text-rose-800 font-semibold block w-full text-right cursor-pointer"
+                                                >
+                                                    ลบและใช้โลโก้เริ่มต้น
+                                                </button>
+                                            )}
+                                            {removeAppLogo && (
+                                                <p className="text-[11px] text-amber-600 font-semibold text-right">
+                                                    * จะคืนค่าเป็นโลโก้เริ่มต้นเมื่อกดบันทึก
+                                                </p>
+                                            )}
+                                            {errors.app_logo && <p className="text-xs text-rose-500">{errors.app_logo}</p>}
+                                        </div>
+                                    </div>
+
+                                    {/* 2. Login Page Logo */}
+                                    <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-800 mb-1">
+                                                โลโก้หน้าเข้าสู่ระบบ (Login Logo)
+                                            </label>
+                                            <p className="text-[11px] text-slate-400 mb-3">หากไม่ระบุ จะใช้โลโก้เดียวกับส่วนหัว</p>
+                                            
+                                            <div className="h-16 flex items-center justify-center bg-slate-50 border border-dashed border-slate-300 rounded-lg p-2 mb-3">
+                                                {appLogoLoginPreview && !removeAppLogoLogin ? (
+                                                    <img src={appLogoLoginPreview} alt="Login Logo Preview" className="max-h-12 max-w-full object-contain" />
+                                                ) : appLogoPreview && !removeAppLogo ? (
+                                                    <div className="flex items-center gap-2 text-slate-400 text-xs">
+                                                        <img src={appLogoPreview} alt="Header Logo fallback" className="max-h-12 max-w-full object-contain opacity-80" />
+                                                        <span className="text-[10px]">(ใช้โลโก้ส่วนหัว)</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-2 text-slate-400 text-xs">
+                                                        <img src="/images/polymate-logo.png" alt="Default Logo" className="max-h-10 max-w-full object-contain opacity-60" />
+                                                        <span className="text-[10px]">(ค่าเริ่มต้น)</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <input
+                                                type="file"
+                                                id="app_logo_login_input"
+                                                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                                                onChange={(e) => handleLogoChange(e.target.files[0], setAppLogoLoginFile, setAppLogoLoginPreview, setRemoveAppLogoLogin)}
+                                                className="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+                                            />
+                                            {(appLogoLoginPreview || appLogoLoginFile) && !removeAppLogoLogin && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleResetLogo(setAppLogoLoginFile, setAppLogoLoginPreview, setRemoveAppLogoLogin)}
+                                                    className="text-[11px] text-rose-600 hover:text-rose-800 font-semibold block w-full text-right cursor-pointer"
+                                                >
+                                                    ลบและใช้ค่าเริ่มต้น
+                                                </button>
+                                            )}
+                                            {removeAppLogoLogin && (
+                                                <p className="text-[11px] text-amber-600 font-semibold text-right">
+                                                    * จะคืนค่าเป็นโลโก้เริ่มต้นเมื่อกดบันทึก
+                                                </p>
+                                            )}
+                                            {errors.app_logo_login && <p className="text-xs text-rose-500">{errors.app_logo_login}</p>}
+                                        </div>
+                                    </div>
+
+                                    {/* 3. Favicon */}
+                                    <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-800 mb-1">
+                                                ไอคอนเบราว์เซอร์ (Favicon)
+                                            </label>
+                                            <p className="text-[11px] text-slate-400 mb-3">ไฟล์ .ico หรือ .png (ขนาดไม่เกิน 1MB)</p>
+                                            
+                                            <div className="h-16 flex items-center justify-center bg-slate-50 border border-dashed border-slate-300 rounded-lg p-2 mb-3">
+                                                {appFaviconPreview && !removeAppFavicon ? (
+                                                    <img src={appFaviconPreview} alt="Favicon Preview" className="w-8 h-8 object-contain" />
+                                                ) : (
+                                                    <div className="flex items-center gap-2 text-slate-400 text-xs">
+                                                        <img src="/images/favicon.png" alt="Default Favicon" className="w-8 h-8 object-contain opacity-60" />
+                                                        <span className="text-[10px]">(ค่าเริ่มต้น)</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <input
+                                                type="file"
+                                                id="app_favicon_input"
+                                                accept=".ico,image/png,image/svg+xml"
+                                                onChange={(e) => handleLogoChange(e.target.files[0], setAppFaviconFile, setAppFaviconPreview, setRemoveAppFavicon)}
+                                                className="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+                                            />
+                                            {(appFaviconPreview || appFaviconFile) && !removeAppFavicon && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleResetLogo(setAppFaviconFile, setAppFaviconPreview, setRemoveAppFavicon)}
+                                                    className="text-[11px] text-rose-600 hover:text-rose-800 font-semibold block w-full text-right cursor-pointer"
+                                                >
+                                                    ลบและใช้ค่าเริ่มต้น
+                                                </button>
+                                            )}
+                                            {removeAppFavicon && (
+                                                <p className="text-[11px] text-amber-600 font-semibold text-right">
+                                                    * จะคืนค่าเป็น Favicon เริ่มต้นเมื่อกดบันทึก
+                                                </p>
+                                            )}
+                                            {errors.app_favicon && <p className="text-xs text-rose-500">{errors.app_favicon}</p>}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Live Preview Card */}
+                                <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs">
+                                    <div className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                                        <span>👁️ ตัวอย่างการแสดงผลจำลอง (Live Preview)</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Header Preview */}
+                                        <div className="bg-slate-100 p-3 rounded-xl border border-slate-200">
+                                            <div className="text-[10px] text-slate-500 font-semibold mb-1.5">จำลองแถบนำทาง (Navbar Header)</div>
+                                            <div className="bg-white h-12 rounded-lg px-3 flex items-center gap-2.5 shadow-xs border border-slate-100">
+                                                <img
+                                                    src={appLogoPreview && !removeAppLogo ? appLogoPreview : '/images/polymate-logo.png'}
+                                                    alt="Preview Logo"
+                                                    className="h-6 w-auto max-w-[100px] object-contain"
+                                                />
+                                                <span className="text-sm font-bold truncate" style={{ color: brandPrimaryColor }}>
+                                                    {appName || 'ITDeskService'}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Login Card Preview */}
+                                        <div className="bg-slate-100 p-3 rounded-xl border border-slate-200">
+                                            <div className="text-[10px] text-slate-500 font-semibold mb-1.5">จำลองหน้าเข้าสู่ระบบ (Login Card)</div>
+                                            <div className="bg-white p-3 rounded-lg text-center shadow-xs border border-slate-100 space-y-1">
+                                                <img
+                                                    src={appLogoLoginPreview && !removeAppLogoLogin ? appLogoLoginPreview : (appLogoPreview && !removeAppLogo ? appLogoPreview : '/images/polymate-logo.png')}
+                                                    alt="Preview Login Logo"
+                                                    className="h-8 w-auto max-w-[120px] object-contain mx-auto"
+                                                />
+                                                <div className="text-xs font-bold text-slate-800">{appName || 'ITDeskService'}</div>
+                                                {supportContact && (
+                                                    <div className="text-[10px] text-slate-400">📞 {supportContact}</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Section: LINE OA Settings */}
                             <div>
                                 <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-2 mb-4 flex items-center gap-2">
@@ -659,9 +1021,10 @@ export default function Index({ settings = {}, initialSmtpToken = '', savedVerif
                             <div className="flex items-center justify-end pt-4 border-t border-gray-100">
                                 <button
                                     type="submit"
-                                    className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-2.5 bg-indigo-600 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-wider hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 shadow-md transition"
+                                    disabled={saving}
+                                    className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-2.5 bg-indigo-600 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-wider hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 shadow-md transition disabled:opacity-50"
                                 >
-                                    บันทึกการตั้งค่า
+                                    {saving ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
                                 </button>
                             </div>
                         </form>

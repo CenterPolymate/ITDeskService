@@ -30,9 +30,6 @@ class BackupController extends Controller
         $files = $disk->files($backupName);
         $backups = [];
 
-        // Reverse array so newest is first
-        $files = array_reverse($files);
-
         foreach ($files as $file) {
             if (substr($file, -4) === '.zip' && $disk->exists($file)) {
                 $fileName = str_replace($backupName.'/', '', $file);
@@ -72,9 +69,26 @@ class BackupController extends Controller
                     'file_size' => $this->humanFilesize($disk->size($file)),
                     'last_modified' => $timestamp->locale('th')->translatedFormat('d F Y H:i:s'),
                     'type' => $type,
+                    'timestamp' => $timestamp->timestamp,
                 ];
             }
         }
+
+        // เรียงลำดับตามวันที่จากมากไปน้อย (ล่าสุดอยู่บนสุด - Descending)
+        usort($backups, function ($a, $b) {
+            if ($b['timestamp'] === $a['timestamp']) {
+                return strcmp($b['file_name'], $a['file_name']);
+            }
+
+            return $b['timestamp'] <=> $a['timestamp'];
+        });
+
+        // นำ key timestamp ออกก่อนส่งให้ Frontend
+        $backups = array_map(function ($item) {
+            unset($item['timestamp']);
+
+            return $item;
+        }, $backups);
 
         return Inertia::render('Backups/Index', [
             'backups' => $backups,

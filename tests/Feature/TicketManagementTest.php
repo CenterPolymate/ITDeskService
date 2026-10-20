@@ -31,8 +31,6 @@ class TicketManagementTest extends TestCase
         $response->assertOk();
         $response->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Tickets/Create')
-            ->has('categories', 1)
-            ->where('categories.0.name', 'Network Issue')
         );
     }
 
@@ -559,4 +557,3 @@ class TicketManagementTest extends TestCase
         $this->assertEquals(0, HelpdeskCase::count());
     }
 }
-

@@ -5,18 +5,24 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         
-        <title inertia>{{ config('app.name', 'ITDeskService') }}</title>
-        <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-        <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
-        <link rel="apple-touch-icon" href="{{ asset('images/favicon.png') }}">
+        <title inertia>{{ $branding['app_name'] ?? config('app.name', 'ITDeskService') }}</title>
+        <link rel="icon" type="image/png" href="{{ $branding['app_favicon'] ?? asset('images/favicon.png') }}">
+        <link rel="shortcut icon" href="{{ $branding['app_favicon'] ?? asset('favicon.ico') }}">
+        <link rel="apple-touch-icon" href="{{ $branding['app_favicon'] ?? asset('images/favicon.png') }}">
 
         <!-- PWA & Mobile Web App -->
         <link rel="manifest" href="{{ asset('manifest.json') }}">
-        <meta name="theme-color" content="#2563eb">
+        <meta name="theme-color" content="{{ $branding['brand_primary_color'] ?? '#4f46e5' }}">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
-        <meta name="apple-mobile-web-app-title" content="ITDesk">
+        <meta name="apple-mobile-web-app-title" content="{{ $branding['app_name'] ?? 'ITDesk' }}">
+
+        <style>
+            :root {
+                --brand-primary: {{ $branding['brand_primary_color'] ?? '#4f46e5' }};
+            }
+        </style>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

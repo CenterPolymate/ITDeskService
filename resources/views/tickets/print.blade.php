@@ -148,7 +148,7 @@
             <tr>
                 <td rowspan="2" class="text-center align-middle border-r-0" style="width: 20%; height: 50px;">
                     <div class="flex items-center justify-center h-full p-2">
-                        <img src="{{ asset('images/polymate-logo.png') }}" alt="Polymate Logo"
+                        <img src="{{ $branding['app_logo'] ?? asset('images/polymate-logo.png') }}" alt="{{ $branding['app_name'] ?? 'Logo' }}"
                             class="max-h-[35px] w-auto object-contain">
                     </div>
                 </td>

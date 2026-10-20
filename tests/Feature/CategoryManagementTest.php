@@ -202,7 +202,7 @@ class CategoryManagementTest extends TestCase
             $response->assertForbidden();
 
             $responseStore = $this->actingAs($user)->post(route('categories.store'), [
-                'name' => 'Unauthorized Category ' . $role,
+                'name' => 'Unauthorized Category '.$role,
             ]);
             $responseStore->assertForbidden();
         }

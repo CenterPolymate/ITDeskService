@@ -222,7 +222,7 @@
     - [x] ปรับใช้ `SortableHeader` ในหน้าจัดการผู้ใช้งานทีม IT (`Users/Index.jsx`) แทน Sort Icon เดิม
     - [x] ปรับใช้ `SortableHeader` ในหน้าจัดการผู้ใช้งานทั่วไป (`NormalUsers/Index.jsx`)
     - [x] เพิ่มแถบเรียงลำดับ Mobile Sort Bar บนทั้งสองหน้าจอ และคงค่าการ Sort ในการค้นหาและเปลี่ยนสถานะ
-- [ ] Phase 14: ปรับปรุงโครงสร้างสถาปัตยกรรมสู่ Commercial-Ready (ระบบทีมและสายการบังคับบัญชาแบบไดนามิก):
+- [x] Phase 14: ปรับปรุงโครงสร้างสถาปัตยกรรมสู่ Commercial-Ready (ระบบทีมและสายการบังคับบัญชาแบบไดนามิก):
   - [x] Sprint 14.1: สร้างตาราง `teams` และ Pivot `team_user` พร้อมหน้าจัดการทีมงานและสายการบังคับบัญชา (กำหนดหัวหน้าทีมผ่าน UI)
   - [x] Sprint 14.2: มาตรฐาน 5 บทบาทสากล (ITIL 4 Standard Clean Architecture) และยกเลิก Hardcode บทบาทใน Controllers & Policies:
     - [x] ปรับลดและกำหนดบทบาทหลัก 5 บทบาทสากล: System Administrator, IT Service Manager (Tier 3), Technical Specialist (Tier 2), Service Desk Agent (Tier 1), และ End User
@@ -230,8 +230,12 @@
     - [x] พัฒนาระบบ Technician Workload บน Dashboard ของ Manager และ Administrator ให้ดึงข้อมูลทีมตาม `$user->managedTeams()` แบบไดนามิก 100%
     - [x] ปรับเมนูตัวเลือกบทบาทและตารางในหน้า `Users/Create.jsx`, `Users/Edit.jsx`, `NormalUsers/Edit.jsx`, `Users/Index.jsx`, และ `AuditLogs/Index.jsx` เป็นมาตรฐานสากล
     - [x] ปรับเมนูส่งต่องาน (Triage & Manager Task 2) และตัวกรองใน Dashboard/Report เป็นไดนามิก ดึงจากตาราง `teams` อัตโนมัติ
-  - [ ] Sprint 14.3: Dynamic Ticket Routing เชื่อมโยงหมวดหมู่ปัญหากับทีมรับผิดชอบเริ่มต้น
-  - [ ] Sprint 14.4: White-Labeling & Corporate Branding Settings (อัปโหลดโลโก้, ชื่อระบบ, ข้อมูลติดต่อ)
+  - [x] Sprint 14.3: White-Labeling & Corporate Branding Settings (อัปโหลดโลโก้, ชื่อระบบ, ข้อมูลติดต่อ)
+    - [x] เพิ่มการตั้งค่า Corporate Branding & White-Labeling ใน System Settings (โลโก้ Navbar, โลโก้หน้า Login, Favicon, ชื่อระบบ, ชื่อบริษัท, สายด่วนบริการ, สีธีมหลัก)
+    - [x] ระบบ Live Preview แสดงตัวอย่าง Navbar และ Login Card แบบเรียลไทม์ขณะเลือกสีหรือเปลี่ยนข้อมูล
+    - [x] ระบบแชร์ตัวแปร `$branding` ทั่วทั้งระบบผ่าน `Setting::getBranding()` พร้อม Cache 24 ชั่วโมง และ Invalidate อัตโนมัติเมื่อมีการบันทึก
+    - [x] เชื่อมโยงข้อมูลแบรนด์เข้าสู่ Blade Navigation, Layouts (Guest/User), หน้าล็อกอิน, หน้าจอผู้ใช้ และหน้าพิมพ์ใบงาน P-CAR โดยรักษาความสมส่วนเดิม 100%
+    - [x] ชุดทดสอบอัตโนมัติ `WhiteLabelingTest.php` ผ่านครบ 6/6 tests (55 assertions)
 - [x] มาตรการแบ่งแยกหน้าที่และความรับผิดชอบ (Separation of Duties - Option 1):
   - [x] จำกัดสิทธิ์การเปิดเคสแจ้งซ่อม (`/tickets/create`, `POST /tickets`, และ LINE OA) ให้เฉพาะผู้ใช้งานทั่วไป (Role `user`) เท่านั้น
   - [x] ป้องกันผลประโยชน์ทับซ้อน (Conflict of Interest) โดยห้ามทีมงานไอที (Tier 1-3) และ Administrator เปิดเคสเอง

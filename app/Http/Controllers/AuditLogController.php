@@ -390,12 +390,14 @@ class AuditLogController extends Controller
                                     $deltaParts[] = 'นำสมาชิกออก: '.implode(', ', $removedNames);
                                 }
                                 $changesText[] = '[สมาชิกในทีม]: '.implode(' | ', $deltaParts);
+
                                 continue;
                             }
 
                             if ($key === 'member_ids' && is_array($value)) {
                                 $memberUsers = User::whereIn('id', $value)->pluck('name')->toArray();
                                 $changesText[] = '[สมาชิกในทีม]: '.(! empty($memberUsers) ? implode(', ', $memberUsers) : json_encode($value));
+
                                 continue;
                             }
 
@@ -409,6 +411,7 @@ class AuditLogController extends Controller
                                 } else {
                                     $changesText[] = "[หัวหน้าทีม]: $valStr";
                                 }
+
                                 continue;
                             }
 
