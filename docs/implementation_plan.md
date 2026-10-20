@@ -369,15 +369,29 @@
   - [x] **การจัดระเบียบเมนูตั้งค่าระบบ (Admin Navigation IA):** ปรับปรุงโครงสร้างเมนูดรอปดาวน์ "ตั้งค่าระบบ (Admin)" ให้จัดหมวดหมู่ย่อย 2 กลุ่มงานชัดเจน ได้แก่ "บริการและองค์กร (Service)" และ "ระบบและความปลอดภัย (System)" พร้อมไอคอน SVG, Badges, Divider และปรับความกว้างเป็น `w-60` ทั้งเดสก์ท็อปและมือถือ
   - [x] **การแก้ไขข้อผิดพลาดและการบำรุงรักษาฐานข้อมูล:** แก้ไข Class "App\Http\Controllers\Team" not found ใน `ReportController.php` และสร้าง Migration ลบข้อมูลวันหยุดทดสอบ (`2026_10_19_174000_delete_test_holiday_record.php`)
 - [x] **Sprint 14.3: White-Labeling & System Personalization (การปรับแต่งแบรนด์และตราสัญลักษณ์องค์กร):**
-  - [x] เพิ่มส่วนการตั้งค่า Corporate Branding ในหน้า System Settings ให้ Administrator สามารถอัปโหลด:
+  - [x] เพิ่มส่วนการตั้งค่า Corporate Branding ในหน้า System Settings ให้ Administrator สามารถกำหนด:
     - โลโก้ระบบ (Header Logo & Login Logo)
     - Favicon
-    - ชื่อระบบ / ชื่อองค์กร (App Name)
-    - สีธีมหลัก (Brand Primary Color)
+    - ชื่อระบบ (App Name)
     - ข้อมูลติดต่อฝ่ายบริการ (Support Contact / Hotline / Extension)
+    - *(หมายเหตุ: ได้ตัดฟีเจอร์สีธีมหลัก `brand_primary_color` และชื่อบริษัท `company_name` ออกตามความต้องการใช้งาน เพื่อรักษาเสถียรภาพของธีมมาตรฐาน Indigo/Slate และคงความถูกต้องของโครงสร้างตาราง `companies`)*
   - [x] ปรับปรุงโค้ดส่วนหน้า (Blade Navigation, Header, Footers, Print Report) ให้ดึงข้อมูลการแสดงผลจากค่า System Settings แทนการระบุชื่อหรือสัญลักษณ์แบรนด์เดิมแบบตายตัว เพื่อให้เป็นระบบที่พร้อมขายได้ทันที (Commercial-ready)
   - [x] Live Preview จำลองการแสดงผล Header และ Login Card แบบเรียลไทม์
-  - [x] ชุดทดสอบ `WhiteLabelingTest.php` ครอบคลุมการอนุญาตสิทธิ์, อัปโหลดไฟล์, ล้างแคช, และการรีเซ็ตกลับเป็นค่าเริ่มต้น 100% (6/6 tests ผ่าน)
+  - [x] ชุดทดสอบ `WhiteLabelingTest.php` ครอบคลุมการอนุญาตสิทธิ์, อัปโหลดไฟล์, ล้างแคช, และการรีเซ็ตกลับเป็นค่าเริ่มต้น 100% ผ่านครบถ้วน
+
+## Phase 15: Settings Refactoring, Audit Delta Tracking & UI Polish (✅ ดำเนินการแล้วเสร็จ)
+- [x] **การจัดระเบียบโครงสร้างหน้าตั้งค่าระบบ (Settings UI Categorization):**
+  - [x] จัดหมวดหมู่หน้า `Settings/Index.jsx` ออกเป็น 3 ส่วนหลัก: Corporate Branding, External Integrations (LINE OA & SMTP), และ System Policies (SLA & Retention/Backups)
+  - [x] ปรับการจัดวางการ์ดอัปโหลดโลโก้ (Header Logo, Login Logo, Favicon) ให้อยู่ในแนวระนาบเดียวกัน พร้อมคงความสวยงามและไม่ล้นกรอบ
+  - [x] เพิ่มแถบเครื่องมือบันทึกแบบติดตรึงด้านล่าง (Sticky Action Bar) เพื่อให้กดบันทึกได้สะดวกจากทุกจุดของหน้าจอ
+- [x] **ระบบบันทึกประวัติการใช้งาน (Audit Logs Delta Tracking):**
+  - [x] ปรับปรุง Middleware `LogAdminActions.php` ให้เปรียบเทียบค่าคอนฟิกเดิมและใหม่ และบันทึกเฉพาะฟิลด์ที่มีการเปลี่ยนแปลงจริงเท่านั้น
+  - [x] ตัดคีย์ชั่วคราวและรหัสผ่านว่างออก และแมปป้ายชื่อภาษาไทยใน `AuditLogs/Index.jsx` ให้แสดงผลอย่างถูกต้อง ชัดเจน
+  - [x] เพิ่มชุดทดสอบใน `AuditLogTest.php` ยืนยันการทำงานของ Delta Tracking
+- [x] **การปรับแต่ง UI และความสม่ำเสมอของตาราง (UI Alignment & Typography Polish):**
+  - [x] ปรับขนาด ความสูง และสัดส่วนของปุ่มกรองข้อมูลในหน้า Dashboard ให้เท่ากันทุกปุ่ม ป้องกันปัญหาข้อความตัดบรรทัดหรือปุ่มบิดเบี้ยว
+- [x] **การขยายสิทธิ์การแก้ไขข้อมูลระหว่าง Task 2 (Preventive Measure Inline Edit):**
+  - [x] อนุญาตให้ Helpdesk, ช่างเฉพาะทาง (Technician), ผู้จัดการ (Manager) และ Administrator แก้ไขข้อมูลการวิเคราะห์สาเหตุ (Why-Why Analysis & Root Cause) และบันทึกการแก้ไขปัญหา (Resolution Notes) ได้ในระหว่างทำ Task 2 แม้สถานะหลักของเคสจะเป็น `closed` จนกว่า Task 2 จะปิดงานสมบูรณ์ เพื่อความสมบูรณ์ของรายงาน P-CAR Form 4
 
 
 

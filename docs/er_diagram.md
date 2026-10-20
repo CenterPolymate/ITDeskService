@@ -168,7 +168,7 @@ erDiagram
 
     SETTINGS {
         bigint id PK
-        string key "คีย์การตั้งค่า (Unique) เช่น smtp_host, smtp_port, smtp_username, smtp_password, smtp_encryption, audit_log_retention_years"
+        string key "คีย์การตั้งค่า (Unique) เช่น app_name, support_contact, app_logo, app_logo_login, app_favicon, smtp_host, smtp_port, smtp_username, smtp_password, smtp_encryption, sla_alert_enabled, sla_warning_threshold_minutes, audit_log_retention_years"
         text value "ค่าการตั้งค่า"
         timestamp created_at
         timestamp updated_at
@@ -245,3 +245,5 @@ erDiagram
 > - **การให้สิทธิ์ Helpdesk (Tier 1) จัดการผู้ใช้งานทั่วไป:** Role `helpdesk` ได้รับสิทธิ์ในการจัดการผู้ใช้งานทั่วไป (Normal Users) เช่น การเพิ่ม, แก้ไขข้อมูล, และการระงับบัญชี (โดยไม่สามารถยกระดับสิทธิ์เป็น Administrator ได้)
 > - **การจำกัดสิทธิ์ผู้เปิดเคส (Separation of Duties):** สงวนสิทธิ์การเปิดเคสแจ้งซ่อม (`HELPDESK_CASES`) ให้เฉพาะผู้ใช้งานทั่วไป (`role = 'user'`) เท่านั้น เพื่อป้องกันผลประโยชน์ทับซ้อน (Conflict of Interest) โดยทีมงานไอทีและผู้ดูแลระบบทุกบทบาทจะไม่มีสิทธิ์เปิดเคสแจ้งซ่อม (จะถูก Redirect กลับไปหน้า Dashboard หรือปฏิเสธด้วย 403 Forbidden)
 > - **External Systems (LINE OA & Email Server):** เป็นระบบภายนอกที่ไม่ได้เก็บข้อมูลเป็นตารางหลักในฐานข้อมูล แต่ระบบ ITDeskService จะเชื่อมต่อผ่าน API และ SMTP เพื่อใช้ในการแจ้งเตือน (Notifications) และยืนยันตัวตน (Email Verification)
+> - **การตั้งค่าอัตลักษณ์องค์กรและการจัดหมวดหมู่การตั้งค่าระบบ (Corporate Branding & System Settings):** ตาราง `SETTINGS` บันทึกค่าอัตลักษณ์องค์กร ได้แก่ `app_name`, `support_contact`, และไฟล์ภาพโลโก้/ไอคอน (`app_logo`, `app_logo_login`, `app_favicon`) โดยระบบได้นำฟีเจอร์สีธีมหลัก (`brand_primary_color`) และชื่อบริษัทระดับแบรนด์ (`company_name`) ออก เพื่อรักษาเสถียรภาพของธีมหลัก Indigo/Slate และคงความถูกต้องของโครงสร้างตาราง `COMPANIES` เดิม พร้อมจัดระเบียบหน้าการตั้งค่าระบบเป็น 3 ส่วนหลัก (Corporate Branding, External Integrations, System Policies)
+> - **การอนุญาต Inline Edit ในระหว่างดำเนินการ Task 2 (Preventive Measure):** อนุญาตให้ Helpdesk, ช่างเฉพาะทาง (Technician), ผู้จัดการ (Manager) และผู้ดูแลระบบ (Administrator) สามารถแก้ไขข้อมูลการวิเคราะห์สาเหตุ (Why-Why Analysis & Root Cause Detail) และบันทึกการแก้ไขปัญหา (Resolution Notes) ได้ตลอดเวลาในระหว่างการดำเนินงาน Task 2 แม้สถานะหลักของเคสจะถูกปิดไปแล้ว (`closed`) จนกว่า Task 2 จะปิดงาน (`done`) เพื่อให้ข้อมูลในรายงาน P-CAR Form 4 มีความครบถ้วนสมบูรณ์ที่สุด

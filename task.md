@@ -231,11 +231,12 @@
     - [x] ปรับเมนูตัวเลือกบทบาทและตารางในหน้า `Users/Create.jsx`, `Users/Edit.jsx`, `NormalUsers/Edit.jsx`, `Users/Index.jsx`, และ `AuditLogs/Index.jsx` เป็นมาตรฐานสากล
     - [x] ปรับเมนูส่งต่องาน (Triage & Manager Task 2) และตัวกรองใน Dashboard/Report เป็นไดนามิก ดึงจากตาราง `teams` อัตโนมัติ
   - [x] Sprint 14.3: White-Labeling & Corporate Branding Settings (อัปโหลดโลโก้, ชื่อระบบ, ข้อมูลติดต่อ)
-    - [x] เพิ่มการตั้งค่า Corporate Branding & White-Labeling ใน System Settings (โลโก้ Navbar, โลโก้หน้า Login, Favicon, ชื่อระบบ, ชื่อบริษัท, สายด่วนบริการ, สีธีมหลัก)
-    - [x] ระบบ Live Preview แสดงตัวอย่าง Navbar และ Login Card แบบเรียลไทม์ขณะเลือกสีหรือเปลี่ยนข้อมูล
+    - [x] เพิ่มการตั้งค่า Corporate Branding & White-Labeling ใน System Settings (โลโก้ Navbar, โลโก้หน้า Login, Favicon, ชื่อระบบ, สายด่วนบริการ)
+    - [x] นำฟีเจอร์สีธีมหลัก (`brand_primary_color`) และชื่อบริษัท (`company_name`) ออกตามความต้องการ เพื่อรักษาธีม Indigo/Slate มาตรฐานและป้องกันความซ้ำซ้อนกับตารางบริษัท
+    - [x] ระบบ Live Preview แสดงตัวอย่าง Navbar และ Login Card แบบเรียลไทม์ขณะเปลี่ยนข้อมูล
     - [x] ระบบแชร์ตัวแปร `$branding` ทั่วทั้งระบบผ่าน `Setting::getBranding()` พร้อม Cache 24 ชั่วโมง และ Invalidate อัตโนมัติเมื่อมีการบันทึก
     - [x] เชื่อมโยงข้อมูลแบรนด์เข้าสู่ Blade Navigation, Layouts (Guest/User), หน้าล็อกอิน, หน้าจอผู้ใช้ และหน้าพิมพ์ใบงาน P-CAR โดยรักษาความสมส่วนเดิม 100%
-    - [x] ชุดทดสอบอัตโนมัติ `WhiteLabelingTest.php` ผ่านครบ 6/6 tests (55 assertions)
+    - [x] ชุดทดสอบอัตโนมัติ `WhiteLabelingTest.php` ผ่านครบถ้วน 100%
 - [x] มาตรการแบ่งแยกหน้าที่และความรับผิดชอบ (Separation of Duties - Option 1):
   - [x] จำกัดสิทธิ์การเปิดเคสแจ้งซ่อม (`/tickets/create`, `POST /tickets`, และ LINE OA) ให้เฉพาะผู้ใช้งานทั่วไป (Role `user`) เท่านั้น
   - [x] ป้องกันผลประโยชน์ทับซ้อน (Conflict of Interest) โดยห้ามทีมงานไอที (Tier 1-3) และ Administrator เปิดเคสเอง
@@ -248,5 +249,14 @@
   - [x] คัดกรองและตัดคีย์ข้อมูลชั่วคราวออกทั้งหมด (`smtp_verified_token`, `remove_app_logo`, `remove_app_logo_login`, `remove_app_favicon`, รหัสผ่านว่างเปล่า)
   - [x] ปรับปรุง `AuditLogs/Index.jsx` ให้แสดงผลชื่อภาษาไทยที่ถูกต้องใน `KEY_MAP` พร้อมกรองฟิลด์ที่ไม่ได้เปลี่ยนแปลงออกจากการแสดงผล
   - [x] เพิ่มชุดทดสอบอัตโนมัติ `test_settings_update_logs_only_actually_changed_fields_in_audit_log` ใน `AuditLogTest.php` ผ่าน 100%
+- [x] ปรับปรุงโครงสร้างหน้าตั้งค่าระบบ (Settings UI Categorization & Polish):
+  - [x] จัดหมวดหมู่หน้า Settings ออกเป็น 3 การ์ดหลัก: Corporate Branding, External Integrations (LINE OA & SMTP), และ System Policies & Maintenance
+  - [x] ปรับการจัดวางการ์ดอัปโหลดโลโก้ (Header Logo, Login Logo, Favicon) ให้อยู่ในแนวระนาบเดียวกัน พร้อมแก้ปัญหา Badge "Commercial Ready" ไม่ให้ตัดบรรทัด
+  - [x] เพิ่มแถบเครื่องมือบันทึกแบบติดตรึงด้านล่าง (Sticky Action Bar) เพื่อความสะดวกในการบันทึกข้อมูล
+- [x] ปรับขนาดและสัดส่วนของปุ่มกรองข้อมูลในหน้า Dashboard ให้เท่ากันทุกปุ่ม ป้องกันข้อความตัดบรรทัดหรือปุ่มบิดเบี้ยว
+- [x] ขยายสิทธิ์การแก้ไขข้อมูลย้อนหลังผ่าน Inline Edit ให้ครอบคลุมช่วงดำเนินงาน Task 2 (Preventive Measure) จนกว่าจะปิดงาน (`done`)
+- [x] ถอดฟังก์ชันสีธีมหลัก (Brand Primary Color) ออกและคืนค่าชุดสีหลักกลับเป็น Indigo/Slate มาตรฐาน
+- [x] ถอดระบบชื่อองค์กร / บริษัท (Company Name) ออกจากการตั้งค่าแบรนด์และการแสดงผลทั่วทั้งระบบ
+
 
 
