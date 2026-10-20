@@ -469,6 +469,49 @@ class TicketManagementTest extends TestCase
         $this->assertEquals('in_progress', $case->preventive_measure);
     }
 
+    public function test_assigned_tier2_specialist_can_update_notes_during_task2_preventive_measure(): void
+    {
+        $hardwareTech = User::factory()->create(['role' => 'team_hardware', 'email' => 'hw_notes@example.com']);
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0107B',
+            'title' => 'เคสแก้ไข Root Cause ระหว่าง Task 2',
+            'description' => 'รายละเอียดเคส',
+            'category' => 'Hardware',
+            'status' => 'closed',
+            'requires_preventive_measure' => true,
+            'preventive_measure' => 'in_progress',
+            'escalated_to_team' => 'Hardware',
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user_notes@example.com',
+            'requester_phone' => '081-000-1111',
+            'location' => 'ชั้น 1',
+            'why_1' => 'เก่า 1',
+            'why_2' => 'เก่า 2',
+            'why_3' => 'เก่า 3',
+            'root_cause_detail' => 'สาเหตุเก่า',
+            'resolution_notes' => 'วิธีแก้เก่า',
+        ]);
+
+        $response = $this->actingAs($hardwareTech)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'update_notes',
+            'why_1' => 'ใหม่ 1: Windows VM เกิดปัญหา',
+            'why_2' => 'ใหม่ 2: Event ID 1074',
+            'why_3' => 'ใหม่ 3: Power state error',
+            'root_cause_detail' => 'สาเหตุรากเหง้าที่ผ่านการวิเคราะห์เชิงลึก',
+            'resolution_notes' => 'เปิด VM 101 Host 2 Auto ขึ้นมาใหม่และตรวจสอบ Driver',
+        ]);
+
+        $response->assertRedirect(route('tickets.show', $case->id));
+        $response->assertSessionHas('success', 'อัปเดตข้อมูลสำเร็จแล้ว');
+
+        $case->refresh();
+        $this->assertEquals('ใหม่ 1: Windows VM เกิดปัญหา', $case->why_1);
+        $this->assertEquals('ใหม่ 2: Event ID 1074', $case->why_2);
+        $this->assertEquals('ใหม่ 3: Power state error', $case->why_3);
+        $this->assertEquals('สาเหตุรากเหง้าที่ผ่านการวิเคราะห์เชิงลึก', $case->root_cause_detail);
+        $this->assertEquals('เปิด VM 101 Host 2 Auto ขึ้นมาใหม่และตรวจสอบ Driver', $case->resolution_notes);
+    }
+
     public function test_technician_a_can_start_analyzing_and_technician_b_cannot_overwrite(): void
     {
         $techA = User::factory()->create(['name' => 'ช่าง A', 'role' => 'team_hardware', 'email' => 'techA@example.com']);

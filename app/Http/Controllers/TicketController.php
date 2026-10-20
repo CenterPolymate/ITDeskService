@@ -261,9 +261,15 @@ class TicketController extends Controller
     {
         $ticket = HelpdeskCase::findOrFail($id);
 
-        // Allow manager to 'close' (review) and allow IT team to submit 'preventive_action' even if closed
+        // Allow manager to 'close' (review) and allow IT team to submit 'preventive_action', 'start_preventive_measure', and 'update_notes' even if closed
         $isManager = in_array(Auth::user()->role, ['manager', 'manager_software', 'manager_network_hardware'], true);
-        if ($ticket->status === 'closed' && ! ($request->action === 'close' && $isManager) && ! in_array($request->action, ['start_preventive_measure', 'preventive_action', 'close_preventive_measure'])) {
+        $isTask2Active = (bool) $ticket->requires_preventive_measure && in_array($ticket->preventive_measure, ['in_progress', 'pending_review'], true);
+
+        if ($ticket->status === 'closed'
+            && ! ($request->action === 'close' && $isManager)
+            && ! in_array($request->action, ['start_preventive_measure', 'preventive_action', 'close_preventive_measure'])
+            && ! ($isTask2Active && in_array($request->action, ['update_notes', 'save_notes']))
+        ) {
             return redirect()->back()->withErrors('ไม่สามารถดำเนินการได้ เนื่องจากใบงานถูกปิดแล้ว');
         }
 

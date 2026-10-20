@@ -140,10 +140,20 @@ export default function Show({ ticket, categories = [], teams = [] }) {
         isAssignedTeam = true;
     }
 
+    const isTask2Active = Boolean(ticket.requires_preventive_measure) &&
+        ['in_progress', 'pending_review'].includes(ticket.preventive_measure);
+
     const canStartTask2 = isTier2 && (!ticket.escalated_to_team || isAssignedTeam);
 
-    const canEditNotes = (isAssignedTeam || (user.role === 'helpdesk' && !ticket.escalated_to_team)) &&
-        ['in_progress', 'resolved'].includes(ticket.status);
+    const canEditNotes = (
+        isAssignedTeam ||
+        user.role === 'helpdesk' ||
+        user.role === 'administrator' ||
+        isManager
+    ) && (
+        ['in_progress', 'resolved'].includes(ticket.status) ||
+        (ticket.status === 'closed' && isTask2Active)
+    );
 
     const canTriage = (isHelpdesk || isManager || user.role === 'administrator') && (
         ['pending', 'assigned'].includes(ticket.status) ||
@@ -796,7 +806,7 @@ export default function Show({ ticket, categories = [], teams = [] }) {
                                                 แก้ไขบันทึกการซ่อม (Inline Edit)
                                             </h4>
                                             <form onSubmit={submitNotes} className="space-y-4">
-                                                {ticket.root_cause_detail && (
+                                                {(ticket.root_cause_detail || isTask2Active) && (
                                                     <div className="space-y-3">
                                                         <div className="flex items-center gap-3">
                                                             <label className="w-20 text-xs font-bold text-slate-700 shrink-0">ทำไม 1 :</label>
