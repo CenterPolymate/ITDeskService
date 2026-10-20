@@ -21,7 +21,6 @@ class WhiteLabelingTest extends TestCase
         Setting::updateOrCreate(['key' => 'app_name'], ['value' => 'Helpdesk Enterprise', 'group' => 'branding']);
         Setting::updateOrCreate(['key' => 'company_name'], ['value' => 'Acme Corporation', 'group' => 'branding']);
         Setting::updateOrCreate(['key' => 'support_contact'], ['value' => 'support@acme.com', 'group' => 'branding']);
-        Setting::updateOrCreate(['key' => 'brand_primary_color'], ['value' => '#2563eb', 'group' => 'branding']);
         Setting::clearBrandingCache();
 
         $response = $this->actingAs($admin)->get(route('settings.index'));
@@ -32,7 +31,6 @@ class WhiteLabelingTest extends TestCase
             ->where('branding.app_name', 'Helpdesk Enterprise')
             ->where('branding.company_name', 'Acme Corporation')
             ->where('branding.support_contact', 'support@acme.com')
-            ->where('branding.brand_primary_color', '#2563eb')
         );
     }
 
@@ -44,7 +42,6 @@ class WhiteLabelingTest extends TestCase
             'app_name' => 'Custom Service Desk',
             'company_name' => 'Global Logistics Inc.',
             'support_contact' => '02-999-8888 ext 100',
-            'brand_primary_color' => '#059669',
         ]);
 
         $response->assertRedirect();
@@ -62,16 +59,11 @@ class WhiteLabelingTest extends TestCase
             'key' => 'support_contact',
             'value' => '02-999-8888 ext 100',
         ]);
-        $this->assertDatabaseHas('settings', [
-            'key' => 'brand_primary_color',
-            'value' => '#059669',
-        ]);
 
         $branding = Setting::getBranding();
         $this->assertSame('Custom Service Desk', $branding['app_name']);
         $this->assertSame('Global Logistics Inc.', $branding['company_name']);
         $this->assertSame('02-999-8888 ext 100', $branding['support_contact']);
-        $this->assertSame('#059669', $branding['brand_primary_color']);
     }
 
     public function test_administrator_can_upload_custom_branding_logos_and_favicon(): void

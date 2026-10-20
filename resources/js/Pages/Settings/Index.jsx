@@ -8,7 +8,6 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
     const [appName, setAppName] = useState(settings.app_name || branding?.app_name || 'ITDeskService');
     const [companyName, setCompanyName] = useState(settings.company_name || branding?.company_name || 'IT Service Desk');
     const [supportContact, setSupportContact] = useState(settings.support_contact || branding?.support_contact || '');
-    const [brandPrimaryColor, setBrandPrimaryColor] = useState(settings.brand_primary_color || branding?.brand_primary_color || '#4f46e5');
 
     // Logo states
     const [appLogoFile, setAppLogoFile] = useState(null);
@@ -26,17 +25,6 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
     const [removeAppFavicon, setRemoveAppFavicon] = useState(false);
 
     const [saving, setSaving] = useState(false);
-
-    const presetColors = [
-        { name: 'Indigo (ค่าเริ่มต้น)', hex: '#4f46e5' },
-        { name: 'Royal Blue', hex: '#2563eb' },
-        { name: 'Sky Cyan', hex: '#0284c7' },
-        { name: 'Emerald', hex: '#059669' },
-        { name: 'Violet', hex: '#7c3aed' },
-        { name: 'Rose', hex: '#e11d48' },
-        { name: 'Amber', hex: '#d97706' },
-        { name: 'Slate Dark', hex: '#334155' },
-    ];
 
     const handleLogoChange = (file, setFile, setPreview, setRemove) => {
         if (!file) return;
@@ -209,7 +197,6 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
             app_name: appName,
             company_name: companyName,
             support_contact: supportContact,
-            brand_primary_color: brandPrimaryColor,
             app_logo: appLogoFile,
             remove_app_logo: removeAppLogo ? 1 : 0,
             app_logo_login: appLogoLoginFile,
@@ -309,7 +296,7 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                             {/* Card Header */}
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-200 gap-3">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2.5 rounded-xl text-white shadow-xs shrink-0" style={{ backgroundColor: brandPrimaryColor }}>
+                                    <div className="p-2.5 rounded-xl bg-indigo-600 text-white shadow-xs shrink-0">
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                                         </svg>
@@ -361,7 +348,7 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                     {errors.company_name && <p className="mt-1 text-xs text-rose-500">{errors.company_name}</p>}
                                 </div>
 
-                                <div>
+                                <div className="md:col-span-2">
                                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                                         ข้อมูลติดต่อฝ่ายบริการไอที (Support Contact / Hotline)
                                     </label>
@@ -374,44 +361,6 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                     />
                                     <p className="mt-1 text-[11px] text-slate-400">แสดงที่หน้าเข้าสู่ระบบ (Login) เพื่อให้ผู้ใช้งานติดต่อสอบถามได้สะดวก</p>
                                     {errors.support_contact && <p className="mt-1 text-xs text-rose-500">{errors.support_contact}</p>}
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                        สีธีมหลักของระบบ (Brand Primary Color)
-                                    </label>
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            type="color"
-                                            value={brandPrimaryColor}
-                                            onChange={(e) => setBrandPrimaryColor(e.target.value)}
-                                            className="w-10 h-10 rounded-xl border border-slate-300 p-0.5 cursor-pointer bg-white shrink-0"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={brandPrimaryColor}
-                                            onChange={(e) => setBrandPrimaryColor(e.target.value)}
-                                            placeholder="#4f46e5"
-                                            className="w-28 border-slate-300 rounded-xl shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm py-2 px-3 font-mono uppercase bg-white shrink-0"
-                                        />
-                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                            {presetColors.map((color) => (
-                                                <button
-                                                    key={color.hex}
-                                                    type="button"
-                                                    onClick={() => setBrandPrimaryColor(color.hex)}
-                                                    title={color.name}
-                                                    className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${
-                                                        brandPrimaryColor.toLowerCase() === color.hex.toLowerCase()
-                                                            ? 'border-slate-800 scale-110 ring-2 ring-indigo-400'
-                                                            : 'border-white shadow-xs'
-                                                    }`}
-                                                    style={{ backgroundColor: color.hex }}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-                                    {errors.brand_primary_color && <p className="mt-1 text-xs text-rose-500">{errors.brand_primary_color}</p>}
                                 </div>
                             </div>
 
@@ -583,7 +532,7 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                                 className="h-6 w-auto max-w-[100px] object-contain"
                                             />
                                             <div className="flex flex-col min-w-0">
-                                                <span className="text-sm font-bold truncate leading-tight" style={{ color: brandPrimaryColor }}>
+                                                <span className="text-sm font-bold text-indigo-600 truncate leading-tight">
                                                     {appName || 'ITDeskService'}
                                                 </span>
                                                 {companyName && (
@@ -604,7 +553,7 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                                 alt="Preview Login Logo"
                                                 className="h-8 w-auto max-w-[120px] object-contain mx-auto"
                                             />
-                                            <div className="text-xs font-bold leading-tight" style={{ color: brandPrimaryColor }}>
+                                            <div className="text-xs font-bold text-gray-800 leading-tight">
                                                 {appName || 'ITDeskService'}
                                             </div>
                                             {companyName && (

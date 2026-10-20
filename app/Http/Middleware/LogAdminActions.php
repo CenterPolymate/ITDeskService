@@ -285,7 +285,6 @@ class LogAdminActions
                     'app_name',
                     'company_name',
                     'support_contact',
-                    'brand_primary_color',
                     'line_channel_access_token',
                     'line_channel_secret',
                     'smtp_host',

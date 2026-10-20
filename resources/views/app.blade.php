@@ -12,47 +12,11 @@
 
         <!-- PWA & Mobile Web App -->
         <link rel="manifest" href="{{ asset('manifest.json') }}">
-        <meta name="theme-color" content="{{ $branding['brand_primary_color'] ?? '#4f46e5' }}">
+        <meta name="theme-color" content="#4f46e5">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
         <meta name="apple-mobile-web-app-title" content="{{ $branding['app_name'] ?? 'ITDesk' }}">
-
-        <style>
-            :root {
-                --brand-primary: {{ $branding['brand_primary_color'] ?? '#4f46e5' }};
-                --brand-primary-hover: color-mix(in srgb, var(--brand-primary, #4f46e5) 85%, black);
-                --brand-primary-light: color-mix(in srgb, var(--brand-primary, #4f46e5) 12%, transparent);
-            }
-
-            .nav-brand-title {
-                color: var(--brand-primary, #4f46e5) !important;
-            }
-
-            /* Dynamically adapt primary action buttons to brand color */
-            .bg-indigo-600,
-            .bg-blue-600 {
-                background-color: var(--brand-primary, #4f46e5) !important;
-            }
-            .hover\:bg-indigo-700:hover,
-            .hover\:bg-blue-700:hover {
-                background-color: var(--brand-primary-hover, #4338ca) !important;
-            }
-            .text-indigo-600,
-            .text-blue-600 {
-                color: var(--brand-primary, #4f46e5) !important;
-            }
-            .border-indigo-500,
-            .border-indigo-600,
-            .border-blue-500,
-            .border-blue-600 {
-                border-color: var(--brand-primary, #4f46e5) !important;
-            }
-            .focus\:ring-indigo-500:focus,
-            .focus\:ring-blue-500:focus {
-                --tw-ring-color: var(--brand-primary, #4f46e5) !important;
-            }
-        </style>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

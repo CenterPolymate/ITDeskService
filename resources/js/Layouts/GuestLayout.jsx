@@ -19,7 +19,7 @@ export default function GuestLayout({ children, isRegister }) {
                     </Link>
                 </div>
                 
-                <h2 className="text-center text-2xl font-bold text-gray-800 mb-1" style={branding?.brand_primary_color ? { color: branding.brand_primary_color } : undefined}>
+                <h2 className="text-center text-2xl font-bold text-gray-800 mb-1">
                     {appName}
                 </h2>
                 {branding?.company_name && (

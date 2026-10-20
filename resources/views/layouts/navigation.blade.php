@@ -10,7 +10,7 @@
                             <img src="{{ $branding['app_logo'] ?? asset('images/polymate-logo.png') }}" alt="{{ $branding['app_name'] ?? 'ITDeskService' }}" class="h-8 max-w-[140px] w-auto object-contain">
                         </div>
                         <div class="flex flex-col text-left">
-                            <span class="text-base sm:text-lg font-bold whitespace-nowrap leading-tight nav-brand-title" style="color: var(--brand-primary, #4f46e5)">
+                            <span class="text-base sm:text-lg font-bold text-indigo-600 whitespace-nowrap leading-tight">
                                 {{ $branding['app_name'] ?? 'ITDeskService' }}
                             </span>
                             @if(!empty($branding['company_name']))

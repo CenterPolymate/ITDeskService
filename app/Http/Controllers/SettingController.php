@@ -116,12 +116,10 @@ class SettingController extends Controller
             'app_name' => 'nullable|string|max:100',
             'company_name' => 'nullable|string|max:150',
             'support_contact' => 'nullable|string|max:255',
-            'brand_primary_color' => ['nullable', 'string', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
             'app_logo' => 'nullable|file|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
             'app_logo_login' => 'nullable|file|image|mimes:png,jpg,jpeg,svg,webp|max:2048',
             'app_favicon' => 'nullable|file|mimes:ico,png,svg|max:1024',
         ], [
-            'brand_primary_color.regex' => 'รูปแบบรหัสสี Hex Color ไม่ถูกต้อง (เช่น #4f46e5)',
             'app_logo.image' => 'ไฟล์โลโก้ส่วนหัวต้องเป็นไฟล์รูปภาพเท่านั้น',
             'app_logo.max' => 'ขนาดไฟล์โลโก้ส่วนหัวต้องไม่เกิน 2MB',
             'app_logo_login.image' => 'ไฟล์โลโก้หน้าเข้าสู่ระบบต้องเป็นไฟล์รูปภาพเท่านั้น',
