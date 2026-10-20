@@ -82,6 +82,7 @@ class AuditLogTest extends TestCase
 
         $log = AuditLog::where('target_type', 'settings.update')->latest('id')->first();
         $this->assertNotNull($log);
+        $this->assertNull($log->target_id);
         $this->assertArrayHasKey('support_contact', $log->changes);
         $this->assertSame('02-999-9999', $log->changes['support_contact']);
         $this->assertArrayNotHasKey('app_name', $log->changes);

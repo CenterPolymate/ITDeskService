@@ -263,7 +263,7 @@
   - [x] เพิ่มระบบ Cache-busting (`?v=...`) ใน `Setting::getBranding()` ป้องกันเบราว์เซอร์จำ Cache เก่า
   - [x] เพิ่มยูทิลิตี้ `updateBrowserFavicon` ใน `branding.js` และเชื่อมต่อกับ Inertia Router Event (`navigate`, `success`) และ Live Preview เพื่ออัปเดตแท็บเบราว์เซอร์แบบเรียลไทม์ทันที
   - [x] เพิ่มการ์ดตัวอย่าง "จำลองแท็บเบราว์เซอร์ (Browser Tab & Favicon)" ใน Live Preview Card
-  - [x] เพิ่มชุดทดสอบอัตโนมัติใน `WhiteLabelingTest.php` ผ่านครบถ้วน 100% (154/154 tests)
-
-
-
+- [x] แก้ไขข้อผิดพลาด SQLSTATE[HY000]: 1366 Incorrect integer value: 'system' for column 'target_id':
+  - [x] กำหนด `$targetId = null` สำหรับ `settings.update` ใน `LogAdminActions.php` เนื่องจากเป็นการปรับแต่งค่าระดับระบบที่ไม่มี entity ID
+  - [x] เพิ่ม Type-safe casting `is_numeric($targetId) ? (int) $targetId : null` ใน Middleware ป้องกันไม่ให้มีค่า String ถูกส่งไปยังคอลัมน์ `unsignedBigInteger` ของ MySQL
+  - [x] อัปเดตชุดทดสอบ `AuditLogTest.php` และ `UserDeactivationAuditLogTest.php` ให้ตรวจสอบ `assertNull($log->target_id)` และผ่านครบ 154/154 เทสต์ 100%

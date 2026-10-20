@@ -45,11 +45,11 @@ class LogAdminActions
             }
 
             if ($routeName === 'settings.update') {
-                $targetId = 'system';
+                $targetId = null;
                 $oldValues = Setting::pluck('value', 'key')->all();
             } elseif ($routeName === 'impersonate.leave' && $impersonatedBy) {
                 $actorId = $impersonatedBy;
-                $targetId = (string) $user?->id;
+                $targetId = $user?->id;
             } elseif ($shouldLog && $request->route() && $request->route()->parameterNames()) {
                 $params = array_values($request->route()->parameters());
                 $ids = [];
@@ -108,7 +108,7 @@ class LogAdminActions
                     'user_id' => $actorId,
                     'action' => 'DEACTIVATE '.$routeName,
                     'target_type' => $routeName,
-                    'target_id' => $targetId,
+                    'target_id' => is_numeric($targetId) ? (int) $targetId : null,
                     'changes' => [
                         'is_active' => 0,
                         'action_note' => $request->attributes->get('audit_note', 'เปลี่ยนสถานะเป็น Inactive แทนการลบถาวร เนื่องจากมีประวัติเชื่อมโยงกับใบงาน'),
@@ -380,7 +380,7 @@ class LogAdminActions
                 'user_id' => $actorId,
                 'action' => $method.' '.$routeName,
                 'target_type' => $routeName,
-                'target_id' => $targetId,
+                'target_id' => is_numeric($targetId) ? (int) $targetId : null,
                 'changes' => $changes,
                 'old_values' => $finalOldValues,
             ]);

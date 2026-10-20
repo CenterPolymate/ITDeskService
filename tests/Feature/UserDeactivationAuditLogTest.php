@@ -24,7 +24,7 @@ class UserDeactivationAuditLogTest extends TestCase
             'user_id' => $userWithHistory->id,
             'action' => 'LOGIN',
             'target_type' => 'auth',
-            'target_id' => 'auth-session-999',
+            'target_id' => 999,
         ]);
 
         $this->assertTrue($userWithHistory->hasHistory());
