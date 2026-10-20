@@ -1220,7 +1220,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                         <select
                                             value={formFilters.status}
                                             onChange={(e) => handleFilterChange('status', e.target.value)}
-                                            className="w-full rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
+                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
                                         >
                                             <option value="all">ทุกสถานะ</option>
                                             <option value="sla_warning">⏰ ใกล้หมดเวลา SLA (&lt; 1 ชม.)</option>
@@ -1250,7 +1250,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                         <select
                                             value={formFilters.priority}
                                             onChange={(e) => handleFilterChange('priority', e.target.value)}
-                                            className="w-full rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
+                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
                                         >
                                             <option value="all">ทุกระดับ</option>
                                             <option value="urgent">ด่วนที่สุด (Urgent)</option>
@@ -1265,7 +1265,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                         <select
                                             value={formFilters.team}
                                             onChange={(e) => handleFilterChange('team', e.target.value)}
-                                            className="w-full rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
+                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
                                         >
                                             <option value="all">ทุกทีม (All Teams)</option>
                                             {availableTeams.map((t) => (
@@ -1282,7 +1282,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                             <select
                                                 value={formFilters.technician_id}
                                                 onChange={(e) => handleFilterChange('technician_id', e.target.value)}
-                                                className="w-full rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
+                                                className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
                                             >
                                                 <option value="all">ช่างทุกคนในทีม</option>
                                                 {technician_workload.technicians.map((t) => (
@@ -1303,24 +1303,27 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                             onBlur={() => setIsTyping(false)}
                                             onChange={(e) => handleFilterChange('search', e.target.value)}
                                             placeholder="ค้นหา Ticket, ผู้แจ้ง..."
-                                            className="w-full rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white leading-normal"
+                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white leading-normal"
                                         />
                                     </div>
 
-                                    <div className="flex items-end gap-2">
-                                        <button
-                                            type="submit"
-                                            className="w-full bg-indigo-600 border border-transparent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm cursor-pointer"
-                                        >
-                                            กรองข้อมูล
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={handleClearFilters}
-                                            className="w-full text-center bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm cursor-pointer whitespace-nowrap"
-                                        >
-                                            ล้างค่า
-                                        </button>
+                                    <div>
+                                        <label className="block text-xs font-medium text-transparent mb-1 select-none pointer-events-none hidden sm:block">&nbsp;</label>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="submit"
+                                                className="flex-1 h-[38px] inline-flex items-center justify-center bg-indigo-600 border border-transparent text-white px-2.5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+                                            >
+                                                กรองข้อมูล
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleClearFilters}
+                                                className="h-[38px] inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm cursor-pointer whitespace-nowrap shrink-0"
+                                            >
+                                                ล้างค่า
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
