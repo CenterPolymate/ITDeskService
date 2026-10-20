@@ -403,7 +403,7 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                     <span className="inline-block animate-wave text-xl">👋</span>
                                 </h3>
                                 <p className="mt-1 text-sm text-gray-500">
-                                    ยินดีต้อนรับสู่ระบบแจ้งซ่อม {branding?.app_name || 'ITDeskService'} คุณสามารถติดตามสถานะการแจ้งซ่อม หรือเปิดใบงานใหม่ได้ที่นี่
+                                    ยินดีต้อนรับสู่ระบบแจ้งซ่อม {branding?.app_name || 'ITDeskService'} {branding?.company_name ? `(${branding.company_name})` : ''} คุณสามารถติดตามสถานะการแจ้งซ่อม หรือเปิดใบงานใหม่ได้ที่นี่
                                 </p>
                             </div>
                             <div className="w-full sm:w-auto shrink-0">

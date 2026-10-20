@@ -147,9 +147,12 @@
         <table class="w-full border border-black border-b-0 text-[10px]" style="table-layout: fixed;">
             <tr>
                 <td rowspan="2" class="text-center align-middle border-r-0" style="width: 20%; height: 50px;">
-                    <div class="flex items-center justify-center h-full p-2">
+                    <div class="flex flex-col items-center justify-center h-full p-1">
                         <img src="{{ $branding['app_logo'] ?? asset('images/polymate-logo.png') }}" alt="{{ $branding['app_name'] ?? 'Logo' }}"
-                            class="max-h-[35px] w-auto object-contain">
+                            class="max-h-[30px] w-auto object-contain">
+                        @if(!empty($branding['company_name']))
+                            <div class="text-[8px] font-bold text-black mt-0.5 truncate max-w-full leading-tight text-center">{{ $branding['company_name'] }}</div>
+                        @endif
                     </div>
                 </td>
                 <td rowspan="2" class="text-center align-middle font-bold text-[13px] border-l-0 px-1"

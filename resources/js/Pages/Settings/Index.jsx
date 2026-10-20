@@ -582,9 +582,16 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                                 alt="Preview Logo"
                                                 className="h-6 w-auto max-w-[100px] object-contain"
                                             />
-                                            <span className="text-sm font-bold truncate" style={{ color: brandPrimaryColor }}>
-                                                {appName || 'ITDeskService'}
-                                            </span>
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="text-sm font-bold truncate leading-tight" style={{ color: brandPrimaryColor }}>
+                                                    {appName || 'ITDeskService'}
+                                                </span>
+                                                {companyName && (
+                                                    <span className="text-[10px] text-slate-500 font-medium truncate leading-tight mt-0.5">
+                                                        {companyName}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -597,7 +604,12 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                                 alt="Preview Login Logo"
                                                 className="h-8 w-auto max-w-[120px] object-contain mx-auto"
                                             />
-                                            <div className="text-xs font-bold text-slate-800">{appName || 'ITDeskService'}</div>
+                                            <div className="text-xs font-bold leading-tight" style={{ color: brandPrimaryColor }}>
+                                                {appName || 'ITDeskService'}
+                                            </div>
+                                            {companyName && (
+                                                <div className="text-[10px] font-semibold text-slate-500">{companyName}</div>
+                                            )}
                                             {supportContact && (
                                                 <div className="text-[10px] text-slate-400">📞 {supportContact}</div>
                                             )}

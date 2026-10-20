@@ -19,7 +19,12 @@ export default function GuestLayout({ children, isRegister }) {
                     </Link>
                 </div>
                 
-                <h2 className="text-center text-2xl font-bold text-gray-800 mb-2">{appName}</h2>
+                <h2 className="text-center text-2xl font-bold text-gray-800 mb-1" style={branding?.brand_primary_color ? { color: branding.brand_primary_color } : undefined}>
+                    {appName}
+                </h2>
+                {branding?.company_name && (
+                    <p className="text-center text-xs font-bold text-slate-500 mb-2">{branding.company_name}</p>
+                )}
                 <p className="text-center text-sm text-gray-500 mb-8">
                     {isRegister ? 'สมัครสมาชิกเพื่อเข้าใช้งานระบบ' : 'เข้าสู่ระบบเพื่อดำเนินการต่อ'}
                 </p>

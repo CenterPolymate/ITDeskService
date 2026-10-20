@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 
 export default function Index({
     filters = {},
@@ -16,6 +16,7 @@ export default function Index({
     selectedMonthName = '',
     buddhistYear = 0,
 }) {
+    const { branding } = usePage().props;
     const [month, setMonth] = useState(filters.month || new Date().getMonth() + 1);
     const [year, setYear] = useState(filters.year || new Date().getFullYear());
     const [company, setCompany] = useState(filters.company || 'all');
@@ -122,13 +123,18 @@ export default function Index({
                     {/* Page Header */}
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm print-card">
                         <div>
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
                                     Monthly Statistical Report
                                 </span>
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
                                     P-CAR 5M Analytics
                                 </span>
+                                {branding?.company_name && (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                        🏢 {branding.company_name}
+                                    </span>
+                                )}
                             </div>
                             <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                                 รายงานสถิติประจำเดือน {selectedMonthName} พ.ศ. {buddhistYear}
@@ -850,7 +856,7 @@ export default function Index({
                     {/* Report Footer Note */}
                     <div className="text-center text-xs text-slate-400 py-4 print-card">
                         <p>
-                            ระบบ ITDeskService — รายงานสถิติและวิเคราะห์สาเหตุปัญหา P-CAR ประจำเดือน {selectedMonthName} พ.ศ. {buddhistYear}
+                            ระบบ {branding?.app_name || 'ITDeskService'} {branding?.company_name ? `(${branding.company_name})` : ''} — รายงานสถิติและวิเคราะห์สาเหตุปัญหา P-CAR ประจำเดือน {selectedMonthName} พ.ศ. {buddhistYear}
                         </p>
                     </div>
 
