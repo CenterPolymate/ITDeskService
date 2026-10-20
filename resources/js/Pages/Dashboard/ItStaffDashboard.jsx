@@ -1308,7 +1308,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-medium text-transparent mb-1 select-none pointer-events-none hidden sm:block">&nbsp;</label>
+                                        <label className="hidden sm:block text-xs font-medium text-transparent mb-1 select-none pointer-events-none">&nbsp;</label>
                                         <div className="flex items-center gap-2">
                                             <button
                                                 type="submit"
