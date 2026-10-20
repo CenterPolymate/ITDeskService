@@ -491,10 +491,10 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                     {/* 1. Header Logo */}
                                     <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between">
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-800 mb-1">
+                                            <div className="min-h-[52px] mb-3"><label className="block text-xs font-bold text-slate-800 mb-1">
                                                 โลโก้แถบนำทาง (Header Logo)
                                             </label>
-                                            <p className="text-[11px] text-slate-400 mb-3">แนะนำ PNG โปร่งใส แนวนอน (ไม่เกิน 2MB)</p>
+                                            <p className="text-[11px] text-slate-400 leading-tight">แนะนำ PNG โปร่งใส แนวนอน (ไม่เกิน 2MB)</p></div>
                                             
                                             <div className="h-16 flex items-center justify-center bg-slate-50 border border-dashed border-slate-300 rounded-lg p-2 mb-3">
                                                 {appLogoPreview && !removeAppLogo ? (
@@ -537,10 +537,10 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                     {/* 2. Login Page Logo */}
                                     <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between">
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-800 mb-1">
+                                            <div className="min-h-[52px] mb-3"><label className="block text-xs font-bold text-slate-800 mb-1">
                                                 โลโก้หน้าเข้าสู่ระบบ (Login Logo)
                                             </label>
-                                            <p className="text-[11px] text-slate-400 mb-3">หากไม่ระบุ จะใช้โลโก้เดียวกับส่วนหัว</p>
+                                            <p className="text-[11px] text-slate-400 leading-tight">หากไม่ระบุ จะใช้โลโก้เดียวกับส่วนหัว</p></div>
                                             
                                             <div className="h-16 flex items-center justify-center bg-slate-50 border border-dashed border-slate-300 rounded-lg p-2 mb-3">
                                                 {appLogoLoginPreview && !removeAppLogoLogin ? (
@@ -588,10 +588,10 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                     {/* 3. Favicon */}
                                     <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between">
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-800 mb-1">
+                                            <div className="min-h-[52px] mb-3"><label className="block text-xs font-bold text-slate-800 mb-1">
                                                 ไอคอนเบราว์เซอร์ (Favicon)
                                             </label>
-                                            <p className="text-[11px] text-slate-400 mb-3">ไฟล์ .ico หรือ .png (ขนาดไม่เกิน 1MB)</p>
+                                            <p className="text-[11px] text-slate-400 leading-tight">ไฟล์ .ico หรือ .png (ขนาดไม่เกิน 1MB)</p></div>
                                             
                                             <div className="h-16 flex items-center justify-center bg-slate-50 border border-dashed border-slate-300 rounded-lg p-2 mb-3">
                                                 {appFaviconPreview && !removeAppFavicon ? (

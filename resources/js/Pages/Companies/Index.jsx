@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 
-export default function Index({ companies }) {
+export default function Index({ companies = [] }) {
     const { flash } = usePage().props;
     const [search, setSearch] = useState('');
     const [showImportModal, setShowImportModal] = useState(false);
@@ -9,7 +9,8 @@ export default function Index({ companies }) {
     const [importing, setImporting] = useState(false);
     const [importError, setImportError] = useState('');
 
-    const filteredCompanies = companies.filter((c) => {
+    const companyList = Array.isArray(companies) ? companies : (companies?.data || []);
+    const filteredCompanies = companyList.filter((c) => {
         if (!search.trim()) return true;
         const q = search.toLowerCase();
         return (
