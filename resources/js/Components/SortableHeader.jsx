@@ -33,15 +33,24 @@ export default function SortableHeader({
         right: 'justify-end text-right',
     }[align] || 'justify-start text-left';
 
+    const thAlignClasses = {
+        left: 'text-left',
+        center: 'text-center',
+        right: 'text-right',
+    }[align] || 'text-left';
+
     const ariaSortValue = isActive
         ? isAsc ? 'ascending' : 'descending'
         : 'none';
+
+    const hasCustomPadding = className.includes('px-') || className.includes('p-');
+    const defaultPadding = hasCustomPadding ? '' : 'px-4 py-3';
 
     return (
         <th
             scope="col"
             aria-sort={ariaSortValue}
-            className={`px-5 py-3.5 text-xs font-bold uppercase tracking-wider select-none ${className}`}
+            className={`${defaultPadding} text-xs font-bold uppercase tracking-wider select-none ${thAlignClasses} ${className}`}
         >
             <button
                 type="button"
@@ -55,7 +64,7 @@ export default function SortableHeader({
                         : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100/70 font-semibold'
                 }`}
             >
-                <span className="flex flex-col leading-tight">
+                <span className={`flex flex-col leading-tight ${align === 'center' ? 'items-center text-center' : align === 'right' ? 'items-end text-right' : 'items-start text-left'}`}>
                     <span>{label}</span>
                     {subLabel && (
                         <span className="text-[10px] font-normal tracking-normal text-gray-400 group-hover:text-gray-500">

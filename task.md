@@ -267,3 +267,8 @@
   - [x] กำหนด `$targetId = null` สำหรับ `settings.update` ใน `LogAdminActions.php` เนื่องจากเป็นการปรับแต่งค่าระดับระบบที่ไม่มี entity ID
   - [x] เพิ่ม Type-safe casting `is_numeric($targetId) ? (int) $targetId : null` ใน Middleware ป้องกันไม่ให้มีค่า String ถูกส่งไปยังคอลัมน์ `unsignedBigInteger` ของ MySQL
   - [x] อัปเดตชุดทดสอบ `AuditLogTest.php` และ `UserDeactivationAuditLogTest.php` ให้ตรวจสอบ `assertNull($log->target_id)` และผ่านครบ 154/154 เทสต์ 100%
+- [x] ปรับการจัดวางตำแหน่งหัวตาราง (SortableHeader Alignment):
+  - [x] กำหนด `text-left` บน `<th>` และปุ่มเรียงลำดับเป็นค่าเริ่มต้น เพื่อให้เส้นสายตาแนวตั้ง (Vertical Alignment) ตรงกับ Avatar และเนื้อหาใน `<td>` ด้านล่าง
+  - [x] ปรับระยะ Padding ซ้ายขวาของ `<th>` ให้สมดุลพอดีกับ `<td>` (`px-4`)
+  - [x] รองรับ `align="center"` และ `align="right"` อย่างยืดหยุ่นสำหรับคอลัมน์พิเศษ เช่น ปุ่มจัดการสถานะ
+
