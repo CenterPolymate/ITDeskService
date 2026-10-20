@@ -1052,11 +1052,16 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                             </div>
 
                                             <div className="space-y-0.5 mb-3">
-                                                <div className="text-sm font-bold text-slate-900 leading-snug flex items-center gap-1.5">
+                                                <div className="text-sm font-bold text-slate-900 leading-snug flex items-center gap-1.5 flex-wrap">
                                                     <span>ไดรเวอร์:</span>
                                                     <span className="font-black text-blue-600 uppercase tracking-wide">
-                                                        {diagnostics?.database?.driver || 'MySQL'}
+                                                        {diagnostics?.database?.server || diagnostics?.database?.driver || 'MySQL'}
                                                     </span>
+                                                    {diagnostics?.database?.version && (
+                                                        <span className="text-[11px] font-mono font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                                                            v{diagnostics.database.version}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <div className="text-[11px] text-slate-400 font-mono">
                                                     สถานะ: การเชื่อมต่อสมบูรณ์ (PDO Active)

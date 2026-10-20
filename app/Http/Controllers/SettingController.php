@@ -76,8 +76,21 @@ class SettingController extends Controller
         $storageLinked = is_link(public_path('storage')) || file_exists(public_path('storage'));
 
         $dbStatus = 'connected';
+        $dbVersion = null;
+        $dbServer = null;
         try {
-            DB::connection()->getPdo();
+            $pdo = DB::connection()->getPdo();
+            $rawVersion = (string) $pdo->getAttribute(\PDO::ATTR_SERVER_VERSION);
+            if ($rawVersion !== '') {
+                if (preg_match('/^([0-9]+(\.[0-9]+)+)/', $rawVersion, $matches)) {
+                    $dbVersion = $matches[1];
+                } else {
+                    $dbVersion = $rawVersion;
+                }
+                if (stripos($rawVersion, 'mariadb') !== false) {
+                    $dbServer = 'MariaDB';
+                }
+            }
         } catch (\Throwable $e) {
             $dbStatus = 'disconnected';
         }
@@ -95,6 +108,8 @@ class SettingController extends Controller
             'database' => [
                 'status' => $dbStatus,
                 'driver' => config('database.default'),
+                'version' => $dbVersion,
+                'server' => $dbServer,
             ],
             'php_version' => PHP_VERSION,
             'laravel_version' => app()->version(),
