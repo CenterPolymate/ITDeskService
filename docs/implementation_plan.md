@@ -393,5 +393,23 @@
 - [x] **การขยายสิทธิ์การแก้ไขข้อมูลระหว่าง Task 2 (Preventive Measure Inline Edit):**
   - [x] อนุญาตให้ Helpdesk, ช่างเฉพาะทาง (Technician), ผู้จัดการ (Manager) และ Administrator แก้ไขข้อมูลการวิเคราะห์สาเหตุ (Why-Why Analysis & Root Cause) และบันทึกการแก้ไขปัญหา (Resolution Notes) ได้ในระหว่างทำ Task 2 แม้สถานะหลักของเคสจะเป็น `closed` จนกว่า Task 2 จะปิดงานสมบูรณ์ เพื่อความสมบูรณ์ของรายงาน P-CAR Form 4
 
+## Phase 16: System Diagnostics Dark Theme, Table Alignment Standard & UI Polish (✅ ดำเนินการแล้วเสร็จ)
+- [x] **การตรวจสอบเวอร์ชันและสถานะของฐานข้อมูล (Database Engine Diagnostics):**
+  - [x] ดึงข้อมูลเวอร์ชันของเซิร์ฟเวอร์ MySQL/MariaDB ผ่าน `PDO::ATTR_SERVER_VERSION` ใน `SettingController.php`
+  - [x] ส่งต่อไปยัง Frontend และแสดงเป็นป้ายกำกับ Badge `v{version}` บนการ์ดการเชื่อมต่อฐานข้อมูล (Database Connection) อัตโนมัติ
+- [x] **มาตรฐานการจัดแนวหัวตารางและข้อมูลทั่วทั้งระบบ (Unified Table Alignment Standard):**
+  - [x] ปรับหัวตาราง (Table Header) และข้อมูลทุกคอลัมน์ทั่วไปในทุกตารางให้จัดชิดซ้าย (Left-align) เพื่อสร้างเส้นสายตาที่สม่ำเสมอและอ่านง่ายตามหลัก Ergonomics
+  - [x] กำหนดคอลัมน์ปุ่มการจัดการ (Actions) ให้ชิดขวาสุด (`text-right`) เสมอ
+  - [x] อัปเดตใน `Teams/Index.jsx`, `Holidays/Index.jsx`, และ `Reports/Index.jsx`
+- [x] **การปรับปรุงการ์ดตรวจสอบสถานะระบบและการป้องกันข้อความตัดทอน (Diagnostics Card SaaS Layout):**
+  - [x] แก้ไขปัญหาชื่อการ์ดถูกตัด (`truncate`) ในหน้า `Settings/Index.jsx` โดยแยกแถวบนเป็น [ไอคอนซ้าย + Badge สถานะขวา] และแสดงชื่อหัวข้อเต็มความกว้างด้านล่าง
+- [x] **การปรับปรุงธีมมืดคอนโซลสำหรับการ์ดสถานะสุขภาพระบบ (Deep Slate Console Dark Theme):**
+  - [x] ปรับดีไซน์การ์ดสุขภาพระบบ 3 รายการ (Cron Scheduler, Database Connection, Storage Health) ในหน้า System Settings ให้เป็นสไตล์คอนโซลระดับ Enterprise ด้วย `bg-slate-900`, `border-slate-800`, ไอคอนนีออนพร้อมแสงเรืองรอง (Neon Glow) และ Dark badges
+- [x] **การปรับปรุงการแสดงผลวันเวลาสำรองข้อมูล (Two-Line Backup Timestamp Display):**
+  - [x] แก้ไขปัญหาเวลาสำรองข้อมูลถูกตัดทอน (`00:...`) ในการ์ดระบบของหน้า Superadmin Dashboard โดยแยกส่ง `date` และ `time` ออกจากกันใน `DashboardController.php` และแสดงผล 2 บรรทัดชัดเจน (วันที่ภาษาไทยบรรทัดบน และเวลา `H:i:s น.` บรรทัดล่าง)
+- [x] **การแก้ไขข้อผิดพลาด Audit Log Target ID (SQLSTATE 1366):**
+  - [x] ปรับปรุง Middleware `LogAdminActions.php` ให้กำหนด `$targetId = null` สำหรับ `settings.update` พร้อม Type-safe casting ป้องกัน Integer conversion error
+
+
 
 
