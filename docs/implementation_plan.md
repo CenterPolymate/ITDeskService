@@ -410,6 +410,14 @@
 - [x] **การแก้ไขข้อผิดพลาด Audit Log Target ID (SQLSTATE 1366):**
   - [x] ปรับปรุง Middleware `LogAdminActions.php` ให้กำหนด `$targetId = null` สำหรับ `settings.update` พร้อม Type-safe casting ป้องกัน Integer conversion error
 
+## Phase 17: Modern Clean Profile Architecture & Security Polish (✅ ดำเนินการแล้วเสร็จ)
+- [x] **การปรับโฉมหน้าข้อมูลส่วนตัวสู่ Modern Clean & Sleek Aesthetic (Profile Redesign):**
+  - [x] ปรับปรุงหน้าจอ `Profile/Edit.jsx` ให้เป็นสไตล์พรีเมียม สะอาดตา เรียบหรู ใช้งานง่ายทั้งบนคอมพิวเตอร์และมือถือ
+  - [x] ออกแบบ Hero Header Card สไตล์ Gradient สีคราม-น้ำเงินเข้ม (`Slate-900 / Indigo-950`) พร้อม Avatar ตราสัญลักษณ์ประจำตัว (Initials), จุดไฟ Active Beacon, ป้ายบอกบทบาทหน้าที่ (Role Badge) และชิปข้อมูลสังกัดองค์กรและการเข้าใช้งานล่าสุด
+  - [x] จัดวางเลย์เอาต์ Responsive 2 คอลัมน์ที่สมดุล: ฝั่งซ้ายเป็นการ์ดสรุปข้อมูลบัญชี (Account Identity) และข้อแนะนำความปลอดภัย (Security Best Practices), ฝั่งขวาเป็นแถบสลับมุมมอง (Tab Switcher: All, Profile, Password)
+  - [x] ฟอร์มข้อมูลส่วนตัว (Profile Information): ช่องอินพุตพร้อมไอคอนนำหน้า, ล็อกช่องชื่อสำหรับ Administrator เพื่อความโปร่งใสของ Audit Log, กล่องเลือกบริษัทและแผนกแบบไดนามิกพร้อมปุ่มสลับระบุแผนกเอง, แถบเตือนยืนยันอีเมลพร้อมปุ่มขอรับอีเมลยืนยันใหม่
+  - [x] ฟอร์มเปลี่ยนรหัสผ่าน (Security & Password Form): เพิ่มปุ่มเปิด/ปิดการมองเห็นรหัสผ่าน (Show/Hide Password Toggle) ในทุกช่อง, พร้อม Dynamic Password Criteria Checklist ตรวจสอบความปลอดภัยแบบเรียลไทม์ (ความยาวอย่างน้อย 8 ตัวอักษร และรหัสผ่านตรงกัน)
+
 
 
 
