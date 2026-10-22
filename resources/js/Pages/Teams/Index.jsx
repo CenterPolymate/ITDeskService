@@ -316,7 +316,7 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
                                             value={currentSort}
                                             onChange={(e) => handleSortDirect(e.target.value, currentDirection)}
                                             aria-label="เลือกฟิลด์สำหรับเรียงลำดับ"
-                                            className="text-xs font-medium border-gray-200 rounded-lg py-1 px-2.5 bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs"
+                                            className="text-xs font-medium border-gray-200 rounded-lg py-1 pl-2.5 pr-8 bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs cursor-pointer"
                                         >
                                             <option value="name">ชื่อทีม (Team Name)</option>
                                             <option value="code">รหัสทีม (Code)</option>

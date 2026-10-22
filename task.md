@@ -335,4 +335,13 @@
   - [x] ใน `TeamController@update`: เมื่อแก้ไขชื่อทีม (`name`) ระบบจะค้นหาใบงานทั้งหมดที่มี `escalated_to_team` เป็นชื่อเดิม แล้วอัปเดตเป็นชื่อใหม่โดยอัตโนมัติทันที
   - [x] สร้าง Migration ซิงค์ชื่อทีมย้อนหลังสำหรับเคสเดิมในฐานข้อมูล (เช่น Hardware -> Hardware production)
   - [x] เพิ่ม Feature Test `test_updating_team_name_cascades_to_helpdesk_cases` ใน `TeamManagementTest.php` ผ่าน 100% (162/162 เทสต์ทั้งระบบ)
+- [x] ปรับปรุงและแก้ไขปัญหาไอคอนลูกศรทับซ้อนกับตัวเลขหรือข้อความใน Dropdown `<select>` ทั่วทั้งระบบ:
+  - [x] แก้ไขตัวเลือกจำนวนรายการต่อหน้า (Per Page) ใต้ตารางและส่วนหัวของ Dashboard ทั้งฝั่งผู้ใช้งานทั่วไป (`UserDashboard.jsx`) และทีมไอที (`ItStaffDashboard.jsx`) โดยเปลี่ยนจาก `px-` มาใช้ `pl-2.5 pr-8` (และ `pr-7`)
+  - [x] แก้ไข Dropdown ตัวกรองข้อมูลใน IT Staff Dashboard (สถานะ, ความเร่งด่วน, ทีม, ช่าง) ให้มีระยะห่างขวา (`pl-3 pr-9 cursor-pointer`)
+  - [x] แก้ไข Mobile Sort Dropdown ในหน้ารายการผู้ใช้ทีม IT (`Users/Index.jsx`), ผู้ใช้ทั่วไป (`NormalUsers/Index.jsx`), และทีมงาน (`Teams/Index.jsx`)
+  - [x] แก้ไข Dropdown ตัวกรองในหน้ารายงานสถิติ (`Reports/Index.jsx`) สำหรับเดือน, ปี, บริษัท, ทีม (`pl-3.5 pr-10 cursor-pointer`)
+  - [x] แก้ไข Dropdown การตั้งค่า SLA Warning Threshold ในหน้าตั้งค่าระบบ (`Settings/Index.jsx`)
+  - [x] แก้ไข Dropdown เลือกเสียงแจ้งเตือน (Sound Tone) ใน Navigation Header ทั้งบนเดสก์ท็อปและมือถือ (`navigation.blade.php`)
+  - [x] ผ่านการทดสอบ automated tests 163/163 เทสต์ และคอมไพล์ Vite assets สำเร็จ
+
 

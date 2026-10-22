@@ -207,7 +207,7 @@ export default function Index({
                                         setMonth(newM);
                                         applyFilter(newM, year, company, team);
                                     }}
-                                    className="w-full h-11 py-2 px-3 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white leading-normal"
+                                    className="w-full h-11 py-2 pl-3.5 pr-10 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white leading-normal cursor-pointer"
                                 >
                                     {Object.entries(thaiMonthNames).map(([key, name]) => (
                                         <option key={key} value={key}>
@@ -229,7 +229,7 @@ export default function Index({
                                         setYear(newY);
                                         applyFilter(month, newY, company, team);
                                     }}
-                                    className="w-full h-11 py-2 px-3 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white leading-normal"
+                                    className="w-full h-11 py-2 pl-3.5 pr-10 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white leading-normal cursor-pointer"
                                 >
                                     {years.map((y) => (
                                         <option key={y} value={y}>
@@ -251,7 +251,7 @@ export default function Index({
                                         setCompany(newC);
                                         applyFilter(month, year, newC, team);
                                     }}
-                                    className="w-full h-11 py-2 px-3 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white leading-normal"
+                                    className="w-full h-11 py-2 pl-3.5 pr-10 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white leading-normal cursor-pointer"
                                 >
                                     <option value="all">ทุกบริษัท (All)</option>
                                     {companies.map((c) => (
@@ -274,7 +274,7 @@ export default function Index({
                                         setTeam(newT);
                                         applyFilter(month, year, company, newT);
                                     }}
-                                    className="w-full h-11 py-2 px-3 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white leading-normal"
+                                    className="w-full h-11 py-2 pl-3.5 pr-10 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white leading-normal cursor-pointer"
                                 >
                                     <option value="all">ทุกทีม (All Teams)</option>
                                     <option value="helpdesk">Helpdesk (Tier 1)</option>

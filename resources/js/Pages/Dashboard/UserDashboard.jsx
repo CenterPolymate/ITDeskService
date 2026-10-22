@@ -640,7 +640,7 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                             value={currentPerPage}
                                             onChange={(e) => handlePerPageChange(Number(e.target.value))}
                                             aria-label="เลือกจำนวนรายการต่อหน้า"
-                                            className="text-xs border-gray-300 rounded-lg py-1.5 px-2 bg-white text-gray-700 focus:ring-blue-500 focus:border-blue-500 shadow-2xs cursor-pointer"
+                                            className="text-xs border-gray-300 rounded-lg py-1.5 pl-3 pr-8 bg-white text-gray-700 focus:ring-blue-500 focus:border-blue-500 shadow-2xs cursor-pointer"
                                         >
                                             <option value={10}>10 รายการ</option>
                                             <option value={25}>25 รายการ</option>
@@ -718,7 +718,7 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                 value={currentSort}
                                                 onChange={(e) => handleSortDirect(e.target.value, currentDirection)}
                                                 aria-label="เลือกฟิลด์สำหรับเรียงลำดับ"
-                                                className="text-xs font-medium border-gray-200 rounded-lg py-1 px-2.5 bg-white text-gray-700 focus:ring-blue-500 focus:border-blue-500 shadow-2xs"
+                                                className="text-xs font-medium border-gray-200 rounded-lg py-1 pl-2.5 pr-8 bg-white text-gray-700 focus:ring-blue-500 focus:border-blue-500 shadow-2xs cursor-pointer"
                                             >
                                                 <option value="created_at">วันที่แจ้งล่าสุด (Default)</option>
                                                 <option value="ticket_no">รหัสใบงาน (Ticket ID)</option>
@@ -987,7 +987,7 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                     value={currentPerPage}
                                                     onChange={(e) => handlePerPageChange(Number(e.target.value))}
                                                     aria-label="เลือกจำนวนรายการต่อหน้าส่วนล่าง"
-                                                    className="text-xs border-gray-200 rounded-lg py-1 px-2 bg-white text-gray-700 focus:ring-blue-500 focus:border-blue-500 shadow-2xs cursor-pointer"
+                                                    className="text-xs border-gray-200 rounded-lg py-1 pl-2.5 pr-8 bg-white text-gray-700 focus:ring-blue-500 focus:border-blue-500 shadow-2xs cursor-pointer"
                                                 >
                                                     <option value={10}>10</option>
                                                     <option value={25}>25</option>

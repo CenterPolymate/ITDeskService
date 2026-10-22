@@ -1493,7 +1493,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                         <select
                                             value={filters.per_page || 10}
                                             onChange={(e) => handlePerPageChange(Number(e.target.value))}
-                                            className="text-xs font-bold py-0.5 px-1.5 border-0 bg-transparent text-indigo-600 focus:ring-0 cursor-pointer"
+                                            className="text-xs font-bold py-0.5 pl-2 pr-7 border-0 bg-transparent text-indigo-600 focus:ring-0 cursor-pointer"
                                             aria-label="จำนวนรายการต่อหน้า"
                                         >
                                             <option value={10}>10</option>
@@ -1521,7 +1521,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                                     : (formFilters.status?.startsWith('task2') ? 'all' : (formFilters.status || 'all'))
                                             }
                                             onChange={(e) => handleFilterChange('status', e.target.value)}
-                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-1.5 px-3 bg-white"
+                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-1.5 pl-3 pr-9 bg-white cursor-pointer"
                                         >
                                             {managerTab === 'task2' ? (
                                                 filteredTask2Statuses.map(s => (
@@ -1545,7 +1545,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                         <select
                                             value={formFilters.priority}
                                             onChange={(e) => handleFilterChange('priority', e.target.value)}
-                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-1.5 px-3 bg-white"
+                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-1.5 pl-3 pr-9 bg-white cursor-pointer"
                                         >
                                             <option value="all">
                                                 ทุกระดับ ({Number(activeTabKey === 'task2' ? stats.task2_total : stats.total).toLocaleString()})
@@ -1567,7 +1567,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                         <select
                                             value={formFilters.team}
                                             onChange={(e) => handleFilterChange('team', e.target.value)}
-                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-1.5 px-3 bg-white"
+                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-1.5 pl-3 pr-9 bg-white cursor-pointer"
                                         >
                                             <option value="all">
                                                 ทุกทีม (All Teams) ({Number(activeTabKey === 'task2' ? stats.task2_total : stats.total).toLocaleString()})
@@ -1592,7 +1592,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                             <select
                                                 value={formFilters.technician_id}
                                                 onChange={(e) => handleFilterChange('technician_id', e.target.value)}
-                                                className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-1.5 px-3 bg-white"
+                                                className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-1.5 pl-3 pr-9 bg-white cursor-pointer"
                                             >
                                                 <option value="all">
                                                     {managerTab === 'task2' ? 'ช่างทุกคน (Task 2)' : 'ช่างทุกคนในทีม'}
@@ -1678,7 +1678,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                     value={currentSort}
                                     onChange={(e) => handleSortDirect(e.target.value, currentDirection)}
                                     aria-label="เลือกฟิลด์สำหรับเรียงลำดับ"
-                                    className="text-xs font-medium border-gray-200 rounded-lg py-1 px-2.5 bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs"
+                                    className="text-xs font-medium border-gray-200 rounded-lg py-1 pl-2.5 pr-8 bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs cursor-pointer"
                                 >
                                     <option value="created_at">วันที่แจ้งล่าสุด (Default)</option>
                                     <option value="ticket_no">รหัสใบงาน (Ticket ID)</option>
@@ -1990,7 +1990,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                         <select
                                             value={filters.per_page || 10}
                                             onChange={(e) => handlePerPageChange(Number(e.target.value))}
-                                            className="text-xs font-bold py-0.5 px-1.5 border border-gray-200 rounded-md bg-white text-gray-700 shadow-2xs cursor-pointer focus:ring-indigo-500 focus:border-indigo-500"
+                                            className="text-xs font-medium py-1 pl-2.5 pr-8 border border-gray-200 rounded-lg bg-white text-gray-700 shadow-2xs cursor-pointer focus:ring-indigo-500 focus:border-indigo-500"
                                             aria-label="เปลี่ยนจำนวนรายการต่อหน้า"
                                         >
                                             <option value={10}>10</option>

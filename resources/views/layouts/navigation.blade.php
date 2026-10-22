@@ -293,7 +293,7 @@
                                         id="sound-tone-select-desktop"
                                         x-model="selectedTone" 
                                         @change="changeTone(selectedTone)"
-                                        class="w-full text-xs border-slate-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 py-1.5 px-2.5 font-medium text-slate-700 bg-slate-50 cursor-pointer truncate"
+                                        class="w-full text-xs border-slate-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 py-1.5 pl-2.5 pr-8 font-medium text-slate-700 bg-slate-50 cursor-pointer truncate"
                                     >
                                         <option value="chime">🔔 กระดิ่งกังวาน 3 โน้ต (ดังชัดเจน - แนะนำ)</option>
                                         <option value="melody">✨ ท่วงทำนอง 4 โน้ต (นุ่มนวล พรีเมียม)</option>
@@ -580,7 +580,7 @@
                     <select
                         x-model="selectedTone"
                         @change="changeTone(selectedTone)"
-                        class="w-full text-xs border-slate-300 rounded-lg py-1.5 px-2 bg-white text-slate-700"
+                        class="w-full text-xs border-slate-300 rounded-lg py-1.5 pl-2.5 pr-8 bg-white text-slate-700 cursor-pointer"
                     >
                         <option value="chime">🔔 กระดิ่งกังวาน 3 โน้ต (ดังชัดเจน)</option>
                         <option value="melody">✨ ท่วงทำนอง 4 โน้ต (พรีเมียม)</option>

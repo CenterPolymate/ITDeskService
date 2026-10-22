@@ -873,7 +873,7 @@ export default function Index({ settings = {}, branding = {}, initialSmtpToken =
                                             name="sla_warning_threshold_minutes"
                                             value={slaWarningThreshold}
                                             onChange={(e) => setSlaWarningThreshold(e.target.value)}
-                                            className="w-full rounded-xl border-gray-200 focus:border-indigo-400 focus:ring focus:ring-indigo-100 text-sm py-2.5 px-3.5 bg-gray-50/50"
+                                            className="w-full rounded-xl border-gray-200 focus:border-indigo-400 focus:ring focus:ring-indigo-100 text-sm py-2.5 pl-3.5 pr-10 bg-gray-50/50 cursor-pointer"
                                         >
                                             <option value="15">15 นาที ก่อนถึงกำหนด SLA</option>
                                             <option value="30">30 นาที ก่อนถึงกำหนด SLA</option>

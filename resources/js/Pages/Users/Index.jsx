@@ -241,7 +241,7 @@ export default function Index({ users, available_statuses = {}, filters = {} }) 
                                         value={currentSort}
                                         onChange={(e) => handleSortDirect(e.target.value, currentDirection)}
                                         aria-label="เลือกฟิลด์สำหรับเรียงลำดับ"
-                                        className="text-xs font-medium border-gray-200 rounded-lg py-1 px-2.5 bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs"
+                                        className="text-xs font-medium border-gray-200 rounded-lg py-1 pl-2.5 pr-8 bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs cursor-pointer"
                                     >
                                         <option value="created_at">วันที่สร้าง (Default)</option>
                                         <option value="name">ชื่อผู้ใช้งาน (Name)</option>
