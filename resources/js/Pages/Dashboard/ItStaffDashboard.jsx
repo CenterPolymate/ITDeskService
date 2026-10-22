@@ -15,32 +15,37 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
 
     const availableTeams = teams && teams.length > 0 ? teams : [
         { id: 1, code: 'HW', name: 'Hardware' },
-        { id: 2, code: 'NET', name: 'Network' },
+        { id: 2, code: 'NET', name: 'Network production' },
         { id: 3, code: 'SW', name: 'Software' },
     ];
 
     const activeTabFromFilter = filters.status?.startsWith('task2') || filters.manager_tab === 'task2' ? 'task2' : 'task1';
     const [managerTab, setManagerTab] = useState(activeTabFromFilter);
 
-    // Dynamic Filter Options (Zero Dead-Ends: Only display options present in dataset)
+    // Dynamic Filter Options
     const activeTabKey = managerTab === 'task2' ? 'task2' : 'task1';
     const currentTabOptions = filter_options?.[activeTabKey] || {};
 
     const tabTeamNames = currentTabOptions.team_names;
-    const filteredTeams = tabTeamNames && Array.isArray(tabTeamNames)
-        ? availableTeams.filter(t => tabTeamNames.includes(t.name) || filters.team === t.name)
-        : availableTeams;
+    const tabTeamCounts = currentTabOptions.team_counts || {};
+    const tabPriorityCounts = currentTabOptions.priority_counts || {};
 
-    const tabPriorities = currentTabOptions.priorities;
+    // Combine all active teams with any legacy teams present in dataset
+    const allTeamsList = [...availableTeams];
+    if (tabTeamNames && Array.isArray(tabTeamNames)) {
+        tabTeamNames.forEach(name => {
+            if (name && !allTeamsList.some(t => t.name === name)) {
+                allTeamsList.push({ id: name, name, code: '-' });
+            }
+        });
+    }
+
     const priorityDefinitions = [
         { value: 'urgent', label: 'ด่วนที่สุด (Urgent)' },
         { value: 'high', label: 'สูง (High)' },
         { value: 'medium', label: 'ปานกลาง (Medium)' },
         { value: 'low', label: 'ทั่วไป (Low)' },
     ];
-    const filteredPriorities = tabPriorities && Array.isArray(tabPriorities)
-        ? priorityDefinitions.filter(p => tabPriorities.includes(p.value) || filters.priority === p.value)
-        : priorityDefinitions;
 
     const availableTechnicians = activeTabKey === 'task2'
         ? (currentTabOptions.technicians || [])
@@ -63,8 +68,8 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
     );
 
     const task1StatusDefinitions = [
-        { key: 'not_closed', label: 'ยังไม่ปิดใบงาน (ค่าเริ่มต้น)', count: tabStatuses.not_closed },
         { key: 'all', label: 'ทุกสถานะของ Task 1 (รวมปิดงานแล้ว)', count: tabStatuses.all },
+        { key: 'not_closed', label: 'ยังไม่ปิดใบงาน', count: tabStatuses.not_closed },
         { key: 'pending', label: 'รอดำเนินการ / มอบหมาย', count: tabStatuses.pending },
         { key: 'analyzing', label: 'สืบสภาพ / วิเคราะห์สาเหตุ', count: tabStatuses.analyzing },
         { key: 'in_progress', label: 'ดำเนินการแก้ไข', count: tabStatuses.in_progress },
@@ -84,7 +89,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
         if (tab === 'task2') {
             return statusFilter?.startsWith('task2') ? statusFilter : 'task2_all';
         }
-        return statusFilter?.startsWith('task2') ? 'not_closed' : (statusFilter || 'not_closed');
+        return statusFilter?.startsWith('task2') ? 'all' : (statusFilter || 'all');
     };
 
     const [formFilters, setFormFilters] = useState({
@@ -304,7 +309,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
 
     const handleManagerTabSwitch = (tabKey) => {
         setManagerTab(tabKey);
-        const targetStatus = tabKey === 'task2' ? 'task2_all' : 'not_closed';
+        const targetStatus = tabKey === 'task2' ? 'task2_all' : 'all';
         setFormFilters(prev => ({ ...prev, status: targetStatus }));
         router.get(
             route('dashboard'),
@@ -397,7 +402,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
-        const clearedStatus = managerTab === 'task2' ? 'task2_all' : 'not_closed';
+        const clearedStatus = managerTab === 'task2' ? 'task2_all' : 'all';
         const cleared = { status: clearedStatus, priority: 'all', team: 'all', technician_id: 'all', tier2_tab: 'all', search: '' };
         setFormFilters(cleared);
         router.get(
@@ -1452,73 +1457,93 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                 </span>
                             </div>
 
-                            {/* Comprehensive Filters */}
+                            {/* Comprehensive Filters - Modern Clean Layout */}
                             <form onSubmit={handleSearchSubmit} className="w-full mt-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                                <div className={`grid grid-cols-1 md:grid-cols-2 ${showTechnicianFilter ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-3`}>
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+                                    {/* สถานะใบงาน (Status) */}
+                                    <div className={showTechnicianFilter ? 'lg:col-span-3' : 'lg:col-span-3'}>
+                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
                                             {managerTab === 'task2' ? 'สถานะมาตรการ (Task 2 Status)' : 'สถานะใบงาน (Status)'}
                                         </label>
                                         <select
                                             value={
                                                 managerTab === 'task2'
                                                     ? (formFilters.status?.startsWith('task2') ? formFilters.status : 'task2_all')
-                                                    : (formFilters.status?.startsWith('task2') ? 'not_closed' : formFilters.status)
+                                                    : (formFilters.status?.startsWith('task2') ? 'all' : (formFilters.status || 'all'))
                                             }
                                             onChange={(e) => handleFilterChange('status', e.target.value)}
-                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
+                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-1.5 px-3 bg-white"
                                         >
                                             {managerTab === 'task2' ? (
                                                 filteredTask2Statuses.map(s => (
-                                                    <option key={s.key} value={s.key}>{s.label}</option>
+                                                    <option key={s.key} value={s.key}>
+                                                        {s.label} ({Number(s.count ?? 0).toLocaleString()})
+                                                    </option>
                                                 ))
                                             ) : (
                                                 filteredTask1Statuses.map(s => (
-                                                    <option key={s.key} value={s.key}>{s.label}</option>
+                                                    <option key={s.key} value={s.key}>
+                                                        {s.label} ({Number(s.count ?? 0).toLocaleString()})
+                                                    </option>
                                                 ))
                                             )}
                                         </select>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">ความเร่งด่วน (Priority)</label>
+                                    {/* ความเร่งด่วน (Priority) */}
+                                    <div className={showTechnicianFilter ? 'lg:col-span-2' : 'lg:col-span-2'}>
+                                        <label className="block text-xs font-semibold text-slate-700 mb-1">ความเร่งด่วน (Priority)</label>
                                         <select
                                             value={formFilters.priority}
                                             onChange={(e) => handleFilterChange('priority', e.target.value)}
-                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
+                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-1.5 px-3 bg-white"
                                         >
-                                            <option value="all">ทุกระดับ</option>
-                                            {filteredPriorities.map(p => (
-                                                <option key={p.value} value={p.value}>{p.label}</option>
-                                            ))}
+                                            <option value="all">
+                                                ทุกระดับ ({Number(activeTabKey === 'task2' ? stats.task2_total : stats.total).toLocaleString()})
+                                            </option>
+                                            {priorityDefinitions.map(p => {
+                                                const pCount = tabPriorityCounts[p.value] || 0;
+                                                return (
+                                                    <option key={p.value} value={p.value}>
+                                                        {p.label} ({Number(pCount).toLocaleString()})
+                                                    </option>
+                                                );
+                                            })}
                                         </select>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">ทีม (Team)</label>
+                                    {/* ทีม (Team) */}
+                                    <div className={showTechnicianFilter ? 'lg:col-span-2' : 'lg:col-span-3'}>
+                                        <label className="block text-xs font-semibold text-slate-700 mb-1">ทีม (Team)</label>
                                         <select
                                             value={formFilters.team}
                                             onChange={(e) => handleFilterChange('team', e.target.value)}
-                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
+                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-1.5 px-3 bg-white"
                                         >
-                                            <option value="all">ทุกทีม (All Teams)</option>
-                                            {filteredTeams.map((t) => (
-                                                <option key={t.id || t.name} value={t.name}>
-                                                    [{t.code}] {t.name}
-                                                </option>
-                                            ))}
+                                            <option value="all">
+                                                ทุกทีม (All Teams) ({Number(activeTabKey === 'task2' ? stats.task2_total : stats.total).toLocaleString()})
+                                            </option>
+                                            {allTeamsList.map((t) => {
+                                                const tCount = tabTeamCounts[t.name] || 0;
+                                                return (
+                                                    <option key={t.id || t.name} value={t.name}>
+                                                        [{t.code || '-'}] {t.name} ({Number(tCount).toLocaleString()})
+                                                    </option>
+                                                );
+                                            })}
                                         </select>
                                     </div>
 
+                                    {/* ช่างในทีม (Technician) - Only when available */}
                                     {showTechnicianFilter && (
-                                        <div>
-                                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                                        <div className="lg:col-span-2">
+                                            <label className="block text-xs font-semibold text-slate-700 mb-1">
                                                 {managerTab === 'task2' ? 'ช่างมาตรการป้องกัน' : 'ช่างในทีม (Technician)'}
                                             </label>
                                             <select
                                                 value={formFilters.technician_id}
                                                 onChange={(e) => handleFilterChange('technician_id', e.target.value)}
-                                                className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
+                                                className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-1.5 px-3 bg-white"
                                             >
                                                 <option value="all">
                                                     {managerTab === 'task2' ? 'ช่างทุกคน (Task 2)' : 'ช่างทุกคนในทีม'}
@@ -1532,44 +1557,43 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                         </div>
                                     )}
 
-                                    <div>
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">ค้นหา (Search)</label>
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                value={formFilters.search}
-                                                onFocus={() => setIsTyping(true)}
-                                                onBlur={() => setIsTyping(false)}
-                                                onChange={(e) => handleFilterChange('search', e.target.value)}
-                                                placeholder="ค้นหา Ticket, ผู้แจ้ง..."
-                                                className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 pl-3 pr-8 bg-white leading-normal"
-                                            />
-                                            {formFilters.search && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleFilterChange('search', '')}
-                                                    className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
-                                                    title="ล้างคำค้นหา"
-                                                >
-                                                    ✕
-                                                </button>
-                                            )}
+                                    {/* ค้นหา + ปุ่มล้างค่า (Search + Clear Button) */}
+                                    <div className={showTechnicianFilter ? 'lg:col-span-3' : 'lg:col-span-4'}>
+                                        <label className="block text-xs font-semibold text-slate-700 mb-1">ค้นหา (Search)</label>
+                                        <div className="flex items-center gap-2">
+                                            <div className="relative flex-1">
+                                                <input
+                                                    type="text"
+                                                    value={formFilters.search}
+                                                    onFocus={() => setIsTyping(true)}
+                                                    onBlur={() => setIsTyping(false)}
+                                                    onChange={(e) => handleFilterChange('search', e.target.value)}
+                                                    placeholder="ค้นหา Ticket, ผู้แจ้ง..."
+                                                    className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-1.5 pl-3 pr-8 bg-white leading-normal"
+                                                />
+                                                {formFilters.search && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleFilterChange('search', '')}
+                                                        className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                                                        title="ล้างคำค้นหา"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={handleClearFilters}
+                                                className="h-[38px] px-3.5 inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-xs font-semibold rounded-lg transition border border-slate-200 shadow-2xs whitespace-nowrap cursor-pointer shrink-0"
+                                                title="ล้างค่าตัวกรองทั้งหมด"
+                                            >
+                                                <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                </svg>
+                                                <span>ล้างค่า</span>
+                                            </button>
                                         </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="hidden sm:block text-xs font-medium text-transparent mb-1 select-none pointer-events-none">&nbsp;</label>
-                                        <button
-                                            type="button"
-                                            onClick={handleClearFilters}
-                                            className="w-full h-[38px] inline-flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-xs cursor-pointer whitespace-nowrap"
-                                            title="ล้างค่าตัวกรองทั้งหมด"
-                                        >
-                                            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                            </svg>
-                                            <span>ล้างค่า</span>
-                                        </button>
                                     </div>
                                 </div>
 

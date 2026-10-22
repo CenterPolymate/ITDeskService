@@ -519,10 +519,20 @@ class DashboardController extends Controller
         $stats['percent_t2_pending'] = $t2_total > 0 ? round(($stats['task2_pending_review'] / $t2_total) * 100) : 0;
         $stats['percent_t2_completed'] = $t2_total > 0 ? round(($stats['task2_completed'] / $t2_total) * 100) : 0;
 
-        // Dynamic Filter Options (Zero Dead-Ends: Only options present in the dataset)
+        // Dynamic Filter Options
         $task1Base = clone $baseQuery;
         $task1Priorities = (clone $task1Base)->whereNotNull('priority')->distinct()->pluck('priority')->toArray();
         $task1TeamNames = (clone $task1Base)->whereNotNull('escalated_to_team')->distinct()->pluck('escalated_to_team')->toArray();
+        $task1TeamCounts = (clone $task1Base)->whereNotNull('escalated_to_team')
+            ->groupBy('escalated_to_team')
+            ->select('escalated_to_team', DB::raw('count(*) as count'))
+            ->pluck('count', 'escalated_to_team')
+            ->toArray();
+        $task1PriorityCounts = (clone $task1Base)->whereNotNull('priority')
+            ->groupBy('priority')
+            ->select('priority', DB::raw('count(*) as count'))
+            ->pluck('count', 'priority')
+            ->toArray();
 
         $task2Base = ($isManager || $isAdmin)
             ? (clone $baseQuery)->where('status', 'closed')->where(function ($q) {
@@ -539,6 +549,16 @@ class DashboardController extends Controller
 
         $task2Priorities = (clone $task2Base)->whereNotNull('priority')->distinct()->pluck('priority')->toArray();
         $task2TeamNames = (clone $task2Base)->whereNotNull('escalated_to_team')->distinct()->pluck('escalated_to_team')->toArray();
+        $task2TeamCounts = (clone $task2Base)->whereNotNull('escalated_to_team')
+            ->groupBy('escalated_to_team')
+            ->select('escalated_to_team', DB::raw('count(*) as count'))
+            ->pluck('count', 'escalated_to_team')
+            ->toArray();
+        $task2PriorityCounts = (clone $task2Base)->whereNotNull('priority')
+            ->groupBy('priority')
+            ->select('priority', DB::raw('count(*) as count'))
+            ->pluck('count', 'priority')
+            ->toArray();
 
         $task2TechRaw = (clone $task2Base)->where(function ($q) {
             $q->whereNotNull('in_progress_by')
@@ -588,6 +608,8 @@ class DashboardController extends Controller
             'task1' => [
                 'priorities' => $task1Priorities,
                 'team_names' => $task1TeamNames,
+                'team_counts' => $task1TeamCounts,
+                'priority_counts' => $task1PriorityCounts,
                 'statuses' => [
                     'not_closed' => $stats['open_total'],
                     'all' => $stats['total'],
@@ -606,6 +628,8 @@ class DashboardController extends Controller
             'task2' => [
                 'priorities' => $task2Priorities,
                 'team_names' => $task2TeamNames,
+                'team_counts' => $task2TeamCounts,
+                'priority_counts' => $task2PriorityCounts,
                 'technicians' => $task2Technicians,
                 'statuses' => [
                     'task2_all' => $stats['task2_total'],
