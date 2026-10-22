@@ -434,6 +434,15 @@ export default function Show({ ticket, categories = [], teams = [] }) {
         pcar_cancellation_reason: ticket.pcar_cancellation_reason || '',
     });
 
+    useEffect(() => {
+        setManagerData({
+            action: 'close',
+            requires_preventive_measure: ticket.requires_preventive_measure === true ? '1' : (ticket.requires_preventive_measure === false ? '0' : ''),
+            escalated_to_team: ticket.escalated_to_team || defaultTask1Team || '',
+            pcar_cancellation_reason: ticket.pcar_cancellation_reason || '',
+        });
+    }, [ticket.id, ticket.requires_preventive_measure, ticket.preventive_measure, ticket.pcar_no, ticket.escalated_to_team]);
+
     // Task 2: Preventive Action Form
     const initialSpecific = Array.isArray(ticket.preventive_measure_specific) && ticket.preventive_measure_specific.length > 0
         ? ticket.preventive_measure_specific
@@ -1172,6 +1181,8 @@ export default function Show({ ticket, categories = [], teams = [] }) {
                                     </p>
 
                                     <form
+                                        key={`manager-review-form-${ticket.id}-${ticket.requires_preventive_measure === true ? '1' : (ticket.requires_preventive_measure === false ? '0' : 'null')}-${ticket.preventive_measure || 'none'}`}
+                                        autoComplete="off"
                                         onSubmit={(e) => {
                                             e.preventDefault();
                                             putManager(route('tickets.updateStatus', ticket.id), { preserveScroll: true });
@@ -1188,6 +1199,7 @@ export default function Show({ ticket, categories = [], teams = [] }) {
                                                         type="radio"
                                                         name="requires_preventive_measure"
                                                         value="1"
+                                                        autoComplete="off"
                                                         checked={managerData.requires_preventive_measure === '1'}
                                                         onChange={(e) => {
                                                             const val = e.target.value;
@@ -1206,6 +1218,7 @@ export default function Show({ ticket, categories = [], teams = [] }) {
                                                         type="radio"
                                                         name="requires_preventive_measure"
                                                         value="0"
+                                                        autoComplete="off"
                                                         checked={managerData.requires_preventive_measure === '0'}
                                                         onChange={(e) => setManagerData('requires_preventive_measure', e.target.value)}
                                                         className="text-slate-800 focus:ring-slate-800"
@@ -1259,6 +1272,7 @@ export default function Show({ ticket, categories = [], teams = [] }) {
                                                 <textarea
                                                     required
                                                     rows={3}
+                                                    autoComplete="off"
                                                     value={managerData.pcar_cancellation_reason || ''}
                                                     onChange={(e) => setManagerData('pcar_cancellation_reason', e.target.value)}
                                                     placeholder="ระบุเหตุผล เช่น สาเหตุเกิดจาก Human Error โดยตรง และได้ทำการอบรมพนักงานเรียบร้อยแล้ว จึงไม่จำเป็นต้องออกเอกสาร PCAR..."
