@@ -333,8 +333,8 @@
   - [x] ทดสอบผ่านครบ 161/161 เทสต์ และจัดรูปแบบโค้ดด้วย Pint เรียบร้อย
 - [x] เพิ่มระบบ Cascade Update ชื่อทีมในใบงานอัตโนมัติ (Team Rename Cascade Update):
   - [x] ใน `TeamController@update`: เมื่อแก้ไขชื่อทีม (`name`) ระบบจะค้นหาใบงานทั้งหมดที่มี `escalated_to_team` เป็นชื่อเดิม แล้วอัปเดตเป็นชื่อใหม่โดยอัตโนมัติทันที
-  - [x] สร้าง Migration ซิงค์ชื่อทีมย้อนหลังสำหรับเคสเดิมในฐานข้อมูล (เช่น Hardware -> Hardware production)
-  - [x] เพิ่ม Feature Test `test_updating_team_name_cascades_to_helpdesk_cases` ใน `TeamManagementTest.php` ผ่าน 100% (162/162 เทสต์ทั้งระบบ)
+  - [x] สร้าง Migration ซิงค์ชื่อทีมย้อนหลังสำหรับเคสเดิมในฐานข้อมูล (เช่น Hardware -> Hardware production, Network -> Network production)
+  - [x] เพิ่ม Feature Test `test_updating_team_name_cascades_to_helpdesk_cases` ใน `TeamManagementTest.php` ผ่าน 100%
 - [x] ปรับปรุงและแก้ไขปัญหาไอคอนลูกศรทับซ้อนกับตัวเลขหรือข้อความใน Dropdown `<select>` ทั่วทั้งระบบ:
   - [x] แก้ไขตัวเลือกจำนวนรายการต่อหน้า (Per Page) ใต้ตารางและส่วนหัวของ Dashboard ทั้งฝั่งผู้ใช้งานทั่วไป (`UserDashboard.jsx`) และทีมไอที (`ItStaffDashboard.jsx`) โดยเปลี่ยนจาก `px-` มาใช้ `pl-2.5 pr-8` (และ `pr-7`)
   - [x] แก้ไข Dropdown ตัวกรองข้อมูลใน IT Staff Dashboard (สถานะ, ความเร่งด่วน, ทีม, ช่าง) ให้มีระยะห่างขวา (`pl-3 pr-9 cursor-pointer`)
@@ -342,11 +342,48 @@
   - [x] แก้ไข Dropdown ตัวกรองในหน้ารายงานสถิติ (`Reports/Index.jsx`) สำหรับเดือน, ปี, บริษัท, ทีม (`pl-3.5 pr-10 cursor-pointer`)
   - [x] แก้ไข Dropdown การตั้งค่า SLA Warning Threshold ในหน้าตั้งค่าระบบ (`Settings/Index.jsx`)
   - [x] แก้ไข Dropdown เลือกเสียงแจ้งเตือน (Sound Tone) ใน Navigation Header ทั้งบนเดสก์ท็อปและมือถือ (`navigation.blade.php`)
+- [x] ยกระดับประสบการณ์ผู้ใช้งานตาราง Dashboard และการจัดการข้อมูล (Table UX & Interaction Polish):
+  - [x] **Clickable Table Rows:** แถวของตารางใบงานทั้งบน User Dashboard และ IT Staff Dashboard สามารถคลิกที่แถวเพื่อเปิดดูหน้ารายละเอียดเคสได้ทันที โดยแยกปุ่มการจัดการ (Actions) ออกเพื่อไม่ให้กระทบต่อการคลิก
+  - [x] **Per-Page Items Selector:** ติดตั้งตัวเลือกจำนวนรายการต่อหน้า (10, 25, 50, 100 รายการ) ทั้งใน Desktop Table และ Mobile Cards พร้อมคงค่าไว้ในการเปลี่ยนหน้า
+  - [x] **Location Badges (📍):** แสดงป้ายบอกสถานที่เกิดเหตุพร้อมไอคอนหมุดสีแดงใต้หัวข้อปัญหาในตารางและมุมมองการ์ด พร้อมรองรับการพิมพ์ค้นหาด้วยชื่อสถานที่ในช่อง Search ของทั้งสองแดชบอร์ด
+  - [x] **Closed Ticket SLA Badge:** แสดงป้าย SLA Met (สีเขียว) หรือ SLA Breached (สีแดง) สำหรับเคสที่ปิดแล้วในคอลัมน์ SLA บนแดชบอร์ด เพื่อให้เห็นผลการบริการได้อย่างชัดเจน
+  - [x] **Quick Filter Cards & Layout Polish:** ปรับให้การกดเลือก Quick Filter Cards ล้างค่าตัวกรองก่อนหน้าอัตโนมัติเพื่อป้องกันเงื่อนไขชนกัน และรองรับ `status=all` เพื่อแสดงเคสทั้งหมดทั้งเปิดและปิดงาน
+  - [x] **Task 2 Completed Card Counter:** แสดงสถิติจำนวนเคสที่ยกเลิก P-CAR (`ยกเลิก: x ใบ`) เพิ่มเติมภายในการ์ด Task 2 เสร็จสมบูรณ์
+- [x] ปรับปรุงหน้าแดชบอร์ดสำหรับผู้ใช้งานทั่วไป (User Dashboard Modernization & Mobile FAB):
+  - [x] แสดงคะแนนความพึงพอใจ CSAT (⭐ ดาว) บนแถวเคสที่ปิดงานแล้วในตารางของผู้ใช้
+  - [x] นำคอลัมน์ "หมวดหมู่ (Category)" ออกจากตารางผู้ใช้ เนื่องจากหมวดหมู่ถูกย้ายไปให้ Helpdesk ประเมินในขั้นตอน Triage
+  - [x] เพิ่มปุ่มลอยมุมขวาล่างสำหรับอุปกรณ์มือถือ (+ แจ้งซ่อม: Mobile Floating Action Button) เพื่อความสะดวกในการเปิดเคสแจ้งปัญหา
 - [x] พัฒนาระบบแสดงเหตุผลการยกเลิกเคส (Cancellation Reasons) และระบบ Live Indicator บน Dashboard ทุก Role:
   - [x] เมื่อมีการยกเลิกเคส (`action === 'cancel'`) บันทึกข้อความประวัติระบบ (System Audit Comment) ลงใน Ticket Comments อัตโนมัติ: `⛔ [ระบบ] ใบงานนี้ถูกยกเลิกโดย [ชื่อ] เนื่องจาก: [เหตุผล]`
   - [x] Eager load `cancelledBy:id,name` ใน `DashboardController.php` ทั้งฝั่ง User Dashboard และ IT Operations
   - [x] แสดง Badge และ Tooltip เหตุผลการยกเลิกเคสในตาราง Desktop รวมถึงกล่องข้อความสีเทา/แดงอ่อนใน Mobile Cards ทั้งใน `UserDashboard.jsx` และ `ItStaffDashboard.jsx` (รวมถึง Task 2 PCAR cancellation)
-  - [x] ติดตั้งปุ่มและป้าย `🟢 อัปเดตอัตโนมัติ` พร้อมปุ่มกด Manual Refresh (หมุนแอนิเมชัน) บนส่วนหัวตารางของ `ItStaffDashboard.jsx` และ `SuperadminDashboard.jsx` ให้สอดคล้องกันทุก Role
+  - [x] ติดตั้งปุ่มและป้าย `🟢 อัปเดตอัตโนมัติ` พร้อมปุ่มกด Manual Refresh (หมุนแอนิเมชัน) บนส่วนหัวตารางของ `ItStaffDashboard.jsx`, `UserDashboard.jsx`, และ `SuperadminDashboard.jsx` ให้สอดคล้องกันทุก Role
   - [x] เพิ่ม Feature Test `test_cancelling_ticket_records_cancellation_reason_and_system_comment` ใน `TicketManagementTest.php` ผ่านครบ 100% (164/164 เทสต์ทั้งระบบ)
+---
 
+## 📌 รายการรอพิจารณาและเปิด Issue (Pending Issues & Proposals)
 
+### Issue #1: การกำหนดสิทธิ์การจัดการและแก้ไขข้อมูลผู้ใช้งาน IT และทั่วไป
+- **สถานะปัจจุบัน:**
+  - ทีม IT (`users`): สิทธิ์ระดับ Admin และ Manager (`administrator`, `manager`, `manager_software`, `manager_network_hardware`)
+  - ผู้ใช้ทั่วไป (`normal_users`): สิทธิ์การเปิดดู (`index`) และระงับ/ลบ (`destroy`) ให้ Admin, Manager, Helpdesk แต่สิทธิ์การสร้าง (`create/store`), แก้ไข (`edit/update`), และนำเข้า CSV (`import`) กลับล็อกไว้เฉพาะ `administrator` เท่านั้น
+- **ข้อสังเกตและปัญหา:**
+  - Helpdesk (Tier 1) และ Manager ไม่สามารถช่วยผู้ใช้งานแก้ไขข้อมูลพื้นฐาน เช่น อัปเดตเบอร์โทรศัพท์, ย้ายแผนก, ย้ายบริษัท หรือสร้างผู้ใช้ใหม่เมื่อมีพนักงานใหม่เข้าทำงานได้ ทำให้เกิดคอขวดที่ Administrator เพียงคนเดียว
+  - หากเปิดให้ Helpdesk แก้ไขผู้ใช้ทั่วไป ต้องระวังเรื่อง Privilege Escalation (ป้องกันไม่ให้ Helpdesk ปรับ Role ของผู้ใช้ทั่วไปให้กลายเป็นบทบาท IT หรือ Admin)
+
+### Issue #2: ปุ่ม Action สำหรับการส่งลิงก์รีเซ็ตรหัสผ่าน ควรอยู่ที่ไหน
+- **สถานะปัจจุบัน:**
+  - หน้าผู้ใช้งานทั่วไป (`NormalUsers/Index.jsx`): มีปุ่ม `รีเซ็ตรหัสผ่าน` สีส้มอำพันในแถวตาราง Desktop และ Mobile Cards เรียบร้อยแล้ว
+  - หน้ารายการทีม IT (`Users/Index.jsx`): **ยังไม่มีปุ่มรีเซ็ตรหัสผ่านในหน้า Index** (มีเฉพาะในหน้าแก้ไข `Edit.jsx`)
+- **ข้อสังเกตและแนวทาง:**
+  - ควรเพิ่มปุ่ม Action "รีเซ็ตรหัสผ่าน" ให้กับหน้ารายการทีม IT (`Users/Index.jsx`) ให้สม่ำเสมอเป็นมาตรฐานเดียวกัน
+  - ตำแหน่งในตาราง Index สะดวกต่อการซัพพอร์ตด่วน (ไม่ต้องกดเข้าหน้า Edit) แต่ต้องพิจารณารูปแบบปุ่ม (Text Badge vs Icon พร้อม Tooltip vs Action Menu Dropdown) เพื่อไม่ให้เปลืองพื้นที่คอลัมน์จัดการ
+
+### Issue #3: ตำแหน่งการวางข้อมูล Location และแจ้งแทนใคร ควรวาง Layout แบบไหน
+- **สถานะปัจจุบัน:**
+  - ในตาราง Dashboard (`UserDashboard.jsx` และ `ItStaffDashboard.jsx`): ทั้ง `📍 [สถานที่]` และ `แจ้งแทน: [ชื่อผู้ใช้จริง]` วางต่อท้ายชื่อผู้แจ้งใต้หัวข้อเรื่อง (Title)
+  - ปัญหา: เมื่อชื่อเรื่องยาว หรือชื่อสถานที่ยาว หรือมีผู้แจ้งแทน จะทำให้ความสูงแถวตารางยืดออก หรือตัดคำหลายบรรทัด
+- **ข้อสังเกตและแนวทาง:**
+  - ควรจัดกลุ่มข้อมูลตามบริบท (Context-based Layout):
+    - กลุ่มบุคคล: ผู้แจ้ง (`requester_name`) คู่กับ แจ้งแทน (`actual_user_name`) เช่น `สมศรี (บัญชี) ↳ แจ้งแทน: สมศักดิ์`
+    - กลุ่มสถานที่: แสดง `📍 [สถานที่]` ด้วยไอคอนกะทัดรัด พร้อมจำกัดความยาว (Truncate + Hover Tooltip) หรือแยกแถว Metadata ให้เป็นระเบียบชัดเจน

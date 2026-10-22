@@ -438,3 +438,30 @@
   - [x] แสดงการ์ดล็อกการแก้ไขเมื่อ Task 2 อยู่ในสถานะ `done`
 - [x] **การทดสอบความถูกต้อง (Feature Tests):**
   - [x] เพิ่มชุดทดสอบใน `TicketManagementTest.php` ครอบคลุมการยกเลิกและบังคับใส่เหตุผล, การแสดงลายน้ำบนรายงานพิมพ์, การ Re-activate เลขเดิม, และการล็อกเมื่อ `done` ผ่าน 100%
+
+## Phase 19: Dynamic Zero-Dead-Ends Filters, Cascade Team Rename & Dashboard Modernization (✅ ดำเนินการแล้วเสร็จ)
+- [x] **ระบบตัวกรองอัจฉริยะแบบไดนามิก ปราศจากทางตัน (Zero Dead-Ends Dynamic Filters & Instant Live Filtering):**
+  - [x] ปรับปรุงตรรกะใน Backend Controllers (`DashboardController`, `UserManagementController`, `NormalUserController`, `AuditLogController`, `ReportController`) ให้คืนค่าตัวเลือก Dropdown เฉพาะค่าที่มีข้อมูลอยู่จริงในบริบทนั้นๆ ป้องกันไม่ให้ผู้ใช้เลือกตัวกรองแล้วพบหน้าจอว่างเปล่า
+  - [x] ติดตั้งระบบ Instant Live Filters อัปเดตตารางทันทีเมื่อเลือก Dropdown หรือพิมพ์ค้นหาด้วย Debounced Search (300ms) โดยไม่ต้องกดปุ่มค้นหา
+  - [x] ปรับปรุง Quick Filter Cards บน Dashboard ให้ล้างตัวกรองก่อนหน้าอัตโนมัติเมื่อกดเลือกการ์ดใหม่ ป้องกันการซ้อนทับของเงื่อนไข
+  - [x] ปรับปรุงการรองรับตัวกรอง `status=all` เพื่อให้แสดงผลเคสทั้งหมดทั้งที่เปิดอยู่และปิดงานแล้วได้อย่างครบถ้วน
+  - [x] ปรับปรุงการ์ด Task 2 Completed บน Dashboard ให้แสดงสถิติการยกเลิก P-CAR อย่างชัดเจน
+- [x] **ระบบอัปเดตชื่อทีมแบบ Cascade (Cascade Team Rename & Dynamic Team Resolution):**
+  - [x] ปรับปรุง `TeamController@update` เมื่อแก้ไขชื่อทีมในตาราง `teams` ระบบจะค้นหาและอัปเดตฟิลด์ `escalated_to_team` ในเคส `helpdesk_cases` ทั้งหมดที่มีชื่อเดิมให้เป็นชื่อใหม่โดยอัตโนมัติ
+  - [x] สร้าง Database Migration ซิงค์ชื่อทีมย้อนหลังสำหรับเคสเดิมในฐานข้อมูล (เช่น `Network` -> `Network production`)
+  - [x] เพิ่ม Feature Test `test_updating_team_name_cascades_to_helpdesk_cases` ใน `TeamManagementTest.php`
+- [x] **การปรับโฉมแดชบอร์ดและยกระดับประสบการณ์ผู้ใช้งาน (Dashboard Modernization & UX Refinements):**
+  - [x] **Clickable Table Rows:** แถวของตารางใบงานทั้งบน User Dashboard และ IT Staff Dashboard สามารถคลิกที่แถวเพื่อเปิดดูหน้ารายละเอียดเคสได้ทันที โดยแยกปุ่มการจัดการ (Actions) ออกเพื่อป้องกัน Event Bubbling
+  - [x] **Per-Page Items Selector:** ติดตั้งตัวเลือกจำนวนรายการต่อหน้า (10, 25, 50, 100 รายการ) ทั้งใน Desktop Table และ Mobile Cards พร้อมคงค่าไว้ใน Pagination
+  - [x] **Location Badges (📍):** แสดงป้ายบอกสถานที่เกิดเหตุพร้อมไอคอนหมุดสีแดงใต้หัวข้อปัญหาในตารางและมุมมองการ์ด พร้อมรองรับการพิมพ์ค้นหาด้วยชื่อสถานที่ในแถบค้นหา
+  - [x] **Closed Ticket SLA Badge:** แสดงป้าย SLA Met (สีเขียว) หรือ SLA Breached (สีแดง) สำหรับเคสที่ปิดแล้วในตาราง Dashboard อย่างชัดเจน
+  - [x] **User Dashboard Modernization:** แสดงคะแนนความพึงพอใจ CSAT (⭐ ดาว) บนเคสที่ปิดแล้ว, นำคอลัมน์หมวดหมู่ปัญหา (Category) ออกเนื่องจากผู้ใช้ไม่ได้เป็นผู้เลือกอีกต่อไป, และเพิ่มปุ่มลอยมือถือ (+ แจ้งซ่อม: Mobile FAB) มุมขวาล่าง
+  - [x] **Live Update Indicator & Manual Refresh:** แสดงไฟสถานะ `🟢 อัปเดตอัตโนมัติ` บนส่วนหัวตารางของแดชบอร์ดทุก Role (User, IT Staff, Superadmin) พร้อมปุ่มหมุน Manual Refresh ให้กดดึงข้อมูลล่าสุดได้ทันที
+- [x] **ระบบแสดงเหตุผลการยกเลิกเคสและ Audit Trail (Cancellation Reasons & Comments):**
+  - [x] บันทึก System Comment ลงใน Ticket Comments อัตโนมัติเมื่อมีการยกเลิกเคส: `⛔ [ระบบ] ใบงานนี้ถูกยกเลิกโดย [ชื่อ] เนื่องจาก: [เหตุผล]`
+  - [x] Eager load `cancelledBy` และแสดง Badge เหตุผลการยกเลิกเคสพร้อม Hover Tooltip บนตาราง Desktop และกล่องข้อความสีเทา/แดงอ่อนบน Mobile Cards ในทุก Role
+  - [x] เพิ่ม Feature Test `test_cancelling_ticket_records_cancellation_reason_and_system_comment` ใน `TicketManagementTest.php`
+- [x] **การจัดระเบียบ Dropdown และแก้ปัญหาระยะขอบลูกศรทับซ้อนข้อความ (Select Spacing Normalization):**
+  - [x] ปรับระยะ Padding ขวา (`pl-2.5 pr-8` หรือ `pl-3 pr-9`) ใน Select Dropdown ทุกจุดทั่วทั้งระบบ (Per-page selector, Filters, Mobile Sort, Settings, Audio selector) เพื่อแก้ปัญหาลูกศรทับซ้อนข้อความอย่างสมบูรณ์
+- [x] **การทดสอบความถูกต้องทั้งระบบ (Automated Feature Tests):**
+  - [x] รันชุดทดสอบผ่านครบ 100% ทั้ง 164/164 tests (1,054 assertions) พร้อมจัดรูปแบบโค้ดด้วย Pint เรียบร้อย
