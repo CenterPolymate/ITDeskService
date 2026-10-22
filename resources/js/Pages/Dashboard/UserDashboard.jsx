@@ -9,8 +9,21 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
     const [search, setSearch] = useState(filters.search || '');
     const currentStatus = filters.status || 'all';
     const [highlightedTicketIds, setHighlightedTicketIds] = useState(new Set());
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const knownCasesRef = useRef(null);
     const searchTimeoutRef = useRef(null);
+
+    const handleManualRefresh = () => {
+        setIsRefreshing(true);
+        router.reload({
+            only: ['cases', 'stats', 'active_tickets', 'waiting_tickets'],
+            preserveScroll: true,
+            preserveState: true,
+            onFinish: () => {
+                setTimeout(() => setIsRefreshing(false), 600);
+            },
+        });
+    };
 
     // Cleanup timeout on unmount
     useEffect(() => {
@@ -588,8 +601,25 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                         <div className="p-5 sm:p-6 text-gray-900">
                             {/* Header & Search */}
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 flex-wrap">
                                     <h3 className="text-lg font-bold text-gray-900">ประวัติการแจ้งซ่อมของคุณ</h3>
+
+                                    {/* Live Update Indicator & Manual Refresh */}
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-700 shadow-2xs">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        <span>อัปเดตอัตโนมัติ</span>
+                                        <button
+                                            type="button"
+                                            onClick={handleManualRefresh}
+                                            title="กดเพื่อรีเฟรชข้อมูลล่าสุด"
+                                            className="text-emerald-700 hover:text-emerald-900 p-0.5 rounded transition hover:bg-emerald-100 cursor-pointer"
+                                        >
+                                            <svg className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
                                     {currentStatus !== 'all' && (
                                         <button
                                             type="button"
@@ -694,7 +724,6 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                 <option value="ticket_no">รหัสใบงาน (Ticket ID)</option>
                                                 <option value="status">สถานะงาน (Status)</option>
                                                 <option value="title">หัวข้อปัญหา (Subject)</option>
-                                                <option value="category">หมวดหมู่ (Category)</option>
                                             </select>
                                             <button
                                                 type="button"
@@ -765,18 +794,12 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                     </div>
                                                 )}
 
-                                                <div className="flex justify-between items-center text-xs text-gray-500 pt-3 border-t border-gray-100">
-                                                    <span className="flex items-center gap-1">
-                                                        <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                                        </svg>
-                                                        {c.category || 'อื่นๆ'}
-                                                    </span>
-                                                    <span className="flex items-center gap-1">
+                                                <div className="flex justify-end items-center text-xs text-gray-500 pt-2.5 border-t border-gray-100">
+                                                    <span className="flex items-center gap-1 text-[11px]">
                                                         <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
-                                                        {formatThaiDate(c.created_at)}
+                                                        <span>แจ้งเมื่อ: {formatThaiDate(c.created_at)}</span>
                                                     </span>
                                                 </div>
 
@@ -833,14 +856,6 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                         onSort={handleSort}
                                                         label="หัวข้อปัญหา"
                                                         subLabel="Subject"
-                                                    />
-                                                    <SortableHeader
-                                                        field="category"
-                                                        currentSort={currentSort}
-                                                        currentDirection={currentDirection}
-                                                        onSort={handleSort}
-                                                        label="หมวดหมู่"
-                                                        subLabel="Category"
                                                     />
                                                     <SortableHeader
                                                         field="status"
@@ -913,11 +928,6 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                            </td>
-                                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-500">
-                                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 text-xs">
-                                                                    {c.category || 'อื่นๆ'}
-                                                                </span>
                                                             </td>
                                                             <td className="px-5 py-3.5 whitespace-nowrap text-sm">
                                                                 <div className="flex flex-col gap-1 items-start">
@@ -1110,6 +1120,20 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                     </div>
                 </div>
             </Modal>
+
+            {/* Mobile Floating Action Button (FAB) - เปิดเคสใหม่ */}
+            <div className="md:hidden fixed bottom-6 right-6 z-40">
+                <a
+                    href={route('tickets.create')}
+                    className="flex items-center gap-2 px-5 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full shadow-xl hover:shadow-2xl active:scale-95 transition-all duration-200 border border-blue-400/30 font-bold text-sm tracking-wide cursor-pointer"
+                    title="เปิดใบงานใหม่"
+                >
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>แจ้งซ่อม</span>
+                </a>
+            </div>
         </>
     );
 }
