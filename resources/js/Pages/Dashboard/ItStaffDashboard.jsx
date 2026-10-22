@@ -19,18 +19,38 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
         { id: 3, code: 'SW', name: 'Software' },
     ];
 
-    const [managerTab, setManagerTab] = useState(
-        filters.status?.startsWith('task2') || filters.manager_tab === 'task2' ? 'task2' : 'task1'
-    );
+    const activeTabFromFilter = filters.status?.startsWith('task2') || filters.manager_tab === 'task2' ? 'task2' : 'task1';
+    const [managerTab, setManagerTab] = useState(activeTabFromFilter);
+
+    const getInitialStatus = (tab, statusFilter) => {
+        if (tab === 'task2') {
+            return statusFilter?.startsWith('task2') ? statusFilter : 'task2_all';
+        }
+        return statusFilter?.startsWith('task2') ? 'not_closed' : (statusFilter || 'not_closed');
+    };
 
     const [formFilters, setFormFilters] = useState({
-        status: filters.status || 'all',
+        status: getInitialStatus(activeTabFromFilter, filters.status),
         priority: filters.priority || 'all',
         team: filters.team || 'all',
         technician_id: filters.technician_id || 'all',
         tier2_tab: filters.tier2_tab || 'all',
         search: filters.search || '',
     });
+
+    useEffect(() => {
+        const nextTab = filters.status?.startsWith('task2') || filters.manager_tab === 'task2' ? 'task2' : 'task1';
+        setManagerTab(nextTab);
+        setFormFilters(prev => ({
+            ...prev,
+            status: getInitialStatus(nextTab, filters.status),
+            priority: filters.priority || 'all',
+            team: filters.team || 'all',
+            technician_id: filters.technician_id || 'all',
+            tier2_tab: filters.tier2_tab || 'all',
+            search: filters.search || '',
+        }));
+    }, [filters.status, filters.manager_tab, filters.priority, filters.team, filters.technician_id, filters.tier2_tab, filters.search]);
 
     const [isTyping, setIsTyping] = useState(false);
     const [highlightedTicketIds, setHighlightedTicketIds] = useState(new Set());
@@ -241,7 +261,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
         if (key === 'status') {
             if (value.startsWith('task2')) {
                 setManagerTab('task2');
-            } else if (value !== 'all') {
+            } else {
                 setManagerTab('task1');
             }
         }
@@ -288,13 +308,13 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
     };
 
     const handleClearFilters = () => {
-        const clearedStatus = managerTab === 'task2' ? 'task2_all' : 'all';
+        const clearedStatus = managerTab === 'task2' ? 'task2_all' : 'not_closed';
         const cleared = { status: clearedStatus, priority: 'all', team: 'all', technician_id: 'all', tier2_tab: 'all', search: '' };
         setFormFilters(cleared);
         router.get(
             route('dashboard'),
             {
-                status: clearedStatus !== 'all' ? clearedStatus : undefined,
+                status: clearedStatus,
                 manager_tab: managerTab,
                 view: filters.view || undefined,
             },
@@ -1284,33 +1304,44 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                             <form onSubmit={handleSearchSubmit} className="w-full mt-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
                                 <div className={`grid grid-cols-1 md:grid-cols-2 ${technician_workload?.technicians?.length > 0 ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-3`}>
                                     <div>
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">สถานะ (Status)</label>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                            {managerTab === 'task2' ? 'สถานะมาตรการ (Task 2 Status)' : 'สถานะใบงาน (Status)'}
+                                        </label>
                                         <select
-                                            value={formFilters.status}
+                                            value={
+                                                managerTab === 'task2'
+                                                    ? (formFilters.status?.startsWith('task2') ? formFilters.status : 'task2_all')
+                                                    : (formFilters.status?.startsWith('task2') ? 'not_closed' : formFilters.status)
+                                            }
                                             onChange={(e) => handleFilterChange('status', e.target.value)}
                                             className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
                                         >
-                                            <option value="all">ทุกสถานะ</option>
-                                            <option value="sla_warning">⏰ ใกล้หมดเวลา SLA (&lt; 1 ชม.)</option>
-                                            <option value="sla_overdue">⚠️ เกินกำหนดเวลา SLA แล้ว</option>
-                                            <option value="not_closed">ยังไม่ปิดใบงาน</option>
-                                            <option value="pending">รอดำเนินการ / มอบหมาย</option>
-                                            <option value="analyzing">สืบสภาพ / วิเคราะห์สาเหตุ</option>
-                                            <option value="in_progress">ดำเนินการแก้ไข</option>
-                                            <option value="testing">ทดสอบและส่งมอบ</option>
-                                            <option value="closed_today">ปิดงานวันนี้</option>
-                                            <option value="active">กำลังทำ (Assigned/Analyzing/In Progress)</option>
-                                            <option value="resolved">รอผู้แจ้งกดรับงาน</option>
-                                            <option value="approved">รอหัวหน้าปิดใบงาน</option>
-                                            <option value="completed">แก้ไขเสร็จ / ปิดใบงาน</option>
-                                            <option value="breached">แก้ไขเสร็จเกิน SLA</option>
-                                            <option value="task2_all">เคส Task 2 ทั้งหมด</option>
-                                            <option value="task2_manager_review">รอหัวหน้าตรวจมาตรการป้องกัน</option>
-                                            <option value="task2_assigned">รอดำเนินการป้องกัน</option>
-                                            <option value="task2_in_progress">กำลังดำเนินการป้องกัน</option>
-                                            <option value="task2_pending_review">กำลังตรวจสอบปิดมาตรการ</option>
-                                            <option value="task2_completed">ปิดมาตรการป้องกันแล้ว</option>
-                                            <option value="task2_cancelled">มาตรการป้องกันถูกยกเลิก</option>
+                                            {managerTab === 'task2' ? (
+                                                <>
+                                                    <option value="task2_all">เคส Task 2 ทั้งหมด (ทุกสถานะ)</option>
+                                                    <option value="task2_manager_review">รอหัวหน้าตรวจมาตรการป้องกัน</option>
+                                                    <option value="task2_assigned">รอดำเนินการป้องกัน</option>
+                                                    <option value="task2_in_progress">กำลังดำเนินการป้องกัน</option>
+                                                    <option value="task2_pending_review">กำลังตรวจสอบปิดมาตรการ</option>
+                                                    <option value="task2_completed">ปิดมาตรการป้องกันแล้ว</option>
+                                                    <option value="task2_cancelled">มาตรการป้องกันถูกยกเลิก</option>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <option value="not_closed">ยังไม่ปิดใบงาน (ค่าเริ่มต้น)</option>
+                                                    <option value="all">ทุกสถานะของ Task 1 (รวมปิดงานแล้ว)</option>
+                                                    <option value="pending">รอดำเนินการ / มอบหมาย</option>
+                                                    <option value="analyzing">สืบสภาพ / วิเคราะห์สาเหตุ</option>
+                                                    <option value="in_progress">ดำเนินการแก้ไข</option>
+                                                    <option value="active">กำลังทำ (Assigned/Analyzing/In Progress)</option>
+                                                    <option value="resolved">รอผู้แจ้งกดรับงาน</option>
+                                                    <option value="completed">แก้ไขเสร็จ / ปิดใบงาน</option>
+                                                    <option value="closed_today">ปิดงานวันนี้</option>
+                                                    <option value="sla_warning">⏰ ใกล้หมดเวลา SLA (&lt; 1 ชม.)</option>
+                                                    <option value="sla_overdue">⚠️ เกินกำหนดเวลา SLA แล้ว</option>
+                                                    <option value="breached">แก้ไขเสร็จเกิน SLA</option>
+                                                </>
+                                            )}
                                         </select>
                                     </div>
 
