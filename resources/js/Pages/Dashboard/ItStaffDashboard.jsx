@@ -287,7 +287,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
         router.get(
             route('dashboard'),
             {
-                status: formFilters.status !== 'all' ? formFilters.status : undefined,
+                status: formFilters.status || undefined,
                 priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
                 team: formFilters.team !== 'all' ? formFilters.team : undefined,
                 technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
@@ -328,14 +328,14 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
         let effectiveManagerTab = managerTab;
         if (newFilters.status?.startsWith('task2')) {
             effectiveManagerTab = 'task2';
-        } else if (newFilters.status && newFilters.status !== 'all' && !newFilters.status.startsWith('task2')) {
+        } else if (newFilters.status && !newFilters.status.startsWith('task2')) {
             effectiveManagerTab = 'task1';
         }
 
         router.get(
             route('dashboard'),
             {
-                status: newFilters.status !== 'all' ? newFilters.status : undefined,
+                status: newFilters.status || undefined,
                 priority: newFilters.priority !== 'all' ? newFilters.priority : undefined,
                 team: newFilters.team !== 'all' ? newFilters.team : undefined,
                 technician_id: newFilters.technician_id !== 'all' ? newFilters.technician_id : undefined,
@@ -432,7 +432,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
         router.get(
             route('dashboard'),
             {
-                status: statusKey !== 'all' ? statusKey : undefined,
+                status: statusKey,
                 manager_tab: targetTab,
                 view: filters.view || undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
@@ -707,13 +707,23 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                             <div className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
                                 <span>อัปเดตล่าสุด {currentTime}</span>
                                 <span>·</span>
-                                <button
-                                    type="button"
-                                    onClick={() => handleQuickFilter('all')}
-                                    className="text-gray-600 underline hover:text-blue-600 transition cursor-pointer"
-                                >
-                                    ดูรายการทั้งหมด {Number(stats.total).toLocaleString()} เคส
-                                </button>
+                                {managerTab === 'task2' ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleQuickFilter('task2_all')}
+                                        className="text-gray-600 underline hover:text-teal-600 transition cursor-pointer"
+                                    >
+                                        ดูรายการทั้งหมด {Number(stats.task2_total || 0).toLocaleString()} เคส
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleQuickFilter('all')}
+                                        className="text-gray-600 underline hover:text-blue-600 transition cursor-pointer"
+                                    >
+                                        ดูรายการทั้งหมด {Number(stats.total || 0).toLocaleString()} เคส
+                                    </button>
+                                )}
                             </div>
                         </div>
 

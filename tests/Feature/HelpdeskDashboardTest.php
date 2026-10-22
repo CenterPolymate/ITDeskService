@@ -302,4 +302,53 @@ class HelpdeskDashboardTest extends TestCase
             )
         );
     }
+
+    public function test_it_staff_dashboard_status_all_shows_both_open_and_closed_tickets(): void
+    {
+        $helpdesk = User::factory()->create(['role' => 'helpdesk']);
+
+        // Create an open ticket and a closed ticket
+        HelpdeskCase::create([
+            'ticket_no' => 'ITD-2026-OPEN',
+            'title' => 'Open Case',
+            'description' => 'Case description',
+            'category' => 'Hardware',
+            'priority' => 'high',
+            'status' => 'pending',
+            'requester_name' => 'Alice',
+            'department' => 'IT',
+            'requester_phone' => '080-000-0001',
+            'location' => 'Building A',
+        ]);
+
+        HelpdeskCase::create([
+            'ticket_no' => 'ITD-2026-CLOSED',
+            'title' => 'Closed Case',
+            'description' => 'Case description',
+            'category' => 'Software',
+            'priority' => 'medium',
+            'status' => 'closed',
+            'requester_name' => 'Bob',
+            'department' => 'HR',
+            'requester_phone' => '080-000-0002',
+            'location' => 'Building B',
+        ]);
+
+        // Default view for Task 1 (without status=all) filters out closed tickets
+        $responseDefault = $this->actingAs($helpdesk)->get(route('dashboard', ['manager_tab' => 'task1']));
+        $responseDefault->assertStatus(200);
+        $responseDefault->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Dashboard/ItStaffDashboard')
+            ->has('cases.data', 1)
+            ->where('cases.data.0.ticket_no', 'ITD-2026-OPEN')
+        );
+
+        // Explicit status=all view shows both tickets
+        $responseAll = $this->actingAs($helpdesk)->get(route('dashboard', ['status' => 'all', 'manager_tab' => 'task1']));
+        $responseAll->assertStatus(200);
+        $responseAll->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Dashboard/ItStaffDashboard')
+            ->has('cases.data', 2)
+        );
+    }
 }
