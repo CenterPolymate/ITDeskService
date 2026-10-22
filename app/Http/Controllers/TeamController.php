@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\HelpdeskCase;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -212,9 +213,11 @@ class TeamController extends Controller
             'manager_id.exists' => 'ไม่พบบัญชีหัวหน้าทีมที่เลือกในระบบ',
         ]);
 
+        $oldName = $team->name;
+        $newName = $validated['name'];
         $hasMembers = ! empty($validated['member_ids']);
         $team->update([
-            'name' => $validated['name'],
+            'name' => $newName,
             'code' => strtoupper($validated['code']),
             'description' => $validated['description'] ?? null,
             'manager_id' => $validated['manager_id'],
@@ -222,6 +225,12 @@ class TeamController extends Controller
         ]);
 
         $team->members()->sync($validated['member_ids'] ?? []);
+
+        // Cascade update team name in helpdesk cases if team name changed
+        if ($oldName !== $newName) {
+            HelpdeskCase::where('escalated_to_team', $oldName)
+                ->update(['escalated_to_team' => $newName]);
+        }
 
         return redirect()->route('teams.index')->with('success', "อัปเดตทีม \"{$team->name}\" เรียบร้อยแล้ว");
     }

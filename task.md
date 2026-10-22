@@ -331,3 +331,8 @@
   - [x] ประวัติการใช้งานระบบ (Audit Logs): Dropdown ผู้ใช้แสดงเฉพาะผู้ใช้ที่มีประวัติบันทึกจริง และการกระทำ (Action) แสดงเฉพาะการกระทำที่มีบันทึกจริง
   - [x] รายงานสถิติ (Reports): Dropdown บริษัทแสดงเฉพาะบริษัทที่มีข้อมูลใบงานจริง
   - [x] ทดสอบผ่านครบ 161/161 เทสต์ และจัดรูปแบบโค้ดด้วย Pint เรียบร้อย
+- [x] เพิ่มระบบ Cascade Update ชื่อทีมในใบงานอัตโนมัติ (Team Rename Cascade Update):
+  - [x] ใน `TeamController@update`: เมื่อแก้ไขชื่อทีม (`name`) ระบบจะค้นหาใบงานทั้งหมดที่มี `escalated_to_team` เป็นชื่อเดิม แล้วอัปเดตเป็นชื่อใหม่โดยอัตโนมัติทันที
+  - [x] สร้าง Migration ซิงค์ชื่อทีมย้อนหลังสำหรับเคสเดิมในฐานข้อมูล (เช่น Hardware -> Hardware production)
+  - [x] เพิ่ม Feature Test `test_updating_team_name_cascades_to_helpdesk_cases` ใน `TeamManagementTest.php` ผ่าน 100% (162/162 เทสต์ทั้งระบบ)
+

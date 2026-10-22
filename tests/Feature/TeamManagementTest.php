@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\HelpdeskCase;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -189,5 +190,48 @@ class TeamManagementTest extends TestCase
         $response->assertRedirect(route('teams.index'));
         $this->assertDatabaseMissing('teams', ['id' => $team->id]);
         $this->assertDatabaseMissing('team_user', ['team_id' => $team->id]);
+    }
+
+    public function test_updating_team_name_cascades_to_helpdesk_cases(): void
+    {
+        $admin = User::factory()->create(['role' => 'administrator']);
+        $manager = User::factory()->create(['role' => 'manager']);
+        $tech = User::factory()->create(['role' => 'technician']);
+
+        $team = Team::create([
+            'name' => 'Original Team Name',
+            'code' => 'OTN',
+            'manager_id' => $manager->id,
+            'is_active' => true,
+        ]);
+        $team->members()->attach($tech->id);
+
+        $ticket = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-9999',
+            'title' => 'Sample Ticket for Team Rename',
+            'description' => 'Testing team name cascade update in helpdesk cases',
+            'category' => 'Hardware',
+            'priority' => 'medium',
+            'status' => 'assigned',
+            'user_id' => $admin->id,
+            'requester_name' => 'Tester',
+            'requester_email' => 'tester@example.com',
+            'phone' => '0812345678',
+            'location' => 'Building A',
+            'escalated_to_team' => 'Original Team Name',
+        ]);
+
+        $response = $this->actingAs($admin)->put(route('teams.update', $team->id), [
+            'name' => 'Renamed Team Name',
+            'code' => 'RTN',
+            'description' => 'Updated team name',
+            'manager_id' => $manager->id,
+            'member_ids' => [$tech->id],
+            'is_active' => '1',
+        ]);
+
+        $response->assertRedirect(route('teams.index'));
+        $ticket->refresh();
+        $this->assertEquals('Renamed Team Name', $ticket->escalated_to_team);
     }
 }
