@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import SortableHeader from '@/Components/SortableHeader';
 
@@ -6,6 +6,16 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
     const { flash } = usePage().props;
     const [search, setSearch] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
+    const searchTimeoutRef = useRef(null);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const currentSort = filters.sort || 'name';
     const currentDirection = filters.direction || 'asc';
@@ -20,11 +30,37 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
         handleSortDirect(field, nextDirection);
     };
 
-    const handleSortDirect = (field, direction) => {
+    const applyFilters = (newSearch, newStatus) => {
         router.get(
             route('teams.index'),
             {
-                search: search || undefined,
+                search: newSearch?.trim() ? newSearch.trim() : undefined,
+                status: newStatus !== 'all' ? newStatus : undefined,
+                sort: currentSort !== 'name' ? currentSort : undefined,
+                direction: currentDirection !== 'asc' ? currentDirection : undefined,
+            },
+            { preserveState: true, replace: true }
+        );
+    };
+
+    const handleSearchChange = (val) => {
+        setSearch(val);
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        searchTimeoutRef.current = setTimeout(() => {
+            applyFilters(val, statusFilter);
+        }, 350);
+    };
+
+    const handleSortDirect = (field, direction) => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        router.get(
+            route('teams.index'),
+            {
+                search: search?.trim() ? search.trim() : undefined,
                 status: statusFilter !== 'all' ? statusFilter : undefined,
                 sort: field,
                 direction: direction,
@@ -34,31 +70,27 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
     };
 
     const handleSearch = (e) => {
-        e.preventDefault();
-        router.get(
-            route('teams.index'),
-            {
-                search: search || undefined,
-                status: statusFilter !== 'all' ? statusFilter : undefined,
-                sort: currentSort !== 'name' ? currentSort : undefined,
-                direction: currentDirection !== 'asc' ? currentDirection : undefined,
-            },
-            { preserveState: true, replace: true }
-        );
+        if (e) e.preventDefault();
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        applyFilters(search, statusFilter);
     };
 
     const handleStatusChange = (val) => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
         setStatusFilter(val);
-        router.get(
-            route('teams.index'),
-            {
-                search: search || undefined,
-                status: val !== 'all' ? val : undefined,
-                sort: currentSort !== 'name' ? currentSort : undefined,
-                direction: currentDirection !== 'asc' ? currentDirection : undefined,
-            },
-            { preserveState: true, replace: true }
-        );
+        applyFilters(search, val);
+    };
+
+    const handleClearSearch = () => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        setSearch('');
+        applyFilters('', statusFilter);
     };
 
     const handleToggleStatus = (team) => {
@@ -167,23 +199,27 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
                     <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-xs flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
                         <form onSubmit={handleSearch} className="flex-1 flex gap-2">
                             <div className="relative flex-1">
-                                <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                                 <input
                                     type="text"
                                     value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
+                                    onChange={(e) => handleSearchChange(e.target.value)}
                                     placeholder="ค้นหาชื่อทีม, รหัสทีม, คำอธิบาย..."
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                    className="w-full pl-10 pr-9 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                                 />
+                                {search && (
+                                    <button
+                                        type="button"
+                                        onClick={handleClearSearch}
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                                        title="ล้างคำค้นหา"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
                             </div>
-                            <button
-                                type="submit"
-                                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition cursor-pointer"
-                            >
-                                ค้นหา
-                            </button>
                         </form>
 
                         <div className="flex items-center gap-2 shrink-0">

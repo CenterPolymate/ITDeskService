@@ -10,6 +10,16 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
     const currentStatus = filters.status || 'all';
     const [highlightedTicketIds, setHighlightedTicketIds] = useState(new Set());
     const knownCasesRef = useRef(null);
+    const searchTimeoutRef = useRef(null);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Listen to ticket viewed events to immediately clear any highlight
     useEffect(() => {
@@ -170,12 +180,38 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
         handleSortDirect(field, nextDirection);
     };
 
-    const handleSortDirect = (field, direction) => {
+    const triggerSearch = (query) => {
         router.get(
             route('dashboard'),
             {
                 status: currentStatus !== 'all' ? currentStatus : undefined,
-                search: search || undefined,
+                search: query?.trim() ? query.trim() : undefined,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
+            },
+            { preserveState: true, preserveScroll: true }
+        );
+    };
+
+    const handleSearchChange = (val) => {
+        setSearch(val);
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        searchTimeoutRef.current = setTimeout(() => {
+            triggerSearch(val);
+        }, 350);
+    };
+
+    const handleSortDirect = (field, direction) => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        router.get(
+            route('dashboard'),
+            {
+                status: currentStatus !== 'all' ? currentStatus : undefined,
+                search: search?.trim() ? search.trim() : undefined,
                 sort: field,
                 direction: direction,
             },
@@ -184,38 +220,30 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
     };
 
     const handleSearchSubmit = (e) => {
-        e.preventDefault();
-        router.get(
-            route('dashboard'),
-            {
-                status: currentStatus !== 'all' ? currentStatus : undefined,
-                search: search || undefined,
-                sort: currentSort !== 'created_at' ? currentSort : undefined,
-                direction: currentDirection !== 'desc' ? currentDirection : undefined,
-            },
-            { preserveState: true, preserveScroll: true }
-        );
+        if (e) e.preventDefault();
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        triggerSearch(search);
     };
 
     const handleClearSearch = () => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
         setSearch('');
-        router.get(
-            route('dashboard'),
-            {
-                status: currentStatus !== 'all' ? currentStatus : undefined,
-                sort: currentSort !== 'created_at' ? currentSort : undefined,
-                direction: currentDirection !== 'desc' ? currentDirection : undefined,
-            },
-            { preserveState: true, preserveScroll: true }
-        );
+        triggerSearch('');
     };
 
     const handleFilterStatus = (statusKey) => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
         router.get(
             route('dashboard'),
             {
                 status: statusKey !== 'all' ? statusKey : undefined,
-                search: search || undefined,
+                search: search?.trim() ? search.trim() : undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
                 direction: currentDirection !== 'desc' ? currentDirection : undefined,
             },
@@ -557,7 +585,7 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                         <input
                                             type="text"
                                             value={search}
-                                            onChange={(e) => setSearch(e.target.value)}
+                                            onChange={(e) => handleSearchChange(e.target.value)}
                                             placeholder="ค้นหาใบงาน, หัวข้อปัญหา..."
                                             className="w-full pl-10 pr-9 py-2 border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm leading-normal"
                                         />

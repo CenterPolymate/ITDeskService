@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import SortableHeader from '@/Components/SortableHeader';
 
@@ -6,6 +6,16 @@ export default function Index({ users, filters = {} }) {
     const { flash, auth } = usePage().props;
     const [search, setSearch] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.status_filter || '');
+    const searchTimeoutRef = useRef(null);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, []);
     const [showImportModal, setShowImportModal] = useState(false);
     const [importFile, setImportFile] = useState(null);
     const [importing, setImporting] = useState(false);
@@ -34,11 +44,45 @@ export default function Index({ users, filters = {} }) {
         handleSortDirect(field, nextDirection);
     };
 
-    const handleSortDirect = (field, direction) => {
+    const applyFilters = (newSearch, newStatus) => {
         router.get(
             route('normal_users.index'),
             {
-                search: search || undefined,
+                search: newSearch?.trim() ? newSearch.trim() : undefined,
+                status_filter: newStatus !== '' ? newStatus : undefined,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
+            },
+            { preserveState: true }
+        );
+    };
+
+    const handleSearchChange = (val) => {
+        setSearch(val);
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        searchTimeoutRef.current = setTimeout(() => {
+            applyFilters(val, statusFilter);
+        }, 350);
+    };
+
+    const handleStatusFilterChange = (val) => {
+        setStatusFilter(val);
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        applyFilters(search, val);
+    };
+
+    const handleSortDirect = (field, direction) => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        router.get(
+            route('normal_users.index'),
+            {
+                search: search?.trim() ? search.trim() : undefined,
                 status_filter: statusFilter !== '' ? statusFilter : undefined,
                 sort: field,
                 direction: direction,
@@ -48,17 +92,20 @@ export default function Index({ users, filters = {} }) {
     };
 
     const handleSearchSubmit = (e) => {
-        e.preventDefault();
-        router.get(
-            route('normal_users.index'),
-            {
-                search: search || undefined,
-                status_filter: statusFilter !== '' ? statusFilter : undefined,
-                sort: currentSort !== 'created_at' ? currentSort : undefined,
-                direction: currentDirection !== 'desc' ? currentDirection : undefined,
-            },
-            { preserveState: true }
-        );
+        if (e) e.preventDefault();
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        applyFilters(search, statusFilter);
+    };
+
+    const handleClearFilters = () => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        setSearch('');
+        setStatusFilter('');
+        router.get(route('normal_users.index'), {}, { preserveState: true });
     };
 
     const handleImportSubmit = (e) => {
@@ -166,17 +213,29 @@ export default function Index({ users, filters = {} }) {
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
                             {/* Search and Filters */}
-                            <form onSubmit={handleSearchSubmit} className="mb-4 flex flex-col md:flex-row gap-2">
-                                <input
-                                    type="text"
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="ค้นหาชื่อ หรืออีเมล..."
-                                    className="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-1/3 text-sm leading-normal"
-                                />
+                            <form onSubmit={handleSearchSubmit} className="mb-4 flex flex-col md:flex-row items-stretch md:items-center gap-2">
+                                <div className="relative w-full md:w-1/3">
+                                    <input
+                                        type="text"
+                                        value={search}
+                                        onChange={(e) => handleSearchChange(e.target.value)}
+                                        placeholder="ค้นหาชื่อ หรืออีเมล..."
+                                        className="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full text-sm leading-normal pr-8"
+                                    />
+                                    {search && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSearchChange('')}
+                                            className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                                            title="ล้างคำค้นหา"
+                                        >
+                                            ✕
+                                        </button>
+                                    )}
+                                </div>
                                 <select
                                     value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    onChange={(e) => handleStatusFilterChange(e.target.value)}
                                     className="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-auto text-sm leading-normal"
                                 >
                                     <option value="">สถานะทั้งหมด</option>
@@ -184,12 +243,19 @@ export default function Index({ users, filters = {} }) {
                                     <option value="unverified">รอการยืนยันอีเมล</option>
                                     <option value="0">ระงับการใช้งาน (Inactive)</option>
                                 </select>
-                                <button
-                                    type="submit"
-                                    className="inline-flex justify-center items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition w-full md:w-auto"
-                                >
-                                    ค้นหา
-                                </button>
+                                {(search || statusFilter !== '') && (
+                                    <button
+                                        type="button"
+                                        onClick={handleClearFilters}
+                                        className="inline-flex justify-center items-center gap-1.5 px-3 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 hover:bg-gray-50 transition shadow-xs w-full md:w-auto cursor-pointer"
+                                        title="ล้างตัวกรอง"
+                                    >
+                                        <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                        <span>ล้างค่า</span>
+                                    </button>
+                                )}
                             </form>
 
                             {/* Mobile Sort Bar */}

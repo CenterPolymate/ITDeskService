@@ -56,6 +56,16 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
     const [highlightedTicketIds, setHighlightedTicketIds] = useState(new Set());
     const knownUrgentIdsRef = useRef(null);
     const knownTicketsMapRef = useRef(null);
+    const searchTimeoutRef = useRef(null);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Listen to ticket viewed events to immediately clear any highlight
     useEffect(() => {
@@ -256,8 +266,36 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
         );
     };
 
+    const applyFilters = (newFilters) => {
+        let effectiveManagerTab = managerTab;
+        if (newFilters.status?.startsWith('task2')) {
+            effectiveManagerTab = 'task2';
+        } else if (newFilters.status && newFilters.status !== 'all' && !newFilters.status.startsWith('task2')) {
+            effectiveManagerTab = 'task1';
+        }
+
+        router.get(
+            route('dashboard'),
+            {
+                status: newFilters.status !== 'all' ? newFilters.status : undefined,
+                priority: newFilters.priority !== 'all' ? newFilters.priority : undefined,
+                team: newFilters.team !== 'all' ? newFilters.team : undefined,
+                technician_id: newFilters.technician_id !== 'all' ? newFilters.technician_id : undefined,
+                tier2_tab: newFilters.tier2_tab !== 'all' ? newFilters.tier2_tab : undefined,
+                search: newFilters.search?.trim() ? newFilters.search.trim() : undefined,
+                manager_tab: effectiveManagerTab || undefined,
+                view: filters.view || undefined,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
+            },
+            { preserveState: true, preserveScroll: true }
+        );
+    };
+
     const handleFilterChange = (key, value) => {
-        setFormFilters(prev => ({ ...prev, [key]: value }));
+        const updated = { ...formFilters, [key]: value };
+        setFormFilters(updated);
+
         if (key === 'status') {
             if (value.startsWith('task2')) {
                 setManagerTab('task2');
@@ -265,49 +303,42 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 setManagerTab('task1');
             }
         }
+
+        if (key === 'search') {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+            searchTimeoutRef.current = setTimeout(() => {
+                applyFilters(updated);
+            }, 350);
+        } else {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+            applyFilters(updated);
+        }
     };
 
     const handleTier2TabChange = (tabKey) => {
         setFormFilters(prev => ({ ...prev, tier2_tab: tabKey }));
-        router.get(
-            route('dashboard'),
-            {
-                status: formFilters.status !== 'all' ? formFilters.status : undefined,
-                priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
-                team: formFilters.team !== 'all' ? formFilters.team : undefined,
-                technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
-                tier2_tab: tabKey !== 'all' ? tabKey : undefined,
-                search: formFilters.search || undefined,
-                manager_tab: managerTab || undefined,
-                view: filters.view || undefined,
-                sort: currentSort !== 'created_at' ? currentSort : undefined,
-                direction: currentDirection !== 'desc' ? currentDirection : undefined,
-            },
-            { preserveState: true, preserveScroll: true }
-        );
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        applyFilters({ ...formFilters, tier2_tab: tabKey });
     };
 
     const handleSearchSubmit = (e) => {
-        e.preventDefault();
-        router.get(
-            route('dashboard'),
-            {
-                status: formFilters.status !== 'all' ? formFilters.status : undefined,
-                priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
-                team: formFilters.team !== 'all' ? formFilters.team : undefined,
-                technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
-                tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
-                search: formFilters.search || undefined,
-                manager_tab: managerTab || undefined,
-                view: filters.view || undefined,
-                sort: currentSort !== 'created_at' ? currentSort : undefined,
-                direction: currentDirection !== 'desc' ? currentDirection : undefined,
-            },
-            { preserveState: true, preserveScroll: true }
-        );
+        if (e) e.preventDefault();
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        applyFilters(formFilters);
     };
 
     const handleClearFilters = () => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
         const clearedStatus = managerTab === 'task2' ? 'task2_all' : 'not_closed';
         const cleared = { status: clearedStatus, priority: 'all', team: 'all', technician_id: 'all', tier2_tab: 'all', search: '' };
         setFormFilters(cleared);
@@ -1408,34 +1439,42 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
 
                                     <div>
                                         <label className="block text-xs font-medium text-gray-600 mb-1">ค้นหา (Search)</label>
-                                        <input
-                                            type="text"
-                                            value={formFilters.search}
-                                            onFocus={() => setIsTyping(true)}
-                                            onBlur={() => setIsTyping(false)}
-                                            onChange={(e) => handleFilterChange('search', e.target.value)}
-                                            placeholder="ค้นหา Ticket, ผู้แจ้ง..."
-                                            className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white leading-normal"
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={formFilters.search}
+                                                onFocus={() => setIsTyping(true)}
+                                                onBlur={() => setIsTyping(false)}
+                                                onChange={(e) => handleFilterChange('search', e.target.value)}
+                                                placeholder="ค้นหา Ticket, ผู้แจ้ง..."
+                                                className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 pl-3 pr-8 bg-white leading-normal"
+                                            />
+                                            {formFilters.search && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleFilterChange('search', '')}
+                                                    className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 cursor-pointer"
+                                                    title="ล้างคำค้นหา"
+                                                >
+                                                    ✕
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div>
                                         <label className="hidden sm:block text-xs font-medium text-transparent mb-1 select-none pointer-events-none">&nbsp;</label>
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                type="submit"
-                                                className="flex-1 h-[38px] inline-flex items-center justify-center bg-indigo-600 border border-transparent text-white px-2.5 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm cursor-pointer whitespace-nowrap"
-                                            >
-                                                กรองข้อมูล
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={handleClearFilters}
-                                                className="h-[38px] inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm cursor-pointer whitespace-nowrap shrink-0"
-                                            >
-                                                ล้างค่า
-                                            </button>
-                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleClearFilters}
+                                            className="w-full h-[38px] inline-flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-xs cursor-pointer whitespace-nowrap"
+                                            title="ล้างค่าตัวกรองทั้งหมด"
+                                        >
+                                            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            <span>ล้างค่า</span>
+                                        </button>
                                     </div>
                                 </div>
 

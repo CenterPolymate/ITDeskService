@@ -410,18 +410,42 @@ export default function Index({ logs, users = [], filters = {} }) {
     const [userId, setUserId] = useState(filters.user_id || '');
     const [actionFilter, setActionFilter] = useState(filters.action_filter || '');
 
-    const handleSearch = (e) => {
-        e.preventDefault();
+    const applyFilter = (newFilters = {}) => {
+        const nextDateFrom = newFilters.date_from !== undefined ? newFilters.date_from : dateFrom;
+        const nextDateTo = newFilters.date_to !== undefined ? newFilters.date_to : dateTo;
+        const nextUserId = newFilters.user_id !== undefined ? newFilters.user_id : userId;
+        const nextActionFilter = newFilters.action_filter !== undefined ? newFilters.action_filter : actionFilter;
+
         router.get(
             route('audit_logs.index'),
             {
-                date_from: dateFrom,
-                date_to: dateTo,
-                user_id: userId,
-                action_filter: actionFilter,
+                date_from: nextDateFrom || undefined,
+                date_to: nextDateTo || undefined,
+                user_id: nextUserId || undefined,
+                action_filter: nextActionFilter || undefined,
             },
             { preserveState: true }
         );
+    };
+
+    const handleDateFromChange = (val) => {
+        setDateFrom(val);
+        applyFilter({ date_from: val });
+    };
+
+    const handleDateToChange = (val) => {
+        setDateTo(val);
+        applyFilter({ date_to: val });
+    };
+
+    const handleUserIdChange = (val) => {
+        setUserId(val);
+        applyFilter({ user_id: val });
+    };
+
+    const handleActionFilterChange = (val) => {
+        setActionFilter(val);
+        applyFilter({ action_filter: val });
     };
 
     const handleClear = () => {
@@ -429,7 +453,7 @@ export default function Index({ logs, users = [], filters = {} }) {
         setDateTo('');
         setUserId('');
         setActionFilter('');
-        router.get(route('audit_logs.index'));
+        router.get(route('audit_logs.index'), {}, { preserveState: true });
     };
 
     const exportUrl = route('audit_logs.index', {
@@ -467,13 +491,13 @@ export default function Index({ logs, users = [], filters = {} }) {
 
                     {/* Filter Card */}
                     <div className="bg-white shadow-sm sm:rounded-2xl border border-gray-100 p-5">
-                        <form onSubmit={handleSearch} className="flex flex-col md:flex-row md:items-end gap-3">
+                        <form onSubmit={(e) => e.preventDefault()} className="flex flex-col md:flex-row md:items-end gap-3">
                             <div className="w-full md:w-1/4">
                                 <label className="block text-xs font-semibold text-gray-700 mb-1">ตั้งแต่วันที่</label>
                                 <input
                                     type="date"
                                     value={dateFrom}
-                                    onChange={(e) => setDateFrom(e.target.value)}
+                                    onChange={(e) => handleDateFromChange(e.target.value)}
                                     className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                 />
                             </div>
@@ -483,7 +507,7 @@ export default function Index({ logs, users = [], filters = {} }) {
                                 <input
                                     type="date"
                                     value={dateTo}
-                                    onChange={(e) => setDateTo(e.target.value)}
+                                    onChange={(e) => handleDateToChange(e.target.value)}
                                     className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                 />
                             </div>
@@ -492,7 +516,7 @@ export default function Index({ logs, users = [], filters = {} }) {
                                 <label className="block text-xs font-semibold text-gray-700 mb-1">ผู้ใช้งาน</label>
                                 <select
                                     value={userId}
-                                    onChange={(e) => setUserId(e.target.value)}
+                                    onChange={(e) => handleUserIdChange(e.target.value)}
                                     className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                 >
                                     <option value="">ทั้งหมด</option>
@@ -508,7 +532,7 @@ export default function Index({ logs, users = [], filters = {} }) {
                                 <label className="block text-xs font-semibold text-gray-700 mb-1">การกระทำ</label>
                                 <select
                                     value={actionFilter}
-                                    onChange={(e) => setActionFilter(e.target.value)}
+                                    onChange={(e) => handleActionFilterChange(e.target.value)}
                                     className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                 >
                                     <option value="">ทั้งหมด</option>
@@ -520,19 +544,19 @@ export default function Index({ logs, users = [], filters = {} }) {
                             </div>
 
                             <div className="flex gap-2 w-full md:w-auto shrink-0 pt-2 md:pt-0">
-                                <button
-                                    type="submit"
-                                    className="flex-1 md:flex-none inline-flex justify-center items-center px-4 py-2.5 bg-indigo-600 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-wider hover:bg-indigo-700 shadow-xs transition"
-                                >
-                                    ค้นหา
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleClear}
-                                    className="flex-1 md:flex-none inline-flex justify-center items-center px-4 py-2.5 bg-white border border-gray-300 rounded-lg font-bold text-xs text-gray-700 uppercase tracking-wider shadow-xs hover:bg-gray-50 transition"
-                                >
-                                    ล้าง
-                                </button>
+                                {(dateFrom || dateTo || userId || actionFilter) && (
+                                    <button
+                                        type="button"
+                                        onClick={handleClear}
+                                        className="flex-1 md:flex-none inline-flex justify-center items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-300 rounded-lg font-bold text-xs text-gray-700 uppercase tracking-wider shadow-xs hover:bg-gray-50 transition cursor-pointer"
+                                        title="ล้างตัวกรองทั้งหมด"
+                                    >
+                                        <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                        <span>ล้างค่า</span>
+                                    </button>
+                                )}
                                 <a
                                     href={exportUrl}
                                     className="flex-1 md:flex-none inline-flex justify-center items-center gap-1.5 px-4 py-2.5 bg-emerald-600 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-wider hover:bg-emerald-700 shadow-xs transition"
