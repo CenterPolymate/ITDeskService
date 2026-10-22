@@ -116,10 +116,23 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
     }, [filters.status, filters.manager_tab, filters.priority, filters.team, filters.technician_id, filters.tier2_tab, filters.search]);
 
     const [isTyping, setIsTyping] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [highlightedTicketIds, setHighlightedTicketIds] = useState(new Set());
     const knownUrgentIdsRef = useRef(null);
     const knownTicketsMapRef = useRef(null);
     const searchTimeoutRef = useRef(null);
+
+    const handleManualRefresh = () => {
+        setIsRefreshing(true);
+        router.reload({
+            only: ['cases', 'stats', 'technician_workload'],
+            preserveScroll: true,
+            preserveState: true,
+            onFinish: () => {
+                setTimeout(() => setIsRefreshing(false), 600);
+            },
+        });
+    };
 
     // Cleanup timeout on unmount
     useEffect(() => {
@@ -1480,9 +1493,27 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                         <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                 <div>
-                                    <h3 className="text-lg font-bold text-gray-900">
-                                        {managerTab === 'task2' ? 'รายการเคสมาตรการป้องกันปัญหา (Task 2)' : 'รายการแจ้งซ่อมที่ต้องจัดการ'}
-                                    </h3>
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        <h3 className="text-lg font-bold text-gray-900">
+                                            {managerTab === 'task2' ? 'รายการเคสมาตรการป้องกันปัญหา (Task 2)' : 'รายการแจ้งซ่อมที่ต้องจัดการ'}
+                                        </h3>
+
+                                        {/* Live Update Indicator & Manual Refresh */}
+                                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-700 shadow-2xs">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                            <span>อัปเดตอัตโนมัติ</span>
+                                            <button
+                                                type="button"
+                                                onClick={handleManualRefresh}
+                                                title="กดเพื่อรีเฟรชข้อมูลล่าสุด"
+                                                className="text-emerald-700 hover:text-emerald-900 p-0.5 rounded transition hover:bg-emerald-100 cursor-pointer"
+                                            >
+                                                <svg className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
                                     <p className="text-xs text-gray-500 mt-0.5">
                                         {managerTab === 'task2' ? 'ค้นหาและติดตามเคส P-CAR และการป้องกันปัญหาไม่ให้เกิดซ้ำ' : 'ค้นหาและกรองใบงานตามความเร่งด่วน ทีม และสถานะ'}
                                     </p>
@@ -1771,6 +1802,31 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                                 )}
                                             </div>
 
+                                            {caseItem.status === 'cancelled' && caseItem.cancellation_reason && (
+                                                <div className="mb-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700">
+                                                    <div className="flex items-start gap-1.5">
+                                                        <span className="text-slate-400 shrink-0">⛔</span>
+                                                        <div className="min-w-0">
+                                                            <span className="font-semibold text-rose-600">เหตุผลที่ยกเลิก:</span> {caseItem.cancellation_reason}
+                                                            {caseItem.cancelled_by?.name && (
+                                                                <span className="text-[11px] text-slate-500 block mt-0.5">โดย {caseItem.cancelled_by.name}</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {caseItem.pcar_cancellation_reason && caseItem.preventive_measure === 'cancelled' && (
+                                                <div className="mb-2 p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-800">
+                                                    <div className="flex items-start gap-1.5">
+                                                        <span className="shrink-0">⚠️</span>
+                                                        <div className="min-w-0">
+                                                            <span className="font-semibold text-rose-700">เหตุผลยกเลิก Task 2:</span> {caseItem.pcar_cancellation_reason}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             <div className="flex justify-between items-center text-xs mt-3 pt-3 border-t border-gray-100">
                                                 {getPriorityBadge(caseItem.priority, caseItem.priority_label)}
                                                 <span className="flex items-center gap-1 text-gray-400">
@@ -1934,6 +1990,17 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
 
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         {getStatusBadge(caseItem.status, caseItem.status_label)}
+                                                        {caseItem.status === 'cancelled' && caseItem.cancellation_reason && (
+                                                            <div className="mt-1">
+                                                                <span
+                                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-50 text-slate-600 border border-slate-200 text-[11px] max-w-[220px] truncate"
+                                                                    title={`เหตุผลที่ยกเลิก: ${caseItem.cancellation_reason}${caseItem.cancelled_by?.name ? ` (โดย ${caseItem.cancelled_by.name})` : ''}`}
+                                                                >
+                                                                    <span className="text-slate-400 shrink-0">⛔</span>
+                                                                    <span className="truncate">{caseItem.cancellation_reason}</span>
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                         <div className="mt-1">
                                                             {renderSlaStatus(caseItem)}
                                                         </div>
@@ -1941,6 +2008,17 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                                             <div className="mt-1">
                                                                 <span className={`px-2.5 py-0.5 inline-flex text-[10px] leading-4 font-bold rounded-full shadow-sm ${caseItem.task2_status_color}`}>
                                                                     {caseItem.task2_status_label}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        {caseItem.pcar_cancellation_reason && caseItem.preventive_measure === 'cancelled' && (
+                                                            <div className="mt-1">
+                                                                <span
+                                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 text-[11px] max-w-[220px] truncate"
+                                                                    title={`เหตุผลยกเลิก Task 2: ${caseItem.pcar_cancellation_reason}`}
+                                                                >
+                                                                    <span>⚠️</span>
+                                                                    <span className="truncate">{caseItem.pcar_cancellation_reason}</span>
                                                                 </span>
                                                             </div>
                                                         )}

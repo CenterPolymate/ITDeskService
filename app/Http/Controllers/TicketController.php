@@ -517,6 +517,12 @@ class TicketController extends Controller
                 'cancellation_reason' => $request->cancellation_reason,
             ]);
 
+            $cancellerName = Auth::user()->name;
+            $ticket->comments()->create([
+                'user_id' => Auth::id(),
+                'message' => "⛔ [ระบบ] ใบงานนี้ถูกยกเลิกโดย {$cancellerName} เนื่องจาก: {$request->cancellation_reason}",
+            ]);
+
             return redirect()->route('tickets.show', $id)->with('success', 'ยกเลิกเคสเรียบร้อยแล้ว');
         } elseif ($request->action === 'close') {
             // Lock if Task 2 is already completed and closed

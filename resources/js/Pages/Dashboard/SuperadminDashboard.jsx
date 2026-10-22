@@ -5,7 +5,20 @@ import { sendBrowserNotification } from '@/Utils/webNotification';
 export default function SuperadminDashboard({ stats, chartLabels = [], chartData = [], latestBackup = null, recentAuditLogs = [] }) {
     const { auth, flash } = usePage().props;
     const [hoveredSegment, setHoveredSegment] = useState(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const prevStatsRef = useRef(null);
+
+    const handleManualRefresh = () => {
+        setIsRefreshing(true);
+        router.reload({
+            only: ['stats', 'chartData', 'latestBackup'],
+            preserveScroll: true,
+            preserveState: true,
+            onFinish: () => {
+                setTimeout(() => setIsRefreshing(false), 600);
+            },
+        });
+    };
 
     // Watch for new tickets or SLA breaches during polling
     useEffect(() => {
@@ -106,10 +119,20 @@ export default function SuperadminDashboard({ stats, chartLabels = [], chartData
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                Live Sync (15s)
-                            </span>
+                                <span>อัปเดตอัตโนมัติ</span>
+                                <button
+                                    type="button"
+                                    onClick={handleManualRefresh}
+                                    title="กดเพื่อรีเฟรชข้อมูลล่าสุด"
+                                    className="text-emerald-700 hover:text-emerald-900 p-0.5 rounded transition hover:bg-emerald-100 cursor-pointer"
+                                >
+                                    <svg className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                </button>
+                            </div>
 
                             <a
                                 href={route('dashboard', { view: 'it_operations' })}

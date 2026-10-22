@@ -849,4 +849,39 @@ class TicketManagementTest extends TestCase
         $response->assertSee('เป็นปัญหาจากการทำงานของผู้ใช้โดยตรง');
         $response->assertSee('Manager Somchai');
     }
+
+    public function test_cancelling_ticket_records_cancellation_reason_and_system_comment(): void
+    {
+        $user = User::factory()->create(['name' => 'User Somsak', 'email' => 'somsak@example.com', 'role' => 'user']);
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0999',
+            'title' => 'ต้องการยกเลิกเคสทดสอบ',
+            'description' => 'อาการทดสอบ',
+            'category' => 'อื่นๆ',
+            'status' => 'pending',
+            'requester_name' => 'User Somsak',
+            'requester_email' => 'somsak@example.com',
+            'requester_phone' => '081-111-2222',
+            'location' => 'อาคาร B',
+        ]);
+
+        $response = $this->actingAs($user)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'cancel',
+            'cancellation_reason' => 'แก้ไขปัญหาได้เองแล้ว ไม่ต้องการการช่วยเหลือ',
+        ]);
+
+        $response->assertRedirect(route('tickets.show', $case->id));
+        $case->refresh();
+
+        $this->assertEquals('cancelled', $case->status);
+        $this->assertEquals('แก้ไขปัญหาได้เองแล้ว ไม่ต้องการการช่วยเหลือ', $case->cancellation_reason);
+        $this->assertEquals($user->id, $case->cancelled_by);
+        $this->assertNotNull($case->cancelled_at);
+
+        $this->assertDatabaseHas('ticket_comments', [
+            'helpdesk_case_id' => $case->id,
+            'user_id' => $user->id,
+            'message' => '⛔ [ระบบ] ใบงานนี้ถูกยกเลิกโดย User Somsak เนื่องจาก: แก้ไขปัญหาได้เองแล้ว ไม่ต้องการการช่วยเหลือ',
+        ]);
+    }
 }

@@ -794,6 +794,20 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                     </div>
                                                 )}
 
+                                                {c.status === 'cancelled' && c.cancellation_reason && (
+                                                    <div className="mb-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700">
+                                                        <div className="flex items-start gap-1.5">
+                                                            <span className="text-slate-400 shrink-0">⛔</span>
+                                                            <div className="min-w-0">
+                                                                <span className="font-semibold text-rose-600">เหตุผลที่ยกเลิก:</span> {c.cancellation_reason}
+                                                                {c.cancelled_by?.name && (
+                                                                    <span className="text-[11px] text-slate-500 block mt-0.5">โดย {c.cancelled_by.name}</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 <div className="flex justify-end items-center text-xs text-gray-500 pt-2.5 border-t border-gray-100">
                                                     <span className="flex items-center gap-1 text-[11px]">
                                                         <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -932,6 +946,15 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                             <td className="px-5 py-3.5 whitespace-nowrap text-sm">
                                                                 <div className="flex flex-col gap-1 items-start">
                                                                     {getStatusBadge(c.status, c.status_label)}
+                                                                    {c.status === 'cancelled' && c.cancellation_reason && (
+                                                                        <span
+                                                                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-50 text-slate-600 border border-slate-200 text-[11px] max-w-[200px] truncate"
+                                                                            title={`เหตุผลที่ยกเลิก: ${c.cancellation_reason}${c.cancelled_by?.name ? ` (โดย ${c.cancelled_by.name})` : ''}`}
+                                                                        >
+                                                                            <span className="text-slate-400 shrink-0">⛔</span>
+                                                                            <span className="truncate">{c.cancellation_reason}</span>
+                                                                        </span>
+                                                                    )}
                                                                     {c.status === 'closed' && c.rating && (
                                                                         <span
                                                                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold"

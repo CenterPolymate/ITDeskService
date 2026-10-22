@@ -342,6 +342,11 @@
   - [x] แก้ไข Dropdown ตัวกรองในหน้ารายงานสถิติ (`Reports/Index.jsx`) สำหรับเดือน, ปี, บริษัท, ทีม (`pl-3.5 pr-10 cursor-pointer`)
   - [x] แก้ไข Dropdown การตั้งค่า SLA Warning Threshold ในหน้าตั้งค่าระบบ (`Settings/Index.jsx`)
   - [x] แก้ไข Dropdown เลือกเสียงแจ้งเตือน (Sound Tone) ใน Navigation Header ทั้งบนเดสก์ท็อปและมือถือ (`navigation.blade.php`)
-  - [x] ผ่านการทดสอบ automated tests 163/163 เทสต์ และคอมไพล์ Vite assets สำเร็จ
+- [x] พัฒนาระบบแสดงเหตุผลการยกเลิกเคส (Cancellation Reasons) และระบบ Live Indicator บน Dashboard ทุก Role:
+  - [x] เมื่อมีการยกเลิกเคส (`action === 'cancel'`) บันทึกข้อความประวัติระบบ (System Audit Comment) ลงใน Ticket Comments อัตโนมัติ: `⛔ [ระบบ] ใบงานนี้ถูกยกเลิกโดย [ชื่อ] เนื่องจาก: [เหตุผล]`
+  - [x] Eager load `cancelledBy:id,name` ใน `DashboardController.php` ทั้งฝั่ง User Dashboard และ IT Operations
+  - [x] แสดง Badge และ Tooltip เหตุผลการยกเลิกเคสในตาราง Desktop รวมถึงกล่องข้อความสีเทา/แดงอ่อนใน Mobile Cards ทั้งใน `UserDashboard.jsx` และ `ItStaffDashboard.jsx` (รวมถึง Task 2 PCAR cancellation)
+  - [x] ติดตั้งปุ่มและป้าย `🟢 อัปเดตอัตโนมัติ` พร้อมปุ่มกด Manual Refresh (หมุนแอนิเมชัน) บนส่วนหัวตารางของ `ItStaffDashboard.jsx` และ `SuperadminDashboard.jsx` ให้สอดคล้องกันทุก Role
+  - [x] เพิ่ม Feature Test `test_cancelling_ticket_records_cancellation_reason_and_system_comment` ใน `TicketManagementTest.php` ผ่านครบ 100% (164/164 เทสต์ทั้งระบบ)
 
 

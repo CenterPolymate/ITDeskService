@@ -216,7 +216,7 @@ class DashboardController extends Controller
             }
 
             // ดึงเฉพาะเคสของ User คนนั้นๆ
-            $cases = $query->paginate($perPage)->withQueryString();
+            $cases = $query->with(['cancelledBy:id,name'])->paginate($perPage)->withQueryString();
 
             // ดึงเคสที่กำลังดำเนินการล่าสุดสำหรับ Spotlight (ไม่รวมข้อมูลช่างตามความต้องการ)
             $activeTickets = (clone $baseQuery)
@@ -506,7 +506,7 @@ class DashboardController extends Controller
             $perPage = 10;
         }
 
-        $cases = $query->paginate($perPage)->withQueryString();
+        $cases = $query->with(['cancelledBy:id,name'])->paginate($perPage)->withQueryString();
 
         // คำนวณเปอร์เซ็นต์สำหรับ Pipeline แยกตามขั้นตอน (อิงจากงานค้างที่เปิดอยู่ open_total)
         $openTotal = $stats['open_total'];
