@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, Link, usePage } from '@inertiajs/react';
 import {
     sendBrowserNotification,
+    isTicketViewed,
+    markTicketAsViewed,
 } from '@/Utils/webNotification';
 import SortableHeader from '@/Components/SortableHeader';
 
@@ -35,13 +37,34 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
     const knownUrgentIdsRef = useRef(null);
     const knownTicketsMapRef = useRef(null);
 
+    // Listen to ticket viewed events to immediately clear any highlight
+    useEffect(() => {
+        const handleTicketViewed = (e) => {
+            const viewedId = e.detail?.ticketId;
+            if (viewedId) {
+                const numId = Number(viewedId);
+                setHighlightedTicketIds(prev => {
+                    if (!prev.has(viewedId) && !prev.has(numId)) return prev;
+                    const next = new Set(prev);
+                    next.delete(viewedId);
+                    next.delete(numId);
+                    return next;
+                });
+            }
+        };
+        window.addEventListener('itdesk:ticket-viewed', handleTicketViewed);
+        return () => window.removeEventListener('itdesk:ticket-viewed', handleTicketViewed);
+    }, []);
+
     // Watch for new tickets and status changes during polling
     useEffect(() => {
         const ticketList = cases?.data || (Array.isArray(cases) ? cases : []);
 
         // First load: memorize existing tickets and statuses
         if (knownTicketsMapRef.current === null) {
-            knownTicketsMapRef.current = new Map(ticketList.map(c => [c.id, c.status]));
+            if (ticketList.length > 0) {
+                knownTicketsMapRef.current = new Map(ticketList.map(c => [c.id, c.status]));
+            }
             return;
         }
 
@@ -50,42 +73,51 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
             const isKnown = knownTicketsMapRef.current.has(t.id);
             const prevStatus = knownTicketsMapRef.current.get(t.id);
 
+            // Check if ticket is ACTUALLY newly created (e.g. within 10 minutes)
+            const createdAtTime = t.created_at ? new Date(t.created_at).getTime() : 0;
+            const isRecent = createdAtTime > 0 && (Date.now() - createdAtTime) < (10 * 60 * 1000);
+            const alreadyViewed = isTicketViewed(t.id, auth.user?.id);
+
             if (!isKnown) {
-                // Brand new ticket arrived for this user's scope
-                let title = `🔔 มีเคสใหม่เข้ามา: #${t.ticket_no}`;
-                let body = `${t.title || 'เคสใหม่'}\nผู้แจ้ง: ${t.requester_name || '-'} (${t.department || '-'})${t.actual_user_name ? ` (แจ้งแทน: ${t.actual_user_name})` : ''}`;
+                // ONLY notify if it is a genuinely recent ticket that has not been viewed yet!
+                if (isRecent && !alreadyViewed) {
+                    let title = `🔔 มีเคสใหม่เข้ามา: #${t.ticket_no}`;
+                    let body = `${t.title || 'เคสใหม่'}\nผู้แจ้ง: ${t.requester_name || '-'} (${t.department || '-'})${t.actual_user_name ? ` (แจ้งแทน: ${t.actual_user_name})` : ''}`;
 
-                if (t.priority === 'urgent') {
-                    title = `🚨 เคสด่วนที่สุดใหม่: #${t.ticket_no}`;
-                } else if (userRole === 'technician' || userRole.startsWith('team_')) {
-                    title = `🛠️ มีเคสใหม่ส่งถึงทีมคุณ: #${t.ticket_no}`;
-                } else if (userRole === 'helpdesk') {
-                    title = `📥 มีเคสใหม่รอคัดกรอง (Triage): #${t.ticket_no}`;
-                } else if (isManager) {
-                    title = `📋 มีเคสใหม่ในระบบ: #${t.ticket_no}`;
-                }
+                    if (t.priority === 'urgent') {
+                        title = `🚨 เคสด่วนที่สุดใหม่: #${t.ticket_no}`;
+                    } else if (userRole === 'technician' || userRole.startsWith('team_')) {
+                        title = `🛠️ มีเคสใหม่ส่งถึงทีมคุณ: #${t.ticket_no}`;
+                    } else if (userRole === 'helpdesk') {
+                        title = `📥 มีเคสใหม่รอคัดกรอง (Triage): #${t.ticket_no}`;
+                    } else if (isManager) {
+                        title = `📋 มีเคสใหม่ในระบบ: #${t.ticket_no}`;
+                    }
 
-                sendBrowserNotification(title, {
-                    body,
-                    tag: `staff-ticket-new-${t.id}`,
-                    url: route('tickets.show', t.id),
-                    ticket_no: t.ticket_no,
-                    priority: t.priority,
-                    type: t.priority === 'urgent' ? 'urgent' : 'new',
-                    onClick: () => {
-                        window.location.href = route('tickets.show', t.id);
-                    },
-                });
-
-                // Highlight newly arrived ticket in table and card view for 30s
-                setHighlightedTicketIds(prev => new Set(prev).add(t.id));
-                setTimeout(() => {
-                    setHighlightedTicketIds(prev => {
-                        const next = new Set(prev);
-                        next.delete(t.id);
-                        return next;
+                    sendBrowserNotification(title, {
+                        body,
+                        tag: `staff-ticket-new-${t.id}`,
+                        url: route('tickets.show', t.id),
+                        ticket_no: t.ticket_no,
+                        ticket_id: t.id,
+                        priority: t.priority,
+                        type: t.priority === 'urgent' ? 'urgent' : 'new',
+                        onClick: () => {
+                            markTicketAsViewed(t.id, auth.user?.id);
+                            window.location.href = route('tickets.show', t.id);
+                        },
                     });
-                }, 30000);
+
+                    // Highlight newly arrived ticket in table and card view for 30s
+                    setHighlightedTicketIds(prev => new Set(prev).add(t.id));
+                    setTimeout(() => {
+                        setHighlightedTicketIds(prev => {
+                            const next = new Set(prev);
+                            next.delete(t.id);
+                            return next;
+                        });
+                    }, 30000);
+                }
             } else if (prevStatus && prevStatus !== t.status) {
                 // Ticket status changed
                 if (t.status === 'resolved') {
@@ -94,8 +126,10 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                         tag: `staff-ticket-status-${t.id}-${t.status}`,
                         url: route('tickets.show', t.id),
                         ticket_no: t.ticket_no,
+                        ticket_id: t.id,
                         type: 'resolved',
                         onClick: () => {
+                            markTicketAsViewed(t.id, auth.user?.id);
                             window.location.href = route('tickets.show', t.id);
                         },
                     });
@@ -1397,6 +1431,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                         <a
                                             key={caseItem.id}
                                             href={route('tickets.show', caseItem.id)}
+                                            onClick={() => markTicketAsViewed(caseItem.id, auth.user?.id)}
                                             className={`block rounded-xl shadow-sm p-4 transition-all relative overflow-hidden ${
                                                 isHighlighted
                                                     ? 'bg-amber-50/90 border-2 border-amber-400 ring-2 ring-amber-300 shadow-md animate-pulse'
@@ -1526,6 +1561,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                                         <div className="flex items-center gap-1.5 flex-wrap">
                                                             <a
                                                                 href={route('tickets.show', caseItem.id)}
+                                                                onClick={() => markTicketAsViewed(caseItem.id, auth.user?.id)}
                                                                 className="text-sm font-bold text-indigo-600 hover:text-indigo-900 hover:underline"
                                                             >
                                                                 #{caseItem.ticket_no}
@@ -1592,6 +1628,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                         <a
                                                             href={route('tickets.show', caseItem.id)}
+                                                            onClick={() => markTicketAsViewed(caseItem.id, auth.user?.id)}
                                                             className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
                                                         >
                                                             ดูรายละเอียด

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { markTicketAsViewed } from '@/Utils/webNotification';
 
 /**
  * InAppToastContainer
@@ -25,6 +26,7 @@ export default function InAppToastContainer() {
                 priority: detail.priority || null,
                 type: detail.type || 'info', // 'urgent', 'new', 'chat', 'resolved', 'warning', 'info'
                 ticket_no: detail.ticket_no || null,
+                ticket_id: detail.ticket_id || null,
                 createdAt: Date.now(),
                 duration,
                 remainingTime: duration,
@@ -39,16 +41,45 @@ export default function InAppToastContainer() {
             });
         };
 
+        const handleDismissEvent = (e) => {
+            const { ticketId, ticket_no } = e.detail || {};
+            if (ticketId || ticket_no) {
+                setToasts((prev) =>
+                    prev.filter((t) => {
+                        if (ticketId && (String(t.ticket_id) === String(ticketId) || t.tag === `staff-ticket-new-${ticketId}`)) {
+                            return false;
+                        }
+                        if (ticket_no && t.ticket_no === ticket_no) {
+                            return false;
+                        }
+                        return true;
+                    })
+                );
+            }
+        };
+
         window.addEventListener('itdesk:toast', handleToastEvent);
-        return () => window.removeEventListener('itdesk:toast', handleToastEvent);
+        window.addEventListener('itdesk:ticket-viewed', handleDismissEvent);
+        window.addEventListener('itdesk:dismiss-toast', handleDismissEvent);
+        return () => {
+            window.removeEventListener('itdesk:toast', handleToastEvent);
+            window.removeEventListener('itdesk:ticket-viewed', handleDismissEvent);
+            window.removeEventListener('itdesk:dismiss-toast', handleDismissEvent);
+        };
     }, []);
 
-    const dismissToast = (id) => {
+    const dismissToast = (id, ticketId = null) => {
+        if (ticketId) {
+            markTicketAsViewed(ticketId);
+        }
         setToasts((prev) => prev.filter((t) => t.id !== id));
     };
 
     const handleAction = (toast) => {
-        dismissToast(toast.id);
+        dismissToast(toast.id, toast.ticket_id);
+        if (toast.ticket_id) {
+            markTicketAsViewed(toast.ticket_id);
+        }
         if (typeof toast.onClick === 'function') {
             toast.onClick();
         } else if (toast.url) {
@@ -67,7 +98,7 @@ export default function InAppToastContainer() {
                 <ToastItem
                     key={toast.id}
                     toast={toast}
-                    onDismiss={() => dismissToast(toast.id)}
+                    onDismiss={() => dismissToast(toast.id, toast.ticket_id)}
                     onAction={() => handleAction(toast)}
                 />
             ))}

@@ -161,6 +161,74 @@ export async function requestNotificationPermission() {
 }
 
 /**
+ * Get viewed tickets storage key for user.
+ */
+function getViewedStorageKey(userId = null) {
+    return userId ? `itdesk_viewed_tickets_${userId}` : 'itdesk_viewed_tickets';
+}
+
+/**
+ * Get list of viewed ticket IDs from localStorage.
+ */
+export function getViewedTicketIds(userId = null) {
+    if (typeof window === 'undefined') return new Set();
+    try {
+        const key = getViewedStorageKey(userId);
+        const stored = localStorage.getItem(key);
+        if (!stored) return new Set();
+        const parsed = JSON.parse(stored);
+        return new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+    } catch {
+        return new Set();
+    }
+}
+
+/**
+ * Check if a ticket has already been viewed.
+ */
+export function isTicketViewed(ticketId, userId = null) {
+    if (!ticketId) return false;
+    const viewedSet = getViewedTicketIds(userId);
+    return viewedSet.has(String(ticketId));
+}
+
+/**
+ * Mark a ticket as viewed by the user.
+ */
+export function markTicketAsViewed(ticketId, userId = null) {
+    if (typeof window === 'undefined' || !ticketId) return;
+    try {
+        const strId = String(ticketId);
+        const key = getViewedStorageKey(userId);
+        const viewedSet = getViewedTicketIds(userId);
+        viewedSet.add(strId);
+
+        // Keep up to 300 recent ticket IDs
+        const arr = Array.from(viewedSet).slice(-300);
+        localStorage.setItem(key, JSON.stringify(arr));
+
+        // Dispatch window event so toasts & tables can react immediately
+        window.dispatchEvent(
+            new CustomEvent('itdesk:ticket-viewed', {
+                detail: { ticketId: strId, userId },
+            })
+        );
+    } catch {}
+}
+
+/**
+ * Dismiss active toast for a specific ticket.
+ */
+export function dismissToastByTicketId(ticketId) {
+    if (typeof window === 'undefined' || !ticketId) return;
+    window.dispatchEvent(
+        new CustomEvent('itdesk:dismiss-toast', {
+            detail: { ticketId: String(ticketId) },
+        })
+    );
+}
+
+/**
  * Dispatch an In-App Toast notification on screen.
  */
 export function showInAppToast(toastData) {
@@ -199,6 +267,7 @@ export function sendBrowserNotification(title, options = {}) {
                             ? 'resolved'
                             : 'new'),
                     ticket_no: options.ticket_no || null,
+                    ticket_id: options.ticket_id || null,
                     duration: options.duration || 8000,
                 },
             })
@@ -247,5 +316,9 @@ if (typeof window !== 'undefined') {
         requestNotificationPermission,
         sendBrowserNotification,
         showInAppToast,
+        getViewedTicketIds,
+        isTicketViewed,
+        markTicketAsViewed,
+        dismissToastByTicketId,
     };
 }

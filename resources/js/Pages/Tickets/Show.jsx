@@ -4,6 +4,8 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import {
     sendBrowserNotification,
+    markTicketAsViewed,
+    dismissToastByTicketId,
 } from '@/Utils/webNotification';
 
 // Format Date to Thai standard
@@ -174,6 +176,14 @@ export default function Show({ ticket, categories = [], teams = [] }) {
         }, 15000);
         return () => clearInterval(interval);
     }, []);
+
+    // Mark ticket as viewed immediately and dismiss any active toast for it
+    useEffect(() => {
+        if (ticket?.id) {
+            markTicketAsViewed(ticket.id, user?.id);
+            dismissToastByTicketId(ticket.id);
+        }
+    }, [ticket?.id, user?.id]);
 
     // Watch for new incoming comments from other users and notify
     useEffect(() => {

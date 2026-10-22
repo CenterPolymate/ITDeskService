@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
-import { sendBrowserNotification } from '@/Utils/webNotification';
+import { sendBrowserNotification, markTicketAsViewed } from '@/Utils/webNotification';
 import Modal from '@/Components/Modal';
 import SortableHeader from '@/Components/SortableHeader';
 
@@ -10,6 +10,25 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
     const currentStatus = filters.status || 'all';
     const [highlightedTicketIds, setHighlightedTicketIds] = useState(new Set());
     const knownCasesRef = useRef(null);
+
+    // Listen to ticket viewed events to immediately clear any highlight
+    useEffect(() => {
+        const handleTicketViewed = (e) => {
+            const viewedId = e.detail?.ticketId;
+            if (viewedId) {
+                const numId = Number(viewedId);
+                setHighlightedTicketIds(prev => {
+                    if (!prev.has(viewedId) && !prev.has(numId)) return prev;
+                    const next = new Set(prev);
+                    next.delete(viewedId);
+                    next.delete(numId);
+                    return next;
+                });
+            }
+        };
+        window.addEventListener('itdesk:ticket-viewed', handleTicketViewed);
+        return () => window.removeEventListener('itdesk:ticket-viewed', handleTicketViewed);
+    }, []);
 
     // CSAT 1-Click Acceptance States
     const [showCsatModal, setShowCsatModal] = useState(false);
@@ -88,8 +107,10 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                     tag: `user-ticket-${t.id}-${t.status}`,
                     url: route('tickets.show', t.id),
                     ticket_no: t.ticket_no,
+                    ticket_id: t.id,
                     type: t.status === 'resolved' ? 'resolved' : 'info',
                     onClick: () => {
+                        markTicketAsViewed(t.id, auth.user?.id);
                         window.location.href = route('tickets.show', t.id);
                     },
                 });
