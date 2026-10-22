@@ -169,7 +169,8 @@ class DashboardController extends Controller
                 $query->where(function ($q) use ($search) {
                     $q->where('ticket_no', 'like', "%{$search}%")
                         ->orWhere('title', 'like', "%{$search}%")
-                        ->orWhere('category', 'like', "%{$search}%");
+                        ->orWhere('category', 'like', "%{$search}%")
+                        ->orWhere('location', 'like', "%{$search}%");
                 });
             }
 
@@ -209,8 +210,13 @@ class DashboardController extends Controller
                 $query->orderBy('id', 'desc');
             }
 
+            $perPage = (int) $request->input('per_page', 10);
+            if (! in_array($perPage, [10, 25, 50], true)) {
+                $perPage = 10;
+            }
+
             // ดึงเฉพาะเคสของ User คนนั้นๆ
-            $cases = $query->paginate(10)->withQueryString();
+            $cases = $query->paginate($perPage)->withQueryString();
 
             // ดึงเคสที่กำลังดำเนินการล่าสุดสำหรับ Spotlight (ไม่รวมข้อมูลช่างตามความต้องการ)
             $activeTickets = (clone $baseQuery)
@@ -235,6 +241,7 @@ class DashboardController extends Controller
                     'search' => $request->input('search', ''),
                     'sort' => $sortField,
                     'direction' => $sortDirection,
+                    'per_page' => $perPage,
                 ],
             ]);
         }

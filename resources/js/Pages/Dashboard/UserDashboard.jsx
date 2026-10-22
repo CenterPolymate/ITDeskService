@@ -169,6 +169,7 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
 
     const currentSort = filters.sort || 'created_at';
     const currentDirection = filters.direction || 'desc';
+    const currentPerPage = Number(filters.per_page) || 10;
 
     const handleSort = (field) => {
         let nextDirection = 'asc';
@@ -180,7 +181,8 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
         handleSortDirect(field, nextDirection);
     };
 
-    const triggerSearch = (query) => {
+    const triggerSearch = (query, overridePerPage) => {
+        const perPageVal = overridePerPage !== undefined ? overridePerPage : currentPerPage;
         router.get(
             route('dashboard'),
             {
@@ -188,6 +190,7 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                 search: query?.trim() ? query.trim() : undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
                 direction: currentDirection !== 'desc' ? currentDirection : undefined,
+                per_page: perPageVal !== 10 ? perPageVal : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -214,6 +217,7 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                 search: search?.trim() ? search.trim() : undefined,
                 sort: field,
                 direction: direction,
+                per_page: currentPerPage !== 10 ? currentPerPage : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -246,6 +250,24 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                 status: statusKey !== 'all' ? statusKey : undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
                 direction: currentDirection !== 'desc' ? currentDirection : undefined,
+                per_page: currentPerPage !== 10 ? currentPerPage : undefined,
+            },
+            { preserveState: true, preserveScroll: true }
+        );
+    };
+
+    const handlePerPageChange = (newPerPage) => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        router.get(
+            route('dashboard'),
+            {
+                status: currentStatus !== 'all' ? currentStatus : undefined,
+                search: search?.trim() ? search.trim() : undefined,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
+                per_page: Number(newPerPage) !== 10 ? Number(newPerPage) : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -572,7 +594,7 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                         <button
                                             type="button"
                                             onClick={() => handleFilterStatus('all')}
-                                            className="text-xs text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-full transition flex items-center gap-1 font-medium"
+                                            className="text-xs text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-full transition flex items-center gap-1 font-medium cursor-pointer"
                                         >
                                             <span>ล้างตัวกรองสถานะ</span>
                                             <span>✕</span>
@@ -580,31 +602,48 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                     )}
                                 </div>
 
-                                <form onSubmit={handleSearchSubmit} className="w-full sm:w-80">
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            value={search}
-                                            onChange={(e) => handleSearchChange(e.target.value)}
-                                            placeholder="ค้นหาใบงาน, หัวข้อปัญหา..."
-                                            className="w-full pl-10 pr-9 py-2 border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm leading-normal"
-                                        />
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                            </svg>
-                                        </div>
-                                        {search && (
-                                            <button
-                                                type="button"
-                                                onClick={handleClearSearch}
-                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                                            >
-                                                ✕
-                                            </button>
-                                        )}
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                                    {/* Per Page Selector */}
+                                    <div className="flex items-center gap-2 text-xs text-gray-500 justify-end">
+                                        <span className="whitespace-nowrap">แสดง:</span>
+                                        <select
+                                            value={currentPerPage}
+                                            onChange={(e) => handlePerPageChange(Number(e.target.value))}
+                                            aria-label="เลือกจำนวนรายการต่อหน้า"
+                                            className="text-xs border-gray-300 rounded-lg py-1.5 px-2 bg-white text-gray-700 focus:ring-blue-500 focus:border-blue-500 shadow-2xs cursor-pointer"
+                                        >
+                                            <option value={10}>10 รายการ</option>
+                                            <option value={25}>25 รายการ</option>
+                                            <option value={50}>50 รายการ</option>
+                                        </select>
                                     </div>
-                                </form>
+
+                                    <form onSubmit={handleSearchSubmit} className="w-full sm:w-80">
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={search}
+                                                onChange={(e) => handleSearchChange(e.target.value)}
+                                                placeholder="ค้นหาใบงาน, หัวข้อปัญหา, สถานที่..."
+                                                className="w-full pl-10 pr-9 py-2 border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 shadow-sm text-sm leading-normal"
+                                            />
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                </svg>
+                                            </div>
+                                            {search && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleClearSearch}
+                                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                                                >
+                                                    ✕
+                                                </button>
+                                            )}
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
 
                             {/* Ticket Content */}
@@ -709,6 +748,12 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                     <h4 className="text-base font-semibold text-gray-900 mb-1 leading-tight">
                                                         {c.title}
                                                     </h4>
+                                                {c.location && (
+                                                    <div className="flex items-center gap-1 text-xs text-slate-500 mb-2">
+                                                        <span>📍</span>
+                                                        <span className="truncate">{c.location}</span>
+                                                    </div>
+                                                )}
                                                 {c.actual_user_name && (
                                                     <div className="mb-2">
                                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
@@ -748,6 +793,19 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                         >
                                                             <span>⭐ ตรวจรับงานและให้คะแนน (Accept)</span>
                                                         </button>
+                                                    </div>
+                                                )}
+
+                                                {c.status === 'closed' && c.rating && (
+                                                    <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between text-xs">
+                                                        <span className="text-gray-500 font-medium">คะแนนความพึงพอใจ:</span>
+                                                        <span
+                                                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 font-bold"
+                                                            title={c.feedback ? `ข้อเสนอแนะ: ${c.feedback}` : undefined}
+                                                        >
+                                                            <span>⭐</span>
+                                                            <span>{c.rating}/5 ดาว</span>
+                                                        </span>
                                                     </div>
                                                 )}
                                                 </a>
@@ -811,10 +869,14 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                     return (
                                                         <tr
                                                             key={c.id}
-                                                            className={`transition-all duration-300 ${
+                                                            onClick={(e) => {
+                                                                if (e.target.closest('a, button, select, input, textarea, label')) return;
+                                                                router.visit(route('tickets.show', c.id));
+                                                            }}
+                                                            className={`cursor-pointer transition-all duration-300 ${
                                                                 isHighlighted
                                                                     ? 'bg-amber-50/95 ring-2 ring-inset ring-amber-400 shadow-xs'
-                                                                    : 'hover:bg-blue-50/40 transition-colors'
+                                                                    : 'hover:bg-blue-50/60 transition-colors'
                                                             }`}
                                                         >
                                                             <td className="px-5 py-3.5 whitespace-nowrap text-sm font-bold">
@@ -834,17 +896,23 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                                 </div>
                                                             </td>
                                                             <td className="px-5 py-3.5 text-sm text-gray-900 font-medium max-w-md">
-                                                                <div className="truncate">{c.title}</div>
-                                                                {c.actual_user_name && (
-                                                                    <div className="mt-1">
+                                                                <div className="truncate font-semibold">{c.title}</div>
+                                                                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                                                    {c.location && (
+                                                                        <span className="inline-flex items-center gap-1 text-xs text-slate-500 font-normal">
+                                                                            <span>📍</span>
+                                                                            <span className="truncate max-w-[200px]">{c.location}</span>
+                                                                        </span>
+                                                                    )}
+                                                                    {c.actual_user_name && (
                                                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
                                                                             <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                                             </svg>
                                                                             แจ้งแทน: {c.actual_user_name}
                                                                         </span>
-                                                                    </div>
-                                                                )}
+                                                                    )}
+                                                                </div>
                                                             </td>
                                                             <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-500">
                                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 text-xs">
@@ -852,7 +920,18 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                                 </span>
                                                             </td>
                                                             <td className="px-5 py-3.5 whitespace-nowrap text-sm">
-                                                                {getStatusBadge(c.status, c.status_label)}
+                                                                <div className="flex flex-col gap-1 items-start">
+                                                                    {getStatusBadge(c.status, c.status_label)}
+                                                                    {c.status === 'closed' && c.rating && (
+                                                                        <span
+                                                                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold"
+                                                                            title={c.feedback ? `ข้อเสนอแนะ: ${c.feedback}` : undefined}
+                                                                        >
+                                                                            <span>⭐</span>
+                                                                            <span>{c.rating}/5</span>
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                             </td>
                                                             <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-500">
                                                                 {formatThaiDate(c.created_at)}
@@ -887,11 +966,26 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                     </div>
 
                                     {/* Pagination */}
-                                    {cases.links && cases.links.length > 3 && (
-                                        <div className="mt-6 flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-gray-100">
-                                            <div className="text-xs text-gray-500">
+                                    <div className="mt-6 flex flex-wrap justify-between items-center gap-3 pt-4 border-t border-gray-100">
+                                        <div className="flex items-center gap-3 text-xs text-gray-500">
+                                            <span>
                                                 แสดง {cases.from || 0} ถึง {cases.to || 0} จากทั้งหมด {cases.total || 0} รายการ
+                                            </span>
+                                            <div className="flex items-center gap-1.5 border-l border-gray-200 pl-3">
+                                                <span>ต่อหน้า:</span>
+                                                <select
+                                                    value={currentPerPage}
+                                                    onChange={(e) => handlePerPageChange(Number(e.target.value))}
+                                                    aria-label="เลือกจำนวนรายการต่อหน้าส่วนล่าง"
+                                                    className="text-xs border-gray-200 rounded-lg py-1 px-2 bg-white text-gray-700 focus:ring-blue-500 focus:border-blue-500 shadow-2xs cursor-pointer"
+                                                >
+                                                    <option value={10}>10</option>
+                                                    <option value={25}>25</option>
+                                                    <option value={50}>50</option>
+                                                </select>
                                             </div>
+                                        </div>
+                                        {cases.links && cases.links.length > 3 && (
                                             <div className="flex flex-wrap gap-1">
                                                 {cases.links.map((link, idx) => (
                                                     <button
@@ -909,8 +1003,8 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                     />
                                                 ))}
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </>
                             )}
                         </div>
