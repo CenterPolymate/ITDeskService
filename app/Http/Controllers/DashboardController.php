@@ -308,9 +308,16 @@ class DashboardController extends Controller
             // Task 2 Stats
             'task2_total' => ($isManager || $isAdmin)
                 ? (clone $baseQuery)->where('status', 'closed')->where(function ($q) {
-                    $q->whereNull('requires_preventive_measure')->orWhere('requires_preventive_measure', true);
+                    $q->whereNull('requires_preventive_measure')
+                        ->orWhere('requires_preventive_measure', true)
+                        ->orWhereNotNull('pcar_no')
+                        ->orWhere('preventive_measure', 'cancelled');
                 })->count()
-                : (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->count(),
+                : (clone $baseQuery)->where('status', 'closed')->where(function ($q) {
+                    $q->where('requires_preventive_measure', true)
+                        ->orWhereNotNull('pcar_no')
+                        ->orWhere('preventive_measure', 'cancelled');
+                })->count(),
             'task2_manager_review' => (clone $baseQuery)->where('status', 'closed')->whereNull('requires_preventive_measure')->count(),
             'task2_assigned' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where(function ($q) {
                 $q->whereNull('preventive_measure')->orWhere('preventive_measure', 'assigned');
@@ -318,6 +325,9 @@ class DashboardController extends Controller
             'task2_in_progress' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where('preventive_measure', 'in_progress')->count(),
             'task2_pending_review' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where('preventive_measure', 'pending_review')->count(),
             'task2_completed' => (clone $baseQuery)->where('status', 'closed')->where('requires_preventive_measure', true)->where('preventive_measure', 'done')->count(),
+            'task2_cancelled' => (clone $baseQuery)->where('status', 'closed')->where(function ($q) {
+                $q->where('preventive_measure', 'cancelled')->orWhereNotNull('pcar_cancelled_at');
+            })->count(),
         ];
 
         // Technician Workload Data for Tier 3 Managers & Administrator

@@ -320,11 +320,17 @@ class HelpdeskCase extends Model
                         $query->where('status', 'closed')
                             ->where(function ($q) {
                                 $q->whereNull('requires_preventive_measure')
-                                    ->orWhere('requires_preventive_measure', true);
+                                    ->orWhere('requires_preventive_measure', true)
+                                    ->orWhereNotNull('pcar_no')
+                                    ->orWhere('preventive_measure', 'cancelled');
                             });
                     } else {
                         $query->where('status', 'closed')
-                            ->where('requires_preventive_measure', true);
+                            ->where(function ($q) {
+                                $q->where('requires_preventive_measure', true)
+                                    ->orWhereNotNull('pcar_no')
+                                    ->orWhere('preventive_measure', 'cancelled');
+                            });
                     }
                 } elseif ($status === 'task2_assigned') {
                     $query->where('status', 'closed')
@@ -345,6 +351,12 @@ class HelpdeskCase extends Model
                     $query->where('status', 'closed')
                         ->where('requires_preventive_measure', true)
                         ->where('preventive_measure', 'done');
+                } elseif ($status === 'task2_cancelled') {
+                    $query->where('status', 'closed')
+                        ->where(function ($q) {
+                            $q->where('preventive_measure', 'cancelled')
+                                ->orWhereNotNull('pcar_cancelled_at');
+                        });
                 } elseif ($status !== 'all') {
                     $query->where('status', $status);
                 }
@@ -393,6 +405,28 @@ class HelpdeskCase extends Model
                         ->whereNull('in_progress_by')
                         ->whereNull('analyzing_by');
                 }
+            })
+            ->when(($filters['manager_tab'] ?? null) === 'task2' && empty($filters['status']), function ($query) {
+                $user = Auth::user();
+                if (! $user || (method_exists($user, 'isManager') && $user->isManager()) || in_array($user->role, ['manager', 'manager_software', 'manager_network_hardware', 'administrator'])) {
+                    $query->where('status', 'closed')
+                        ->where(function ($q) {
+                            $q->whereNull('requires_preventive_measure')
+                                ->orWhere('requires_preventive_measure', true)
+                                ->orWhereNotNull('pcar_no')
+                                ->orWhere('preventive_measure', 'cancelled');
+                        });
+                } else {
+                    $query->where('status', 'closed')
+                        ->where(function ($q) {
+                            $q->where('requires_preventive_measure', true)
+                                ->orWhereNotNull('pcar_no')
+                                ->orWhere('preventive_measure', 'cancelled');
+                        });
+                }
+            })
+            ->when(($filters['manager_tab'] ?? null) === 'task1' && empty($filters['status']), function ($query) {
+                $query->whereNotIn('status', ['closed', 'cancelled']);
             });
     }
 

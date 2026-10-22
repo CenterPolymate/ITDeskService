@@ -205,6 +205,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
                 tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
                 search: formFilters.search || undefined,
+                manager_tab: managerTab || undefined,
                 view: filters.view || undefined,
                 sort: field,
                 direction: direction,
@@ -213,8 +214,37 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
         );
     };
 
+    const handleManagerTabSwitch = (tabKey) => {
+        setManagerTab(tabKey);
+        const targetStatus = tabKey === 'task2' ? 'task2_all' : 'not_closed';
+        setFormFilters(prev => ({ ...prev, status: targetStatus }));
+        router.get(
+            route('dashboard'),
+            {
+                status: targetStatus,
+                priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
+                team: formFilters.team !== 'all' ? formFilters.team : undefined,
+                technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
+                tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
+                search: formFilters.search || undefined,
+                manager_tab: tabKey,
+                view: filters.view || undefined,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
+            },
+            { preserveState: true, preserveScroll: true }
+        );
+    };
+
     const handleFilterChange = (key, value) => {
         setFormFilters(prev => ({ ...prev, [key]: value }));
+        if (key === 'status') {
+            if (value.startsWith('task2')) {
+                setManagerTab('task2');
+            } else if (value !== 'all') {
+                setManagerTab('task1');
+            }
+        }
     };
 
     const handleTier2TabChange = (tabKey) => {
@@ -228,6 +258,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
                 tier2_tab: tabKey !== 'all' ? tabKey : undefined,
                 search: formFilters.search || undefined,
+                manager_tab: managerTab || undefined,
                 view: filters.view || undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
                 direction: currentDirection !== 'desc' ? currentDirection : undefined,
@@ -247,6 +278,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
                 tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
                 search: formFilters.search || undefined,
+                manager_tab: managerTab || undefined,
                 view: filters.view || undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
                 direction: currentDirection !== 'desc' ? currentDirection : undefined,
@@ -256,21 +288,23 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
     };
 
     const handleClearFilters = () => {
-        const cleared = { status: 'all', priority: 'all', team: 'all', technician_id: 'all', tier2_tab: 'all', search: '' };
+        const clearedStatus = managerTab === 'task2' ? 'task2_all' : 'all';
+        const cleared = { status: clearedStatus, priority: 'all', team: 'all', technician_id: 'all', tier2_tab: 'all', search: '' };
         setFormFilters(cleared);
         router.get(
             route('dashboard'),
-            filters.view ? { view: filters.view } : {},
+            {
+                status: clearedStatus !== 'all' ? clearedStatus : undefined,
+                manager_tab: managerTab,
+                view: filters.view || undefined,
+            },
             { preserveState: true, preserveScroll: true }
         );
     };
 
     const handleQuickFilter = (statusKey) => {
-        if (statusKey.startsWith('task2')) {
-            setManagerTab('task2');
-        } else if (['pending', 'analyzing', 'in_progress', 'testing', 'not_closed', 'active', 'closed_today', 'sla_warning', 'sla_overdue'].includes(statusKey)) {
-            setManagerTab('task1');
-        }
+        const targetTab = statusKey.startsWith('task2') ? 'task2' : 'task1';
+        setManagerTab(targetTab);
         setFormFilters(prev => ({ ...prev, status: statusKey }));
         router.get(
             route('dashboard'),
@@ -281,6 +315,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
                 tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
                 search: formFilters.search || undefined,
+                manager_tab: targetTab,
                 view: filters.view || undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
                 direction: currentDirection !== 'desc' ? currentDirection : undefined,
@@ -307,18 +342,13 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 technician_id: newTechId !== 'all' ? newTechId : undefined,
                 tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
                 search: formFilters.search || undefined,
+                manager_tab: managerTab || undefined,
                 view: filters.view || undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
                 direction: currentDirection !== 'desc' ? currentDirection : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
-
-        // Smooth scroll to table
-        const el = document.getElementById('tickets-table');
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth' });
-        }
     };
 
     const renderSlaStatus = (caseItem) => {
@@ -562,7 +592,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                             <div className="flex items-center p-1 bg-slate-200/80 rounded-xl shadow-2xs self-start sm:self-auto">
                                 <button
                                     type="button"
-                                    onClick={() => setManagerTab('task1')}
+                                    onClick={() => handleManagerTabSwitch('task1')}
                                     className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                                         managerTab === 'task1'
                                             ? 'bg-white text-slate-900 shadow-xs'
@@ -579,7 +609,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setManagerTab('task2')}
+                                    onClick={() => handleManagerTabSwitch('task2')}
                                     className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                                         managerTab === 'task2'
                                             ? 'bg-white text-slate-900 shadow-xs'
@@ -1238,8 +1268,12 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                         <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div>
-                                    <h3 className="text-lg font-bold text-gray-900">รายการแจ้งซ่อมที่ต้องจัดการ</h3>
-                                    <p className="text-xs text-gray-500 mt-0.5">ค้นหาและกรองใบงานตามความเร่งด่วน ทีม และสถานะ</p>
+                                    <h3 className="text-lg font-bold text-gray-900">
+                                        {managerTab === 'task2' ? 'รายการเคสมาตรการป้องกันปัญหา (Task 2)' : 'รายการแจ้งซ่อมที่ต้องจัดการ'}
+                                    </h3>
+                                    <p className="text-xs text-gray-500 mt-0.5">
+                                        {managerTab === 'task2' ? 'ค้นหาและติดตามเคส P-CAR และการป้องกันปัญหาไม่ให้เกิดซ้ำ' : 'ค้นหาและกรองใบงานตามความเร่งด่วน ทีม และสถานะ'}
+                                    </p>
                                 </div>
                                 <span className="text-xs font-semibold px-2.5 py-1 bg-white text-gray-600 rounded-lg border border-gray-200">
                                     พบทั้งหมด {cases.total || 0} รายการ
@@ -1276,6 +1310,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                             <option value="task2_in_progress">กำลังดำเนินการป้องกัน</option>
                                             <option value="task2_pending_review">กำลังตรวจสอบปิดมาตรการ</option>
                                             <option value="task2_completed">ปิดมาตรการป้องกันแล้ว</option>
+                                            <option value="task2_cancelled">มาตรการป้องกันถูกยกเลิก</option>
                                         </select>
                                     </div>
 
@@ -1441,6 +1476,11 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                             <div className="flex justify-between items-start mb-2">
                                                 <div className="flex items-center gap-1.5 flex-wrap">
                                                     <span className="text-sm font-bold text-indigo-600">#{caseItem.ticket_no}</span>
+                                                    {caseItem.pcar_no && (
+                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                                                            #{caseItem.pcar_no}
+                                                        </span>
+                                                    )}
                                                     {isHighlighted && (
                                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white shadow-xs">
                                                             <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
@@ -1489,7 +1529,9 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                     <svg className="h-10 w-10 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
-                                    <p className="text-sm font-medium text-gray-500">ไม่พบใบงานแจ้งซ่อมในขณะนี้</p>
+                                    <p className="text-sm font-medium text-gray-500">
+                                        {managerTab === 'task2' ? 'ไม่พบเคสมาตรการป้องกันปัญหา (Task 2) ในขณะนี้' : 'ไม่พบใบงานแจ้งซ่อมในขณะนี้'}
+                                    </p>
                                 </div>
                             )}
                         </div>
@@ -1566,6 +1608,11 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                                             >
                                                                 #{caseItem.ticket_no}
                                                             </a>
+                                                            {caseItem.pcar_no && (
+                                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                                                                    #{caseItem.pcar_no}
+                                                                </span>
+                                                            )}
                                                             {isHighlighted && (
                                                                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white shadow-xs animate-bounce">
                                                                     <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
@@ -1647,7 +1694,9 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                                     <svg className="h-10 w-10 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                                     </svg>
-                                                    <p className="text-sm font-medium">ไม่พบใบงานแจ้งซ่อมในขณะนี้</p>
+                                                    <p className="text-sm font-medium">
+                                                        {managerTab === 'task2' ? 'ไม่พบเคสมาตรการป้องกันปัญหา (Task 2) ในขณะนี้' : 'ไม่พบใบงานแจ้งซ่อมในขณะนี้'}
+                                                    </p>
                                                 </div>
                                             </td>
                                         </tr>
