@@ -354,18 +354,27 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
     };
 
     const handleQuickFilter = (statusKey) => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
         const targetTab = statusKey.startsWith('task2') ? 'task2' : 'task1';
         setManagerTab(targetTab);
-        setFormFilters(prev => ({ ...prev, status: statusKey }));
+
+        // Reset all other filters so the table matches the clicked card exactly
+        const cleared = {
+            status: statusKey,
+            priority: 'all',
+            team: 'all',
+            technician_id: 'all',
+            tier2_tab: 'all',
+            search: '',
+        };
+        setFormFilters(cleared);
+
         router.get(
             route('dashboard'),
             {
                 status: statusKey !== 'all' ? statusKey : undefined,
-                priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
-                team: formFilters.team !== 'all' ? formFilters.team : undefined,
-                technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
-                tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
-                search: formFilters.search || undefined,
                 manager_tab: targetTab,
                 view: filters.view || undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
@@ -382,17 +391,24 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
     };
 
     const handleTechnicianFilter = (techId) => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
         const newTechId = formFilters.technician_id === String(techId) ? 'all' : String(techId);
-        setFormFilters(prev => ({ ...prev, technician_id: newTechId }));
+        const updated = {
+            status: 'not_closed',
+            priority: 'all',
+            team: 'all',
+            technician_id: newTechId,
+            tier2_tab: 'all',
+            search: '',
+        };
+        setFormFilters(updated);
         router.get(
             route('dashboard'),
             {
-                status: formFilters.status !== 'all' ? formFilters.status : undefined,
-                priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
-                team: formFilters.team !== 'all' ? formFilters.team : undefined,
+                status: 'not_closed',
                 technician_id: newTechId !== 'all' ? newTechId : undefined,
-                tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
-                search: formFilters.search || undefined,
                 manager_tab: managerTab || undefined,
                 view: filters.view || undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
@@ -400,6 +416,11 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
             },
             { preserveState: true, preserveScroll: true }
         );
+
+        const el = document.getElementById('tickets-table');
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+        }
     };
 
     const renderSlaStatus = (caseItem) => {
@@ -708,8 +729,28 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                setFormFilters(prev => ({ ...prev, priority: 'urgent', status: 'not_closed' }));
-                                                router.get(route('dashboard'), { priority: 'urgent', status: 'not_closed' }, { preserveState: true, preserveScroll: true });
+                                                if (searchTimeoutRef.current) {
+                                                    clearTimeout(searchTimeoutRef.current);
+                                                }
+                                                const cleared = {
+                                                    status: 'not_closed',
+                                                    priority: 'urgent',
+                                                    team: 'all',
+                                                    technician_id: 'all',
+                                                    tier2_tab: 'all',
+                                                    search: '',
+                                                };
+                                                setFormFilters(cleared);
+                                                setManagerTab('task1');
+                                                router.get(
+                                                    route('dashboard'),
+                                                    { priority: 'urgent', status: 'not_closed', manager_tab: 'task1' },
+                                                    { preserveState: true, preserveScroll: true }
+                                                );
+                                                const el = document.getElementById('tickets-table');
+                                                if (el) {
+                                                    el.scrollIntoView({ behavior: 'smooth' });
+                                                }
                                             }}
                                             className="flex-1 sm:flex-initial bg-red-700/90 hover:bg-red-700 text-white border border-red-400/40 font-bold px-3 py-1.5 rounded-lg text-xs shadow-xs transition active:scale-95 text-center cursor-pointer"
                                         >

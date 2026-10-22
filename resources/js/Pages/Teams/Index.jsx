@@ -93,6 +93,15 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
         applyFilters('', statusFilter);
     };
 
+    const handleStatusCardClick = (val) => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        setSearch('');
+        setStatusFilter(val);
+        applyFilters('', val);
+    };
+
     const handleToggleStatus = (team) => {
         router.patch(route('teams.toggle_status', team.id), {}, { preserveScroll: true });
     };
@@ -162,7 +171,11 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
 
                     {/* KPI Cards */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-xs">
+                        <div
+                            onClick={() => handleStatusCardClick('all')}
+                            className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-xs hover:border-gray-400 hover:shadow-sm transition cursor-pointer"
+                            title="คลิกเพื่อแสดงทีมทั้งหมด และล้างคำค้นหา"
+                        >
                             <span className="text-xs font-semibold text-gray-500">ทีมทั้งหมด</span>
                             <div className="mt-1 flex items-baseline gap-2">
                                 <span className="text-2xl font-black text-gray-900">{stats.total_teams || 0}</span>
@@ -170,7 +183,11 @@ export default function Index({ teams = [], stats = {}, filters = {} }) {
                             </div>
                         </div>
 
-                        <div className="bg-white p-4 rounded-2xl border border-emerald-200/80 shadow-xs">
+                        <div
+                            onClick={() => handleStatusCardClick('active')}
+                            className="bg-white p-4 rounded-2xl border border-emerald-200/80 shadow-xs hover:border-emerald-400 hover:shadow-sm transition cursor-pointer"
+                            title="คลิกเพื่อกรองเฉพาะทีมที่เปิดใช้งานอยู่ และล้างคำค้นหา"
+                        >
                             <span className="text-xs font-semibold text-emerald-600">เปิดใช้งานอยู่</span>
                             <div className="mt-1 flex items-baseline gap-2">
                                 <span className="text-2xl font-black text-emerald-700">{stats.active_teams || 0}</span>

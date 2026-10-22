@@ -239,11 +239,11 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
+        setSearch('');
         router.get(
             route('dashboard'),
             {
                 status: statusKey !== 'all' ? statusKey : undefined,
-                search: search?.trim() ? search.trim() : undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
                 direction: currentDirection !== 'desc' ? currentDirection : undefined,
             },
