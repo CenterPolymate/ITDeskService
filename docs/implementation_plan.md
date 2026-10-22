@@ -418,6 +418,23 @@
   - [x] ฟอร์มข้อมูลส่วนตัว (Profile Information): ช่องอินพุตพร้อมไอคอนนำหน้า, ล็อกช่องชื่อสำหรับ Administrator เพื่อความโปร่งใสของ Audit Log, กล่องเลือกบริษัทและแผนกแบบไดนามิกพร้อมปุ่มสลับระบุแผนกเอง, แถบเตือนยืนยันอีเมลพร้อมปุ่มขอรับอีเมลยืนยันใหม่
   - [x] ฟอร์มเปลี่ยนรหัสผ่าน (Security & Password Form): เพิ่มปุ่มเปิด/ปิดการมองเห็นรหัสผ่าน (Show/Hide Password Toggle) ในทุกช่อง, พร้อม Dynamic Password Criteria Checklist ตรวจสอบความปลอดภัยแบบเรียลไทม์ (ความยาวอย่างน้อย 8 ตัวอักษร และรหัสผ่านตรงกัน)
 
-
-
-
+## Phase 18: Task 2 PCAR Cancellation, Re-activation & Watermark System (✅ ดำเนินการแล้วเสร็จ)
+- [x] **โครงสร้างฐานข้อมูล (Database Migration):**
+  - [x] เพิ่มฟิลด์ `pcar_cancellation_reason` (string, nullable), `pcar_cancelled_at` (timestamp, nullable), และ `pcar_cancelled_by` (foreign key -> users, nullable) ในตาราง `helpdesk_cases` ผ่าน Migration `2026_10_22_183500_add_pcar_cancellation_fields_to_helpdesk_cases_table.php`
+- [x] **การสลับการตัดสินใจของหัวหน้า (Manager Decision Switching & Cancellation Reason):**
+  - [x] หัวหน้า (Tier 3: Manager) สามารถสลับการตัดสินใจ Task 2 ไปมาได้หลายรอบตราบใดที่ยังไม่ปิดมาตรการป้องกัน (`preventive_measure !== 'done'`)
+  - [x] เมื่อสลับจากต้องการเป็น "ไม่ต้องการ" ในเคสที่มีเลข PCAR แล้ว: ระบบบังคับกรอกเหตุผลการยกเลิก (`pcar_cancellation_reason`), ปรับสถานะ Task 2 เป็น `cancelled`, บันทึกเวลาและผู้ยกเลิก, และเพิ่มประวัติลงใน Ticket Comments
+- [x] **การ Re-activate เลข PCAR เดิม (PCAR Re-activation - Approach 1):**
+  - [x] เมื่อหัวหน้าสลับกลับมาเลือก "ต้องการมาตรการป้องกัน" อีกครั้ง: ระบบจะนำเลข `pcar_no` เดิมกลับมาใช้งานต่อทันที ปรับสถานะกลับเป็น `in_progress`, ล้างข้อมูลการยกเลิก, และบันทึก Audit Comment โดยไม่สร้างเลข PCAR ใหม่ข้ามเดือน
+- [x] **การล็อกการแก้ไขเมื่อปิดงาน (Done Lock Enforcement):**
+  - [x] เมื่อปิดงานมาตรการป้องกันแล้ว (`preventive_measure === 'done'`): ล็อกทั้งหน้าเว็บ UI และ Backend Controller ไม่ให้อนุญาตแก้ไขหรือสลับเป็นไม่ต้องการได้อีก
+- [x] **ลายน้ำตรายางยกเลิกบนรายงานพิมพ์ (P-CAR Form 4 Watermark Overlay):**
+  - [x] เพิ่มลายน้ำตรายางสีแดงกึ่งโปร่งใส (Red Stamp Watermark) เอียง 25 องศากลางหน้ารายงาน P-CAR Form 4 (`print.blade.php`) แสดงข้อความ *"⚠️ P-CAR ถูกยกเลิก / CANCELLED"* พร้อมแสดงเหตุผล ผู้ยกเลิก และวันเวลาที่ยกเลิก
+  - [x] วางเลย์เอาต์แบบ Absolute Overlay `pointer-events-none` ไม่กระทบต่อสัดส่วนตารางและคงการพิมพ์ได้พอดี 1 หน้ากระดาษ Legal
+- [x] **การปรับปรุง Frontend (`Show.jsx`):**
+  - [x] แสดงกล่องแจ้งเตือนสีเขียวเมื่อเลือก "ต้องการ" บนเคสที่เคยมี PCAR ว่าจะ Re-activate เลขเดิม
+  - [x] แสดง Textarea บังคับกรอกเหตุผลเมื่อเลือก "ไม่ต้องการ" บนเคสที่มีเลข PCAR
+  - [x] แสดงการ์ด Task 2 Cancelled Notice (สี Rose) สรุปเหตุผล ผู้ยกเลิก และวันเวลา
+  - [x] แสดงการ์ดล็อกการแก้ไขเมื่อ Task 2 อยู่ในสถานะ `done`
+- [x] **การทดสอบความถูกต้อง (Feature Tests):**
+  - [x] เพิ่มชุดทดสอบใน `TicketManagementTest.php` ครอบคลุมการยกเลิกและบังคับใส่เหตุผล, การแสดงลายน้ำบนรายงานพิมพ์, การ Re-activate เลขเดิม, และการล็อกเมื่อ `done` ผ่าน 100%

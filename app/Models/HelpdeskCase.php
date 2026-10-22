@@ -111,6 +111,9 @@ class HelpdeskCase extends Model
         'pcar_analyzed_by',
         'pcar_closed_at',
         'pcar_closed_by',
+        'pcar_cancellation_reason',
+        'pcar_cancelled_at',
+        'pcar_cancelled_by',
     ];
 
     /**
@@ -136,6 +139,7 @@ class HelpdeskCase extends Model
             'pcar_opened_at' => 'datetime',
             'pcar_analyzed_at' => 'datetime',
             'pcar_closed_at' => 'datetime',
+            'pcar_cancelled_at' => 'datetime',
             'preventive_measure_specific_due_date' => 'date',
             'preventive_measure_systemic_due_date' => 'date',
         ];
@@ -230,6 +234,11 @@ class HelpdeskCase extends Model
     public function pcarClosedBy()
     {
         return $this->belongsTo(User::class, 'pcar_closed_by');
+    }
+
+    public function pcarCancelledBy()
+    {
+        return $this->belongsTo(User::class, 'pcar_cancelled_by');
     }
 
     public function comments()
@@ -421,8 +430,13 @@ class HelpdeskCase extends Model
                 'in_progress' => 'PCAR: กำลังดำเนินการ',
                 'pending_review' => 'PCAR: รอตรวจสอบปิด',
                 'done' => 'PCAR: ปิดมาตรการ',
+                'cancelled' => 'PCAR: ยกเลิกมาตรการ',
                 default => 'PCAR: '.$this->preventive_measure,
             };
+        }
+
+        if ($this->preventive_measure === 'cancelled' || ! empty($this->pcar_cancellation_reason)) {
+            return 'PCAR: ยกเลิกมาตรการ';
         }
 
         return null;
@@ -444,8 +458,13 @@ class HelpdeskCase extends Model
                 'in_progress' => 'bg-yellow-100 text-yellow-700',
                 'pending_review' => 'bg-blue-100 text-blue-700',
                 'done' => 'bg-teal-100 text-teal-700',
+                'cancelled' => 'bg-slate-100 text-slate-600 border border-slate-200',
                 default => 'bg-gray-100 text-gray-700',
             };
+        }
+
+        if ($this->preventive_measure === 'cancelled' || ! empty($this->pcar_cancellation_reason)) {
+            return 'bg-slate-100 text-slate-600 border border-slate-200';
         }
 
         return null;

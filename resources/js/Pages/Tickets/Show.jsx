@@ -145,6 +145,12 @@ export default function Show({ ticket, categories = [], teams = [] }) {
     const isTask2Active = Boolean(ticket.requires_preventive_measure) &&
         ['in_progress', 'pending_review'].includes(ticket.preventive_measure);
 
+    const isRevertingOrCancellingTask2 = Boolean(
+        ticket.requires_preventive_measure === true ||
+        ticket.pcar_no ||
+        ['assigned', 'in_progress', 'pending_review', 'done', 'cancelled'].includes(ticket.preventive_measure)
+    );
+
     const canStartTask2 = isTier2 && (!ticket.escalated_to_team || isAssignedTeam);
 
     const canEditNotes = (
@@ -421,10 +427,11 @@ export default function Show({ ticket, categories = [], teams = [] }) {
     };
 
     // Manager Review Form
-    const { data: managerData, setData: setManagerData, put: putManager, processing: managerProcessing } = useForm({
+    const { data: managerData, setData: setManagerData, put: putManager, processing: managerProcessing, errors: managerErrors } = useForm({
         action: 'close',
         requires_preventive_measure: ticket.requires_preventive_measure === true ? '1' : (ticket.requires_preventive_measure === false ? '0' : ''),
         escalated_to_team: defaultTask1Team || ticket.escalated_to_team || '',
+        pcar_cancellation_reason: ticket.pcar_cancellation_reason || '',
     });
 
     // Task 2: Preventive Action Form
@@ -497,8 +504,17 @@ export default function Show({ ticket, categories = [], teams = [] }) {
                                     ใบแจ้งซ่อม #{ticket.ticket_no}
                                 </h2>
                                 {user.role !== 'user' && ticket.pcar_no && (
-                                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800 border border-teal-200">
-                                        PCAR #{ticket.pcar_no}
+                                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                                        ticket.preventive_measure === 'cancelled'
+                                            ? 'bg-rose-50 text-rose-700 border border-rose-200 line-through'
+                                            : 'bg-teal-100 text-teal-800 border border-teal-200'
+                                    }`}>
+                                        PCAR #{ticket.pcar_no} {ticket.preventive_measure === 'cancelled' ? '(ยกเลิก)' : ''}
+                                    </span>
+                                )}
+                                {user.role !== 'user' && ticket.requires_preventive_measure === true && !ticket.pcar_no && (
+                                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                        Task 2: รอช่างกดเริ่มงาน
                                     </span>
                                 )}
                             </div>
@@ -1127,95 +1143,143 @@ export default function Show({ ticket, categories = [], teams = [] }) {
 
                         {/* 4. Action Form for Manager Review */}
                         {ticket.status === 'closed' && isManager && (
-                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-slate-800 border-x border-b border-slate-200">
-                                <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
-                                    <span className="p-2 bg-slate-100 text-slate-800 rounded-xl">🛡️</span>
-                                    การตรวจสอบจากหัวหน้า (Manager Review)
-                                </h3>
-                                <p className="text-sm text-slate-600 mb-4">
-                                    สถานะเคสนี้คือปิดใบงานแล้ว หัวหน้าจำเป็นต้องตรวจสอบเพื่อระบุว่า "ต้องการมาตรการป้องกันปัญหา (Task 2)" หรือไม่
-                                </p>
-
-                                <form
-                                    onSubmit={(e) => {
-                                        e.preventDefault();
-                                        putManager(route('tickets.updateStatus', ticket.id), { preserveScroll: true });
-                                    }}
-                                    className="space-y-4"
-                                >
-                                    <div>
-                                        <label className="block font-bold text-slate-700 text-sm mb-2">
-                                            มาตรการป้องกัน (Preventive Measure) <span className="text-rose-500">*</span>
-                                        </label>
-                                        <div className="flex items-center gap-6">
-                                            <label className="inline-flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="radio"
-                                                    name="requires_preventive_measure"
-                                                    value="1"
-                                                    checked={managerData.requires_preventive_measure === '1'}
-                                                    onChange={(e) => {
-                                                        const val = e.target.value;
-                                                        setManagerData((prev) => ({
-                                                            ...prev,
-                                                            requires_preventive_measure: val,
-                                                            escalated_to_team: val === '1' && !prev.escalated_to_team ? (defaultTask1Team || '') : prev.escalated_to_team,
-                                                        }));
-                                                    }}
-                                                    className="text-slate-800 focus:ring-slate-800"
-                                                />
-                                                <span className="text-sm font-semibold text-slate-800">ต้องการมาตรการป้องกัน</span>
-                                            </label>
-                                            <label className="inline-flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="radio"
-                                                    name="requires_preventive_measure"
-                                                    value="0"
-                                                    checked={managerData.requires_preventive_measure === '0'}
-                                                    onChange={(e) => setManagerData('requires_preventive_measure', e.target.value)}
-                                                    className="text-slate-800 focus:ring-slate-800"
-                                                />
-                                                <span className="text-sm font-semibold text-slate-800">ไม่ต้องการมาตรการป้องกัน</span>
-                                            </label>
-                                        </div>
+                            ticket.preventive_measure === 'done' ? (
+                                <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-teal-600 border-x border-b border-slate-200">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                                        <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                            <span className="p-2 bg-teal-50 text-teal-600 rounded-xl">🛡️</span>
+                                            การตรวจสอบจากหัวหน้า (Manager Review)
+                                        </h3>
+                                        <span className="px-3 py-1 bg-teal-50 text-teal-700 border border-teal-200 rounded-full text-xs font-bold whitespace-nowrap">
+                                            🔒 ปิดมาตรการป้องกันแล้ว (ล็อกการแก้ไข)
+                                        </span>
                                     </div>
+                                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+                                        <span>ผลการตรวจสอบ: <strong className="text-teal-700 font-bold">ต้องการมาตรการป้องกัน {ticket.escalated_to_team ? `(ทีม ${ticket.escalated_to_team})` : ''}</strong></span>
+                                        {ticket.pcar_closed_at && (
+                                            <span>ปิดมาตรการเมื่อ: <strong>{formatThaiDateTime(ticket.pcar_closed_at)}</strong></span>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-slate-800 border-x border-b border-slate-200">
+                                    <h3 className="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                        <span className="p-2 bg-slate-100 text-slate-800 rounded-xl">🛡️</span>
+                                        การตรวจสอบจากหัวหน้า (Manager Review)
+                                    </h3>
+                                    <p className="text-sm text-slate-600 mb-4">
+                                        สถานะเคสนี้คือปิดใบงานแล้ว หัวหน้าจำเป็นต้องตรวจสอบเพื่อระบุว่า &quot;ต้องการมาตรการป้องกันปัญหา (Task 2)&quot; หรือไม่
+                                    </p>
 
-                                    {managerData.requires_preventive_measure === '1' && (
-                                        <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-                                            <label className="block font-bold text-slate-700 text-sm">
-                                                ส่งต่อให้ทีมเฉพาะทางดำเนินการ Task 2 <span className="text-rose-500">*</span>
-                                            </label>
-                                            <select
-                                                required
-                                                value={managerData.escalated_to_team || ''}
-                                                onChange={(e) => setManagerData('escalated_to_team', e.target.value)}
-                                                className="w-full rounded-xl border-slate-300 text-sm focus:border-slate-800 focus:ring-slate-800"
-                                            >
-                                                <option value="" disabled>-- เลือกทีมที่จะมอบหมาย --</option>
-                                                {availableTeams.map((t) => (
-                                                    <option key={t.id || t.name} value={t.name}>
-                                                        [{t.code}] {t.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {defaultTask1Team && (
-                                                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
-                                                    <span className="text-amber-500">💡</span>
-                                                    <span>ดึงค่าเริ่มต้นจากทีมที่รับผิดชอบ Task 1 (ท่านสามารถคลิกเปลี่ยนทีมได้ตามความเหมาะสม)</span>
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    <button
-                                        type="submit"
-                                        disabled={managerProcessing}
-                                        className="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-2xl shadow transition disabled:opacity-50"
+                                    <form
+                                        onSubmit={(e) => {
+                                            e.preventDefault();
+                                            putManager(route('tickets.updateStatus', ticket.id), { preserveScroll: true });
+                                        }}
+                                        className="space-y-4"
                                     >
-                                        💾 บันทึกผลการตรวจสอบของหัวหน้า
-                                    </button>
-                                </form>
-                            </div>
+                                        <div>
+                                            <label className="block font-bold text-slate-700 text-sm mb-2">
+                                                มาตรการป้องกัน (Preventive Measure) <span className="text-rose-500">*</span>
+                                            </label>
+                                            <div className="flex items-center gap-6">
+                                                <label className="inline-flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="radio"
+                                                        name="requires_preventive_measure"
+                                                        value="1"
+                                                        checked={managerData.requires_preventive_measure === '1'}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            setManagerData((prev) => ({
+                                                                ...prev,
+                                                                requires_preventive_measure: val,
+                                                                escalated_to_team: val === '1' && !prev.escalated_to_team ? (defaultTask1Team || '') : prev.escalated_to_team,
+                                                            }));
+                                                        }}
+                                                        className="text-slate-800 focus:ring-slate-800"
+                                                    />
+                                                    <span className="text-sm font-semibold text-slate-800">ต้องการมาตรการป้องกัน</span>
+                                                </label>
+                                                <label className="inline-flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="radio"
+                                                        name="requires_preventive_measure"
+                                                        value="0"
+                                                        checked={managerData.requires_preventive_measure === '0'}
+                                                        onChange={(e) => setManagerData('requires_preventive_measure', e.target.value)}
+                                                        className="text-slate-800 focus:ring-slate-800"
+                                                    />
+                                                    <span className="text-sm font-semibold text-slate-800">ไม่ต้องการมาตรการป้องกัน</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {managerData.requires_preventive_measure === '1' && (
+                                            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                                                <label className="block font-bold text-slate-700 text-sm">
+                                                    ส่งต่อให้ทีมเฉพาะทางดำเนินการ Task 2 <span className="text-rose-500">*</span>
+                                                </label>
+                                                <select
+                                                    required
+                                                    value={managerData.escalated_to_team || ''}
+                                                    onChange={(e) => setManagerData('escalated_to_team', e.target.value)}
+                                                    className="w-full rounded-xl border-slate-300 text-sm focus:border-slate-800 focus:ring-slate-800"
+                                                >
+                                                    <option value="" disabled>-- เลือกทีมที่จะมอบหมาย --</option>
+                                                    {availableTeams.map((t) => (
+                                                        <option key={t.id || t.name} value={t.name}>
+                                                            [{t.code}] {t.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                {defaultTask1Team && (
+                                                    <p className="text-xs text-slate-500 flex items-center gap-1.5">
+                                                        <span className="text-amber-500">💡</span>
+                                                        <span>ดึงค่าเริ่มต้นจากทีมที่รับผิดชอบ Task 1 (ท่านสามารถคลิกเปลี่ยนทีมได้ตามความเหมาะสม)</span>
+                                                    </p>
+                                                )}
+                                                {ticket.pcar_no && (
+                                                    <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-xs text-teal-800 flex items-center gap-2">
+                                                        <span>🔄</span>
+                                                        <span>เคสนี้เคยออกเลขที่เอกสาร <strong>#{ticket.pcar_no}</strong> ไว้แล้ว ระบบจะนำเลขเดิมกลับมาดำเนินการต่อ (Re-activate) ทันทีที่บันทึก</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {managerData.requires_preventive_measure === '0' && isRevertingOrCancellingTask2 && (
+                                            <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-2">
+                                                <label className="block font-bold text-amber-900 text-sm">
+                                                    เหตุผลการยกเลิก / ไม่ต้องการมาตรการป้องกันแล้ว <span className="text-rose-500">*</span>
+                                                </label>
+                                                <p className="text-xs text-amber-700">
+                                                    เนื่องจากเคสนี้เคยถูกกำหนดให้มีมาตรการป้องกัน{ticket.pcar_no ? ` (รหัส PCAR #${ticket.pcar_no})` : ''} กรุณาระบุเหตุผลที่ยกเลิกหรือไม่ต้องการมาตรการป้องกัน เพื่อเก็บเป็นหลักฐานการตรวจสอบย้อนหลัง
+                                                </p>
+                                                <textarea
+                                                    required
+                                                    rows={3}
+                                                    value={managerData.pcar_cancellation_reason || ''}
+                                                    onChange={(e) => setManagerData('pcar_cancellation_reason', e.target.value)}
+                                                    placeholder="ระบุเหตุผล เช่น สาเหตุเกิดจาก Human Error โดยตรง และได้ทำการอบรมพนักงานเรียบร้อยแล้ว จึงไม่จำเป็นต้องออกเอกสาร PCAR..."
+                                                    className="w-full rounded-xl border-amber-300 text-sm focus:border-amber-600 focus:ring-amber-600 bg-white"
+                                                />
+                                                {managerErrors?.pcar_cancellation_reason && (
+                                                    <p className="text-xs text-rose-600 font-semibold">{managerErrors.pcar_cancellation_reason}</p>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        <button
+                                            type="submit"
+                                            disabled={managerProcessing}
+                                            className="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-2xl shadow transition disabled:opacity-50 cursor-pointer"
+                                        >
+                                            💾 บันทึกผลการตรวจสอบของหัวหน้า
+                                        </button>
+                                    </form>
+                                </div>
+                            )
                         )}
 
                         {/* 5. Task 2: Preventive Action Form (For IT Staff) */}
@@ -1230,7 +1294,7 @@ export default function Show({ ticket, categories = [], teams = [] }) {
                                     canStartTask2 ? (
                                         <div className="text-center py-6 bg-teal-50/50 rounded-2xl border border-teal-100 p-6">
                                             <p className="text-teal-900 font-medium mb-4">
-                                                ผู้จัดการได้มอบหมายงาน Task 2 ให้กับทีมของคุณ{ticket.escalated_to_team ? ` (${ticket.escalated_to_team})` : ''} กรุณากดปุ่มด้านล่างเพื่อเริ่มดำเนินการป้องกัน
+                                                ผู้จัดการได้มอบหมายงาน Task 2 ให้กับทีมของคุณ{ticket.escalated_to_team ? ` (${ticket.escalated_to_team})` : ''} กรุณากดปุ่มด้านล่างเพื่อเริ่มดำเนินการป้องกัน (ระบบจะสร้างเลขที่เอกสาร PCAR อัตโนมัติเมื่อกดเริ่มงาน)
                                             </p>
                                             <button
                                                 type="button"
@@ -1249,7 +1313,7 @@ export default function Show({ ticket, categories = [], teams = [] }) {
                                                 มอบหมายงาน Task 2 ให้กับ{ticket.escalated_to_team ? `ทีม ${ticket.escalated_to_team} (Tier 2)` : 'ช่างเฉพาะทาง (Tier 2)'} เรียบร้อยแล้ว
                                             </p>
                                             <p className="text-xs text-slate-500">
-                                                (สิทธิ์การกดเริ่มดำเนินการเป็นของช่างเฉพาะทาง {ticket.escalated_to_team ? `ทีม ${ticket.escalated_to_team} (Tier 2)` : 'Tier 2'} เท่านั้น)
+                                                (สิทธิ์การกดเริ่มดำเนินการเป็นของช่างเฉพาะทาง {ticket.escalated_to_team ? `ทีม ${ticket.escalated_to_team} (Tier 2)` : 'Tier 2'} เท่านั้น และระบบจะรันเลขที่เอกสาร PCAR เมื่อช่างกดเริ่มงาน)
                                             </p>
                                         </div>
                                     )
@@ -1446,6 +1510,44 @@ export default function Show({ ticket, categories = [], teams = [] }) {
                                         )}
                                     </form>
                                 )}
+                            </div>
+                        )}
+
+                        {/* Task 2 Cancelled Notice */}
+                        {(ticket.preventive_measure === 'cancelled' || ticket.pcar_cancellation_reason) && ticket.requires_preventive_measure === false && user.role !== 'user' && (
+                            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border-t-4 border-t-rose-500 border-x border-b border-slate-200">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                        <span className="p-2 bg-rose-50 text-rose-600 rounded-xl">🚫</span>
+                                        Task 2: มาตรการป้องกันถูกยกเลิก (Preventive Measure Cancelled)
+                                    </h3>
+                                    {ticket.pcar_no && (
+                                        <span className="px-3 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded-full text-xs font-bold line-through">
+                                            PCAR #{ticket.pcar_no}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="p-4 bg-rose-50/70 border border-rose-200 rounded-2xl space-y-3">
+                                    <div>
+                                        <span className="text-xs font-bold text-rose-900 block mb-1">เหตุผลการยกเลิกมาตรการป้องกัน:</span>
+                                        <p className="text-sm text-rose-800 whitespace-pre-wrap leading-relaxed font-medium">
+                                            {ticket.pcar_cancellation_reason || 'ไม่ระบุเหตุผล'}
+                                        </p>
+                                    </div>
+                                    <div className="pt-2 border-t border-rose-200/60 flex flex-wrap items-center justify-between text-xs text-rose-700 gap-2">
+                                        <span>
+                                            ยกเลิกโดย: <strong className="font-bold">{ticket.pcar_cancelled_by?.name || 'หัวหน้า (Manager)'}</strong>
+                                        </span>
+                                        {ticket.pcar_cancelled_at && (
+                                            <span>
+                                                เมื่อ: <strong>{formatThaiDateTime(ticket.pcar_cancelled_at)}</strong>
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-4">
+                                    * หากมีความจำเป็นต้องกลับมาดำเนินการมาตรการป้องกันอีกครั้ง ผู้จัดการ (Manager) สามารถแก้ไขผลการตรวจสอบด้านบนเป็น &quot;ต้องการมาตรการป้องกัน&quot; ได้
+                                </p>
                             </div>
                         )}
 
@@ -1971,21 +2073,36 @@ export default function Show({ ticket, categories = [], teams = [] }) {
                             </div>
                         )}
 
-                        {/* 4. Task 2 Timeline (if required) */}
-                        {ticket.requires_preventive_measure && user.role !== 'user' && (
+                        {/* 4. Task 2 Timeline (if required or cancelled) */}
+                        {(ticket.requires_preventive_measure || ticket.preventive_measure === 'cancelled' || ticket.pcar_cancellation_reason) && user.role !== 'user' && (
                             <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-slate-200">
                                 <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
                                     <span>🛡️</span> ไทม์ไลน์สถานะ Task 2
                                 </h3>
                                 <div className="space-y-4 text-xs sm:text-sm">
-                                    <div className="p-3 bg-slate-50 rounded-xl">
-                                        <span className="text-slate-500 block">เปิด P-CAR เมื่อ:</span>
-                                        <span className="font-bold text-slate-800">{formatThaiDateTime(ticket.pcar_opened_at)}</span>
-                                    </div>
+                                    {ticket.pcar_opened_at && (
+                                        <div className="p-3 bg-slate-50 rounded-xl">
+                                            <span className="text-slate-500 block">เปิด P-CAR เมื่อ:</span>
+                                            <span className="font-bold text-slate-800">{formatThaiDateTime(ticket.pcar_opened_at)}</span>
+                                        </div>
+                                    )}
                                     <div className="p-3 bg-slate-50 rounded-xl">
                                         <span className="text-slate-500 block">สถานะ Task 2:</span>
-                                        <span className="font-bold text-teal-700">{ticket.task2_status_label || 'รอดำเนินการ'}</span>
+                                        <span className={`font-bold ${ticket.preventive_measure === 'cancelled' ? 'text-rose-600' : 'text-teal-700'}`}>
+                                            {ticket.task2_status_label || (ticket.preventive_measure === 'cancelled' ? 'ยกเลิกมาตรการ' : 'รอดำเนินการ')}
+                                        </span>
                                     </div>
+                                    {ticket.pcar_cancelled_at && (
+                                        <div className="p-3 bg-rose-50 rounded-xl text-rose-900">
+                                            <span className="block text-xs font-bold">ยกเลิกมาตรการเมื่อ:</span>
+                                            <span className="font-black text-sm">{formatThaiDateTime(ticket.pcar_cancelled_at)}</span>
+                                            {ticket.pcar_cancellation_reason && (
+                                                <p className="mt-1 text-xs text-rose-700 line-clamp-2">
+                                                    เหตุผล: {ticket.pcar_cancellation_reason}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
                                     {ticket.pcar_closed_at && (
                                         <div className="p-3 bg-teal-50 rounded-xl text-teal-900">
                                             <span className="block text-xs font-bold">ปิดมาตรการเมื่อ:</span>

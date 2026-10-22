@@ -124,6 +124,58 @@
             border-bottom: 1px dotted black;
             min-height: 14px;
         }
+
+        /* WATERMARK FOR CANCELLED PCAR */
+        .watermark-cancelled {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-25deg);
+            pointer-events: none;
+            z-index: 50;
+            width: 85%;
+            max-width: 620px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .watermark-inner {
+            border: 4px dashed rgba(220, 38, 38, 0.45);
+            background-color: rgba(254, 242, 242, 0.22);
+            color: #b91c1c;
+            padding: 16px 24px;
+            border-radius: 14px;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.08);
+        }
+
+        .watermark-title {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            color: #dc2626;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .watermark-reason {
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.4;
+            color: #991b1b;
+            margin-bottom: 6px;
+            word-break: break-word;
+        }
+
+        .watermark-meta {
+            font-size: 10px;
+            color: #7f1d1d;
+            border-top: 1px dashed rgba(220, 38, 38, 0.3);
+            padding-top: 4px;
+            margin-top: 4px;
+        }
     </style>
 </head>
 
@@ -143,6 +195,28 @@
     </div>
 
     <div class="legal-page">
+        @if ($ticket->preventive_measure === 'cancelled' || (! empty($ticket->pcar_cancellation_reason) && $ticket->requires_preventive_measure === false))
+            <!-- WATERMARK: P-CAR CANCELLED -->
+            <div class="watermark-cancelled">
+                <div class="watermark-inner">
+                    <div class="watermark-title">⚠️ P-CAR ถูกยกเลิก / CANCELLED</div>
+                    @if ($ticket->pcar_cancellation_reason)
+                        <div class="watermark-reason">
+                            <span class="font-bold">สาเหตุที่ยกเลิก:</span> {{ $ticket->pcar_cancellation_reason }}
+                        </div>
+                    @endif
+                    <div class="watermark-meta">
+                        @if ($ticket->pcarCancelledBy)
+                            <span>ยกเลิกโดย: {{ $ticket->pcarCancelledBy->name }}</span>
+                        @endif
+                        @if ($ticket->pcar_cancelled_at)
+                            <span class="ml-2">วันที่: {{ $ticket->pcar_cancelled_at->locale('th')->translatedFormat('d F Y H:i น.') }}</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- HEADER -->
         <table class="w-full border border-black border-b-0 text-[10px]" style="table-layout: fixed;">
             <tr>

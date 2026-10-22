@@ -143,6 +143,7 @@ class TicketController extends Controller
             'pcarOpenedBy',
             'pcarAnalyzedBy',
             'pcarClosedBy',
+            'pcarCancelledBy',
         ])->findOrFail($id);
 
         // Check if user has permission to view
@@ -168,7 +169,17 @@ class TicketController extends Controller
      */
     public function print(string $id): View|Factory
     {
-        $ticket = HelpdeskCase::with(['analyzingBy', 'inProgressBy', 'resolvedBy', 'closedBy', 'cancelledBy'])->findOrFail($id);
+        $ticket = HelpdeskCase::with([
+            'analyzingBy',
+            'inProgressBy',
+            'resolvedBy',
+            'closedBy',
+            'cancelledBy',
+            'pcarOpenedBy',
+            'pcarAnalyzedBy',
+            'pcarClosedBy',
+            'pcarCancelledBy',
+        ])->findOrFail($id);
 
         // Check if user has permission to view
         $user = Auth::user();
@@ -502,34 +513,70 @@ class TicketController extends Controller
 
             return redirect()->route('tickets.show', $id)->with('success', 'ยกเลิกเคสเรียบร้อยแล้ว');
         } elseif ($request->action === 'close') {
+            // Lock if Task 2 is already completed and closed
+            if ($ticket->preventive_measure === 'done') {
+                return redirect()->route('tickets.show', $id)
+                    ->with('error', 'ไม่อนุญาต: มาตรการป้องกัน (Task 2) ได้ถูกตรวจสอบและปิดกระบวนการเรียบร้อยแล้ว ไม่สามารถแก้ไขได้');
+            }
+
             $updateData = [
-                'requires_preventive_measure' => $request->requires_preventive_measure,
+                'requires_preventive_measure' => (bool) $request->requires_preventive_measure,
             ];
 
             if ($request->requires_preventive_measure == 1) {
                 if ($request->filled('escalated_to_team')) {
                     $updateData['escalated_to_team'] = $request->escalated_to_team;
-                    $updateData['preventive_measure'] = 'assigned';
                 }
 
-                $pcarNo = $ticket->pcar_no;
-                if (! $pcarNo) {
-                    $prefix = 'PCAR-'.date('Ym').'-';
-                    $lastPcar = HelpdeskCase::where('pcar_no', 'like', $prefix.'%')->orderBy('pcar_no', 'desc')->first();
-                    $lastNumber = $lastPcar ? (int) substr($lastPcar->pcar_no, -4) : 0;
-                    $pcarNo = $prefix.str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
-                }
+                // If ticket already has a PCAR number (was started previously), return it to in_progress (Re-activate)
+                // Otherwise (never started), keep it assigned
+                $updateData['preventive_measure'] = $ticket->pcar_no ? 'in_progress' : 'assigned';
 
-                $updateData['pcar_no'] = $pcarNo;
-                $updateData['pcar_opened_at'] = now();
-                $updateData['pcar_opened_by'] = Auth::id();
+                $wasCancelled = $ticket->preventive_measure === 'cancelled' || ! empty($ticket->pcar_cancellation_reason);
+
+                // Clear any cancellation info if manager re-enables preventive measure
+                $updateData['pcar_cancellation_reason'] = null;
+                $updateData['pcar_cancelled_at'] = null;
+                $updateData['pcar_cancelled_by'] = null;
+
+                if ($wasCancelled) {
+                    $pcarText = $ticket->pcar_no ? " (รหัส PCAR: #{$ticket->pcar_no})" : '';
+                    $ticket->comments()->create([
+                        'user_id' => Auth::id(),
+                        'message' => "🔄 [ระบบ] หัวหน้าได้เปลี่ยนใจกลับมาเปิดดำเนินการมาตรการป้องกัน (Task 2) อีกครั้ง{$pcarText}",
+                    ]);
+                }
             } elseif ($request->requires_preventive_measure == 0) {
-                $updateData['preventive_measure'] = null;
+                $previouslyRequired = $ticket->requires_preventive_measure === true
+                    || ! empty($ticket->pcar_no)
+                    || ! empty($ticket->preventive_measure);
+
+                if ($previouslyRequired) {
+                    $request->validate([
+                        'pcar_cancellation_reason' => 'required|string|min:3',
+                    ], [
+                        'pcar_cancellation_reason.required' => 'กรุณาระบุเหตุผลที่ยกเลิกหรือไม่ต้องการมาตรการป้องกัน (Task 2)',
+                        'pcar_cancellation_reason.min' => 'เหตุผลการยกเลิกต้องมีความยาวอย่างน้อย 3 ตัวอักษร',
+                    ]);
+
+                    $updateData['pcar_cancellation_reason'] = $request->pcar_cancellation_reason;
+                    $updateData['pcar_cancelled_at'] = now();
+                    $updateData['pcar_cancelled_by'] = Auth::id();
+                    $updateData['preventive_measure'] = 'cancelled';
+
+                    $pcarText = $ticket->pcar_no ? " (รหัส PCAR: #{$ticket->pcar_no})" : '';
+                    $ticket->comments()->create([
+                        'user_id' => Auth::id(),
+                        'message' => "⚠️ [ระบบ] หัวหน้าได้ยกเลิกมาตรการป้องกัน (Task 2){$pcarText} เนื่องจาก: {$request->pcar_cancellation_reason}",
+                    ]);
+                } else {
+                    $updateData['preventive_measure'] = null;
+                }
             }
 
             $ticket->update($updateData);
 
-            return redirect()->route('tickets.show', $id)->with('success', 'บันทึกการตรวจสอบและส่งต่องานเรียบร้อยแล้ว');
+            return redirect()->route('tickets.show', $id)->with('success', 'บันทึกการตรวจสอบของหัวหน้าเรียบร้อยแล้ว');
         } elseif ($request->action === 'start_preventive_measure') {
             $user = Auth::user();
             $tier2Roles = ['team_hardware', 'team_network', 'team_software', 'technician'];
@@ -556,11 +603,26 @@ class TicketController extends Controller
                 }
             }
 
+            // In Approach A: Generate PCAR number and opened timestamp upon starting Task 2
+            $pcarNo = $ticket->pcar_no;
+            $openedAt = $ticket->pcar_opened_at ?: now();
+            $openedBy = $ticket->pcar_opened_by ?: Auth::id();
+
+            if (! $pcarNo) {
+                $prefix = 'PCAR-'.date('Ym').'-';
+                $lastPcar = HelpdeskCase::where('pcar_no', 'like', $prefix.'%')->orderBy('pcar_no', 'desc')->first();
+                $lastNumber = $lastPcar ? (int) substr($lastPcar->pcar_no, -4) : 0;
+                $pcarNo = $prefix.str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+            }
+
             $ticket->update([
                 'preventive_measure' => 'in_progress',
+                'pcar_no' => $pcarNo,
+                'pcar_opened_at' => $openedAt,
+                'pcar_opened_by' => $openedBy,
             ]);
 
-            return redirect()->route('tickets.show', $id)->with('success', 'เริ่มดำเนินการมาตรการป้องกัน (Task 2) เรียบร้อยแล้ว');
+            return redirect()->route('tickets.show', $id)->with('success', 'เริ่มดำเนินการมาตรการป้องกัน (Task 2) และสร้างรหัส PCAR '.$pcarNo.' เรียบร้อยแล้ว');
         } elseif ($request->action === 'preventive_action') {
             $ticket->update([
                 'why_1' => $request->why_1,

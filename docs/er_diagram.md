@@ -87,6 +87,9 @@ erDiagram
         string why_3 "การวิเคราะห์ ทำไม ครั้งที่ 3"
         text preventive_measure_specific "มาตรการป้องกันเฉพาะกรณี"
         text preventive_measure_systemic "มาตรการป้องกันทั้งระบบ"
+        string pcar_cancellation_reason "เหตุผลการยกเลิก P-CAR (Nullable)"
+        timestamp pcar_cancelled_at "เวลายกเลิก P-CAR (Nullable)"
+        bigint pcar_cancelled_by "FK -> USERS (ผู้ยกเลิก P-CAR)"
         timestamp sla_due_at "กำหนดเสร็จ SLA"
         timestamp sla_warning_sent_at "เวลาที่ส่งแจ้งเตือน SLA Warning (Nullable)"
         timestamp sla_breached_sent_at "เวลาที่ส่งแจ้งเตือน SLA Breached (Nullable)"
@@ -130,6 +133,7 @@ erDiagram
     USERS ||--o{ HELPDESK_CASES : "อนุมัติโดย (approved_by)"
     USERS ||--o{ HELPDESK_CASES : "ปิดงานโดย (closed_by)"
     USERS ||--o{ HELPDESK_CASES : "ยกเลิกโดย (cancelled_by)"
+    USERS ||--o{ HELPDESK_CASES : "ยกเลิก P-CAR โดย (pcar_cancelled_by)"
     
     HELPDESK_CASES ||--o{ TICKET_COMMENTS : "มีข้อความโต้ตอบ"
     USERS ||--o{ TICKET_COMMENTS : "ส่งข้อความโดย"
@@ -250,4 +254,5 @@ erDiagram
 > - **การบันทึกประวัติการตั้งค่าระบบ (Settings Audit Log Target ID):** สำหรับการบันทึกประวัติการตั้งค่าระบบ (`settings.update`) ตาราง `AUDIT_LOGS` จะกำหนดค่า `target_id = null` เนื่องจากเป็นการปรับแต่งค่าระดับระบบแบบ Key-Value คู่ขนานที่ไม่มี Entity ID ประจำตารางเดี่ยว เพื่อป้องกันข้อผิดพลาด MySQL 1366 Data Truncation Error
 > - **การตรวจสอบเวอร์ชันและสถานะของฐานข้อมูล (Database Engine Diagnostics):** ระบบดึงข้อมูลเวอร์ชันของ MySQL/MariaDB จากการเชื่อมต่อฐานข้อมูลโดยตรงผ่าน `PDO::ATTR_SERVER_VERSION` เพื่อนำไปแสดงผลบน Dashboard/Settings โดยไม่มีการเปลี่ยนแปลง Schema หรือโครงสร้างตารางเพิ่มเติม
 > - **การจัดการข้อมูลส่วนตัวและความปลอดภัยของบัญชี (Profile Management & Security Architecture):** ฟิลด์ข้อมูลในตาราง `USERS` (ชื่อ, อีเมล, เบอร์โทรศัพท์, สังกัดบริษัท, แผนก, รหัสผ่าน) ได้รับการบริหารจัดการผ่านหน้าจอ `Profile/Edit.jsx` โดยมีระบบป้องกันการแก้ไขชื่อของ Role `administrator` เพื่อรักษาความถูกต้องของ Audit Log, การตรวจสอบและส่งลิงก์ยืนยันอีเมลซ้ำ (`email_verified_at`), และระบบเปลี่ยนรหัสผ่านพร้อมเกณฑ์ความปลอดภัยมาตรฐานสากล
+> - **การยกเลิก, Re-activate เลขเดิม และลายน้ำรายงาน P-CAR (PCAR Cancellation, Re-activation & Watermark):** หัวหน้า (Manager - Tier 3) สามารถสลับการตัดสินใจ Task 2 ไปมาได้ตราบใดที่ยังไม่ปิดงาน (`preventive_measure !== 'done'`) โดยหากสลับเป็น "ไม่ต้องการ" ในเคสที่มีเลข PCAR แล้ว ระบบจะบังคับใส่เหตุผล บันทึก `pcar_cancellation_reason`, `pcar_cancelled_at`, `pcar_cancelled_by` ปรับสถานะเป็น `cancelled` และแสดงลายน้ำตรายางยกเลิกสีแดงกลางรายงานพิมพ์ P-CAR Form 4 แต่หากเปลี่ยนใจกลับมาเลือก "ต้องการ" อีกครั้ง ระบบจะ Re-activate นำเลข `pcar_no` เดิมกลับมาใช้ต่อ ปรับสถานะเป็น `in_progress` ปลดลายน้ำออก และบันทึก Audit Comment ทั้งนี้เมื่อปิด Task 2 (`done`) แล้วจะล็อกการแก้ไขถาวร
 

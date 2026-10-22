@@ -599,4 +599,254 @@ class TicketManagementTest extends TestCase
         $response->assertForbidden();
         $this->assertEquals(0, HelpdeskCase::count());
     }
+
+    public function test_manager_review_requires_preventive_measure_defers_pcar_no_generation(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0201',
+            'title' => 'เคสปิดรอหัวหน้าตรวจ',
+            'description' => 'รายละเอียด',
+            'category' => 'Hardware',
+            'status' => 'closed',
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-111-2222',
+            'location' => 'อาคาร A',
+        ]);
+
+        $response = $this->actingAs($manager)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'close',
+            'requires_preventive_measure' => '1',
+            'escalated_to_team' => 'Hardware',
+        ]);
+
+        $response->assertRedirect(route('tickets.show', $case->id));
+        $response->assertSessionHas('success');
+        $case->refresh();
+
+        $this->assertTrue((bool) $case->requires_preventive_measure);
+        $this->assertEquals('assigned', $case->preventive_measure);
+        $this->assertEquals('Hardware', $case->escalated_to_team);
+        $this->assertNull($case->pcar_no); // Deferred to start Task 2
+    }
+
+    public function test_tier2_specialist_starting_task2_generates_pcar_number(): void
+    {
+        $hardwareTech = User::factory()->create(['role' => 'team_hardware']);
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0202',
+            'title' => 'เคสมอบหมาย Task 2 ให้ Hardware',
+            'description' => 'รายละเอียด',
+            'category' => 'Hardware',
+            'status' => 'closed',
+            'requires_preventive_measure' => true,
+            'preventive_measure' => 'assigned',
+            'escalated_to_team' => 'Hardware',
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-111-2222',
+            'location' => 'อาคาร A',
+        ]);
+
+        $response = $this->actingAs($hardwareTech)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'start_preventive_measure',
+        ]);
+
+        $response->assertRedirect(route('tickets.show', $case->id));
+        $response->assertSessionHas('success');
+        $case->refresh();
+
+        $this->assertEquals('in_progress', $case->preventive_measure);
+        $this->assertNotNull($case->pcar_no);
+        $this->assertStringStartsWith('PCAR-', $case->pcar_no);
+        $this->assertNotNull($case->pcar_opened_at);
+        $this->assertEquals($hardwareTech->id, $case->pcar_opened_by);
+    }
+
+    public function test_manager_reverting_task2_requires_cancellation_reason(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0203',
+            'title' => 'เคสเคยมี Task 2 กำลังทำ',
+            'description' => 'รายละเอียด',
+            'category' => 'Hardware',
+            'status' => 'closed',
+            'requires_preventive_measure' => true,
+            'preventive_measure' => 'in_progress',
+            'pcar_no' => 'PCAR-202610-9999',
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-111-2222',
+            'location' => 'อาคาร A',
+        ]);
+
+        // Attempt without cancellation reason -> should fail validation
+        $response = $this->actingAs($manager)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'close',
+            'requires_preventive_measure' => '0',
+            'pcar_cancellation_reason' => '',
+        ]);
+
+        $response->assertSessionHasErrors(['pcar_cancellation_reason']);
+        $case->refresh();
+        $this->assertTrue((bool) $case->requires_preventive_measure);
+        $this->assertEquals('in_progress', $case->preventive_measure);
+
+        // Attempt with cancellation reason -> succeeds
+        $responseSuccess = $this->actingAs($manager)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'close',
+            'requires_preventive_measure' => '0',
+            'pcar_cancellation_reason' => 'สาเหตุเกิดจาก Human Error และได้อบรมพนักงานแล้ว',
+        ]);
+
+        $responseSuccess->assertRedirect(route('tickets.show', $case->id));
+        $responseSuccess->assertSessionHas('success');
+        $case->refresh();
+
+        $this->assertFalse((bool) $case->requires_preventive_measure);
+        $this->assertEquals('cancelled', $case->preventive_measure);
+        $this->assertEquals('PCAR-202610-9999', $case->pcar_no); // preserved for audit
+        $this->assertEquals('สาเหตุเกิดจาก Human Error และได้อบรมพนักงานแล้ว', $case->pcar_cancellation_reason);
+        $this->assertNotNull($case->pcar_cancelled_at);
+        $this->assertEquals($manager->id, $case->pcar_cancelled_by);
+    }
+
+    public function test_first_time_manager_review_does_not_require_cancellation_reason_when_declining(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0204',
+            'title' => 'เคสเพิ่งปิดยังไม่เคยระบุมาตรการ',
+            'description' => 'รายละเอียด',
+            'category' => 'Hardware',
+            'status' => 'closed',
+            'requires_preventive_measure' => null,
+            'preventive_measure' => null,
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-111-2222',
+            'location' => 'อาคาร A',
+        ]);
+
+        $response = $this->actingAs($manager)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'close',
+            'requires_preventive_measure' => '0',
+        ]);
+
+        $response->assertRedirect(route('tickets.show', $case->id));
+        $response->assertSessionHas('success');
+        $case->refresh();
+
+        $this->assertFalse((bool) $case->requires_preventive_measure);
+        $this->assertNull($case->preventive_measure);
+        $this->assertNull($case->pcar_cancellation_reason);
+    }
+
+    public function test_manager_can_reactivate_cancelled_task2_preserving_pcar_number(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0205',
+            'title' => 'เคสเคยถูกยกเลิก Task 2 จะนำกลับมาทำใหม่',
+            'description' => 'รายละเอียด',
+            'category' => 'Hardware',
+            'status' => 'closed',
+            'requires_preventive_measure' => false,
+            'preventive_measure' => 'cancelled',
+            'pcar_no' => 'PCAR-202610-0088',
+            'pcar_cancellation_reason' => 'ยกเลิกชั่วคราว',
+            'pcar_cancelled_at' => now(),
+            'pcar_cancelled_by' => $manager->id,
+            'escalated_to_team' => 'Hardware',
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-111-2222',
+            'location' => 'อาคาร A',
+        ]);
+
+        $response = $this->actingAs($manager)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'close',
+            'requires_preventive_measure' => '1',
+            'escalated_to_team' => 'Hardware',
+        ]);
+
+        $response->assertRedirect(route('tickets.show', $case->id));
+        $response->assertSessionHas('success');
+        $case->refresh();
+
+        $this->assertTrue((bool) $case->requires_preventive_measure);
+        $this->assertEquals('in_progress', $case->preventive_measure);
+        $this->assertEquals('PCAR-202610-0088', $case->pcar_no);
+        $this->assertNull($case->pcar_cancellation_reason);
+        $this->assertNull($case->pcar_cancelled_at);
+        $this->assertNull($case->pcar_cancelled_by);
+
+        $this->assertDatabaseHas('ticket_comments', [
+            'helpdesk_case_id' => $case->id,
+            'user_id' => $manager->id,
+        ]);
+    }
+
+    public function test_manager_cannot_change_requires_preventive_measure_if_task2_is_done(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0206',
+            'title' => 'เคสปิด Task 2 เสร็จแล้ว',
+            'description' => 'รายละเอียด',
+            'category' => 'Hardware',
+            'status' => 'closed',
+            'requires_preventive_measure' => true,
+            'preventive_measure' => 'done',
+            'pcar_no' => 'PCAR-202610-0099',
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-111-2222',
+            'location' => 'อาคาร A',
+        ]);
+
+        $response = $this->actingAs($manager)->put(route('tickets.updateStatus', $case->id), [
+            'action' => 'close',
+            'requires_preventive_measure' => '0',
+            'pcar_cancellation_reason' => 'จะขอยกเลิกหลังจากปิดแล้ว',
+        ]);
+
+        $response->assertRedirect(route('tickets.show', $case->id));
+        $response->assertSessionHas('error');
+        $case->refresh();
+
+        $this->assertTrue((bool) $case->requires_preventive_measure);
+        $this->assertEquals('done', $case->preventive_measure);
+    }
+
+    public function test_print_page_displays_watermark_when_pcar_is_cancelled(): void
+    {
+        $manager = User::factory()->create(['role' => 'manager', 'name' => 'Manager Somchai']);
+        $case = HelpdeskCase::create([
+            'ticket_no' => 'IT-202610-0207',
+            'title' => 'เคสปริ้นรายงานที่มีลายน้ำ',
+            'description' => 'รายละเอียด',
+            'category' => 'Hardware',
+            'status' => 'closed',
+            'requires_preventive_measure' => false,
+            'preventive_measure' => 'cancelled',
+            'pcar_no' => 'PCAR-202610-0055',
+            'pcar_cancellation_reason' => 'เป็นปัญหาจากการทำงานของผู้ใช้โดยตรง',
+            'pcar_cancelled_at' => now(),
+            'pcar_cancelled_by' => $manager->id,
+            'requester_name' => 'ผู้แจ้ง',
+            'requester_email' => 'user@example.com',
+            'requester_phone' => '081-111-2222',
+            'location' => 'อาคาร A',
+        ]);
+
+        $response = $this->actingAs($manager)->get(route('tickets.print', $case->id));
+        $response->assertOk();
+        $response->assertSee('watermark-cancelled');
+        $response->assertSee('P-CAR ถูกยกเลิก / CANCELLED');
+        $response->assertSee('เป็นปัญหาจากการทำงานของผู้ใช้โดยตรง');
+        $response->assertSee('Manager Somchai');
+    }
 }
