@@ -513,11 +513,112 @@ class DashboardController extends Controller
         $stats['percent_t2_pending'] = $t2_total > 0 ? round(($stats['task2_pending_review'] / $t2_total) * 100) : 0;
         $stats['percent_t2_completed'] = $t2_total > 0 ? round(($stats['task2_completed'] / $t2_total) * 100) : 0;
 
+        // Dynamic Filter Options (Zero Dead-Ends: Only options present in the dataset)
+        $task1Base = clone $baseQuery;
+        $task1Priorities = (clone $task1Base)->whereNotNull('priority')->distinct()->pluck('priority')->toArray();
+        $task1TeamNames = (clone $task1Base)->whereNotNull('escalated_to_team')->distinct()->pluck('escalated_to_team')->toArray();
+
+        $task2Base = ($isManager || $isAdmin)
+            ? (clone $baseQuery)->where('status', 'closed')->where(function ($q) {
+                $q->whereNull('requires_preventive_measure')
+                    ->orWhere('requires_preventive_measure', true)
+                    ->orWhereNotNull('pcar_no')
+                    ->orWhere('preventive_measure', 'cancelled');
+            })
+            : (clone $baseQuery)->where('status', 'closed')->where(function ($q) {
+                $q->where('requires_preventive_measure', true)
+                    ->orWhereNotNull('pcar_no')
+                    ->orWhere('preventive_measure', 'cancelled');
+            });
+
+        $task2Priorities = (clone $task2Base)->whereNotNull('priority')->distinct()->pluck('priority')->toArray();
+        $task2TeamNames = (clone $task2Base)->whereNotNull('escalated_to_team')->distinct()->pluck('escalated_to_team')->toArray();
+
+        $task2TechRaw = (clone $task2Base)->where(function ($q) {
+            $q->whereNotNull('in_progress_by')
+                ->orWhereNotNull('analyzing_by')
+                ->orWhereNotNull('pcar_opened_by')
+                ->orWhereNotNull('pcar_analyzed_by');
+        })->get(['in_progress_by', 'analyzing_by', 'pcar_opened_by', 'pcar_analyzed_by']);
+
+        $t2TechIdSet = collect();
+        foreach ($task2TechRaw as $row) {
+            if ($row->in_progress_by) {
+                $t2TechIdSet->push($row->in_progress_by);
+            }
+            if ($row->analyzing_by) {
+                $t2TechIdSet->push($row->analyzing_by);
+            }
+            if ($row->pcar_opened_by) {
+                $t2TechIdSet->push($row->pcar_opened_by);
+            }
+            if ($row->pcar_analyzed_by) {
+                $t2TechIdSet->push($row->pcar_analyzed_by);
+            }
+        }
+        $uniqueT2TechIds = $t2TechIdSet->unique()->filter()->values();
+
+        $task2Technicians = [];
+        if ($uniqueT2TechIds->isNotEmpty()) {
+            $techUsers = User::whereIn('id', $uniqueT2TechIds)->orderBy('name')->get(['id', 'name']);
+            foreach ($techUsers as $techUser) {
+                $count = (clone $task2Base)->where(function ($q) use ($techUser) {
+                    $q->where('in_progress_by', $techUser->id)
+                        ->orWhere('analyzing_by', $techUser->id)
+                        ->orWhere('pcar_opened_by', $techUser->id)
+                        ->orWhere('pcar_analyzed_by', $techUser->id);
+                })->count();
+                if ($count > 0) {
+                    $task2Technicians[] = [
+                        'id' => $techUser->id,
+                        'name' => $techUser->name,
+                        'total_active' => $count,
+                    ];
+                }
+            }
+        }
+
+        $filterOptions = [
+            'task1' => [
+                'priorities' => $task1Priorities,
+                'team_names' => $task1TeamNames,
+                'statuses' => [
+                    'not_closed' => $stats['open_total'],
+                    'all' => $stats['total'],
+                    'pending' => $stats['pending'],
+                    'analyzing' => $stats['analyzing'],
+                    'in_progress' => $stats['in_progress'],
+                    'active' => $stats['pending'] + $stats['analyzing'] + $stats['in_progress'],
+                    'resolved' => $stats['testing'],
+                    'completed' => $stats['completed'],
+                    'closed_today' => $stats['closed_today'],
+                    'sla_warning' => $stats['sla_warning'],
+                    'sla_overdue' => $stats['sla_overdue'],
+                    'breached' => $stats['breached'],
+                ],
+            ],
+            'task2' => [
+                'priorities' => $task2Priorities,
+                'team_names' => $task2TeamNames,
+                'technicians' => $task2Technicians,
+                'statuses' => [
+                    'task2_all' => $stats['task2_total'],
+                    'task2_manager_review' => $stats['task2_manager_review'],
+                    'task2_assigned' => $stats['task2_assigned'],
+                    'task2_in_progress' => $stats['task2_in_progress'],
+                    'task2_pending_review' => $stats['task2_pending_review'],
+                    'task2_completed' => $stats['task2_completed'],
+                    'task2_cancelled' => $stats['task2_cancelled'],
+                ],
+            ],
+        ];
+
         return Inertia::render('Dashboard/ItStaffDashboard', [
             'cases' => $cases,
             'stats' => $stats,
             'teams' => Team::where('is_active', true)->orderBy('name')->get(['id', 'name', 'code']),
             'technician_workload' => $technicianWorkload,
+            'filter_options' => $filterOptions,
             'filters' => array_merge(
                 $request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive', 'technician_id', 'tier2_tab', 'manager_tab', 'view']),
                 ['sort' => $sortField, 'direction' => $sortDirection]

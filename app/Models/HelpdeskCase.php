@@ -385,7 +385,9 @@ class HelpdeskCase extends Model
                 if (! empty($technicianId) && $technicianId !== 'all') {
                     $query->where(function ($q) use ($technicianId) {
                         $q->where('in_progress_by', $technicianId)
-                            ->orWhere('analyzing_by', $technicianId);
+                            ->orWhere('analyzing_by', $technicianId)
+                            ->orWhere('pcar_opened_by', $technicianId)
+                            ->orWhere('pcar_analyzed_by', $technicianId);
                     });
                 }
             })

@@ -323,8 +323,12 @@ class ReportController extends Controller
             ];
         })->values();
 
-        // Dropdown data
-        $companies = Company::where('is_active', true)->orderBy('name')->pluck('name')->toArray();
+        // Dropdown data (Only companies with actual tickets to ensure zero dead-ends)
+        $companiesWithTickets = HelpdeskCase::whereNotNull('company')->distinct()->pluck('company')->toArray();
+        $companies = Company::where('is_active', true)->whereIn('name', $companiesWithTickets)->orderBy('name')->pluck('name')->toArray();
+        if (empty($companies)) {
+            $companies = Company::where('is_active', true)->orderBy('name')->pluck('name')->toArray();
+        }
         $thaiMonthNames = [
             1 => 'มกราคม', 2 => 'กุมภาพันธ์', 3 => 'มีนาคม', 4 => 'เมษายน',
             5 => 'พฤษภาคม', 6 => 'มิถุนายน', 7 => 'กรกฎาคม', 8 => 'สิงหาคม',

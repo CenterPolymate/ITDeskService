@@ -7,7 +7,7 @@ import {
 } from '@/Utils/webNotification';
 import SortableHeader from '@/Components/SortableHeader';
 
-export default function ItStaffDashboard({ cases, stats, teams = [], technician_workload = null, filters = {} }) {
+export default function ItStaffDashboard({ cases, stats, teams = [], technician_workload = null, filter_options = {}, filters = {} }) {
     const { auth, flash } = usePage().props;
     const userRole = auth.user.role;
     const isManager = ['manager', 'manager_software', 'manager_network_hardware'].includes(userRole);
@@ -21,6 +21,64 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
 
     const activeTabFromFilter = filters.status?.startsWith('task2') || filters.manager_tab === 'task2' ? 'task2' : 'task1';
     const [managerTab, setManagerTab] = useState(activeTabFromFilter);
+
+    // Dynamic Filter Options (Zero Dead-Ends: Only display options present in dataset)
+    const activeTabKey = managerTab === 'task2' ? 'task2' : 'task1';
+    const currentTabOptions = filter_options?.[activeTabKey] || {};
+
+    const tabTeamNames = currentTabOptions.team_names;
+    const filteredTeams = tabTeamNames && Array.isArray(tabTeamNames)
+        ? availableTeams.filter(t => tabTeamNames.includes(t.name) || filters.team === t.name)
+        : availableTeams;
+
+    const tabPriorities = currentTabOptions.priorities;
+    const priorityDefinitions = [
+        { value: 'urgent', label: 'ด่วนที่สุด (Urgent)' },
+        { value: 'high', label: 'สูง (High)' },
+        { value: 'medium', label: 'ปานกลาง (Medium)' },
+        { value: 'low', label: 'ทั่วไป (Low)' },
+    ];
+    const filteredPriorities = tabPriorities && Array.isArray(tabPriorities)
+        ? priorityDefinitions.filter(p => tabPriorities.includes(p.value) || filters.priority === p.value)
+        : priorityDefinitions;
+
+    const availableTechnicians = activeTabKey === 'task2'
+        ? (currentTabOptions.technicians || [])
+        : (technician_workload?.technicians || []).filter(t => t.total_active > 0 || String(t.id) === String(filters.technician_id));
+
+    const showTechnicianFilter = availableTechnicians.length > 0 || (filters.technician_id && filters.technician_id !== 'all');
+
+    const tabStatuses = currentTabOptions.statuses || {};
+    const task2StatusDefinitions = [
+        { key: 'task2_all', label: 'เคส Task 2 ทั้งหมด (ทุกสถานะ)', count: tabStatuses.task2_all },
+        { key: 'task2_manager_review', label: 'รอหัวหน้าตรวจมาตรการป้องกัน', count: tabStatuses.task2_manager_review },
+        { key: 'task2_assigned', label: 'รอดำเนินการป้องกัน', count: tabStatuses.task2_assigned },
+        { key: 'task2_in_progress', label: 'กำลังดำเนินการป้องกัน', count: tabStatuses.task2_in_progress },
+        { key: 'task2_pending_review', label: 'กำลังตรวจสอบปิดมาตรการ', count: tabStatuses.task2_pending_review },
+        { key: 'task2_completed', label: 'ปิดมาตรการป้องกันแล้ว', count: tabStatuses.task2_completed },
+        { key: 'task2_cancelled', label: 'มาตรการป้องกันถูกยกเลิก', count: tabStatuses.task2_cancelled },
+    ];
+    const filteredTask2Statuses = task2StatusDefinitions.filter(s =>
+        s.key === 'task2_all' || (s.count !== undefined ? s.count > 0 : true) || filters.status === s.key
+    );
+
+    const task1StatusDefinitions = [
+        { key: 'not_closed', label: 'ยังไม่ปิดใบงาน (ค่าเริ่มต้น)', count: tabStatuses.not_closed },
+        { key: 'all', label: 'ทุกสถานะของ Task 1 (รวมปิดงานแล้ว)', count: tabStatuses.all },
+        { key: 'pending', label: 'รอดำเนินการ / มอบหมาย', count: tabStatuses.pending },
+        { key: 'analyzing', label: 'สืบสภาพ / วิเคราะห์สาเหตุ', count: tabStatuses.analyzing },
+        { key: 'in_progress', label: 'ดำเนินการแก้ไข', count: tabStatuses.in_progress },
+        { key: 'active', label: 'กำลังทำ (Assigned/Analyzing/In Progress)', count: tabStatuses.active },
+        { key: 'resolved', label: 'รอผู้แจ้งกดรับงาน', count: tabStatuses.resolved },
+        { key: 'completed', label: 'แก้ไขเสร็จ / ปิดใบงาน', count: tabStatuses.completed },
+        { key: 'closed_today', label: 'ปิดงานวันนี้', count: tabStatuses.closed_today },
+        { key: 'sla_warning', label: '⏰ ใกล้หมดเวลา SLA (< 1 ชม.)', count: tabStatuses.sla_warning },
+        { key: 'sla_overdue', label: '⚠️ เกินกำหนดเวลา SLA แล้ว', count: tabStatuses.sla_overdue },
+        { key: 'breached', label: 'แก้ไขเสร็จเกิน SLA', count: tabStatuses.breached },
+    ];
+    const filteredTask1Statuses = task1StatusDefinitions.filter(s =>
+        s.key === 'not_closed' || s.key === 'all' || (s.count !== undefined ? s.count > 0 : true) || filters.status === s.key
+    );
 
     const getInitialStatus = (tab, statusFilter) => {
         if (tab === 'task2') {
@@ -1386,7 +1444,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
 
                             {/* Comprehensive Filters */}
                             <form onSubmit={handleSearchSubmit} className="w-full mt-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                                <div className={`grid grid-cols-1 md:grid-cols-2 ${technician_workload?.technicians?.length > 0 ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-3`}>
+                                <div className={`grid grid-cols-1 md:grid-cols-2 ${showTechnicianFilter ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-3`}>
                                     <div>
                                         <label className="block text-xs font-medium text-gray-600 mb-1">
                                             {managerTab === 'task2' ? 'สถานะมาตรการ (Task 2 Status)' : 'สถานะใบงาน (Status)'}
@@ -1401,30 +1459,13 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                             className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
                                         >
                                             {managerTab === 'task2' ? (
-                                                <>
-                                                    <option value="task2_all">เคส Task 2 ทั้งหมด (ทุกสถานะ)</option>
-                                                    <option value="task2_manager_review">รอหัวหน้าตรวจมาตรการป้องกัน</option>
-                                                    <option value="task2_assigned">รอดำเนินการป้องกัน</option>
-                                                    <option value="task2_in_progress">กำลังดำเนินการป้องกัน</option>
-                                                    <option value="task2_pending_review">กำลังตรวจสอบปิดมาตรการ</option>
-                                                    <option value="task2_completed">ปิดมาตรการป้องกันแล้ว</option>
-                                                    <option value="task2_cancelled">มาตรการป้องกันถูกยกเลิก</option>
-                                                </>
+                                                filteredTask2Statuses.map(s => (
+                                                    <option key={s.key} value={s.key}>{s.label}</option>
+                                                ))
                                             ) : (
-                                                <>
-                                                    <option value="not_closed">ยังไม่ปิดใบงาน (ค่าเริ่มต้น)</option>
-                                                    <option value="all">ทุกสถานะของ Task 1 (รวมปิดงานแล้ว)</option>
-                                                    <option value="pending">รอดำเนินการ / มอบหมาย</option>
-                                                    <option value="analyzing">สืบสภาพ / วิเคราะห์สาเหตุ</option>
-                                                    <option value="in_progress">ดำเนินการแก้ไข</option>
-                                                    <option value="active">กำลังทำ (Assigned/Analyzing/In Progress)</option>
-                                                    <option value="resolved">รอผู้แจ้งกดรับงาน</option>
-                                                    <option value="completed">แก้ไขเสร็จ / ปิดใบงาน</option>
-                                                    <option value="closed_today">ปิดงานวันนี้</option>
-                                                    <option value="sla_warning">⏰ ใกล้หมดเวลา SLA (&lt; 1 ชม.)</option>
-                                                    <option value="sla_overdue">⚠️ เกินกำหนดเวลา SLA แล้ว</option>
-                                                    <option value="breached">แก้ไขเสร็จเกิน SLA</option>
-                                                </>
+                                                filteredTask1Statuses.map(s => (
+                                                    <option key={s.key} value={s.key}>{s.label}</option>
+                                                ))
                                             )}
                                         </select>
                                     </div>
@@ -1437,10 +1478,9 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                             className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
                                         >
                                             <option value="all">ทุกระดับ</option>
-                                            <option value="urgent">ด่วนที่สุด (Urgent)</option>
-                                            <option value="high">สูง (High)</option>
-                                            <option value="medium">ปานกลาง (Medium)</option>
-                                            <option value="low">ทั่วไป (Low)</option>
+                                            {filteredPriorities.map(p => (
+                                                <option key={p.value} value={p.value}>{p.label}</option>
+                                            ))}
                                         </select>
                                     </div>
 
@@ -1452,7 +1492,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                             className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
                                         >
                                             <option value="all">ทุกทีม (All Teams)</option>
-                                            {availableTeams.map((t) => (
+                                            {filteredTeams.map((t) => (
                                                 <option key={t.id || t.name} value={t.name}>
                                                     [{t.code}] {t.name}
                                                 </option>
@@ -1460,16 +1500,20 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                         </select>
                                     </div>
 
-                                    {technician_workload?.technicians?.length > 0 && (
+                                    {showTechnicianFilter && (
                                         <div>
-                                            <label className="block text-xs font-medium text-gray-600 mb-1">ช่างในทีม (Technician)</label>
+                                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                                                {managerTab === 'task2' ? 'ช่างมาตรการป้องกัน' : 'ช่างในทีม (Technician)'}
+                                            </label>
                                             <select
                                                 value={formFilters.technician_id}
                                                 onChange={(e) => handleFilterChange('technician_id', e.target.value)}
                                                 className="w-full h-[38px] rounded-lg border-gray-300 focus:border-indigo-400 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm py-2 px-3 bg-white"
                                             >
-                                                <option value="all">ช่างทุกคนในทีม</option>
-                                                {technician_workload.technicians.map((t) => (
+                                                <option value="all">
+                                                    {managerTab === 'task2' ? 'ช่างทุกคน (Task 2)' : 'ช่างทุกคนในทีม'}
+                                                </option>
+                                                {availableTechnicians.map((t) => (
                                                     <option key={t.id} value={t.id}>
                                                         {t.name} ({t.total_active} ใบ)
                                                     </option>

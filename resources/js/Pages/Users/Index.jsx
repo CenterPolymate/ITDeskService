@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import SortableHeader from '@/Components/SortableHeader';
 
-export default function Index({ users, filters = {} }) {
+export default function Index({ users, available_statuses = {}, filters = {} }) {
     const { flash, auth } = usePage().props;
     const [search, setSearch] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.status_filter || '');
@@ -203,9 +203,15 @@ export default function Index({ users, filters = {} }) {
                                     className="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full md:w-auto text-sm leading-normal"
                                 >
                                     <option value="">สถานะทั้งหมด</option>
-                                    <option value="1">ใช้งาน (Active)</option>
-                                    <option value="unverified">รอการยืนยันอีเมล</option>
-                                    <option value="0">ระงับการใช้งาน (Inactive)</option>
+                                    {(available_statuses?.['1'] || statusFilter === '1') && (
+                                        <option value="1">ใช้งาน (Active)</option>
+                                    )}
+                                    {(available_statuses?.['unverified'] || statusFilter === 'unverified') && (
+                                        <option value="unverified">รอการยืนยันอีเมล</option>
+                                    )}
+                                    {(available_statuses?.['0'] || statusFilter === '0') && (
+                                        <option value="0">ระงับการใช้งาน (Inactive)</option>
+                                    )}
                                 </select>
                                 {(search || statusFilter !== '') && (
                                     <button

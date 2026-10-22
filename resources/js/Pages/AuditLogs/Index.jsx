@@ -404,7 +404,7 @@ function LogChangesDisplay({ log }) {
     return <em className="text-gray-400 text-xs">ไม่มีรายละเอียด</em>;
 }
 
-export default function Index({ logs, users = [], filters = {} }) {
+export default function Index({ logs, users = [], available_actions = {}, filters = {} }) {
     const [dateFrom, setDateFrom] = useState(filters.date_from || '');
     const [dateTo, setDateTo] = useState(filters.date_to || '');
     const [userId, setUserId] = useState(filters.user_id || '');
@@ -536,10 +536,18 @@ export default function Index({ logs, users = [], filters = {} }) {
                                     className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                 >
                                     <option value="">ทั้งหมด</option>
-                                    <option value="POST">เพิ่มข้อมูล</option>
-                                    <option value="PUT">แก้ไขข้อมูล</option>
-                                    <option value="DELETE">ลบข้อมูล</option>
-                                    <option value="DEACTIVATE">เปลี่ยนสถานะเป็น Inactive</option>
+                                    {(available_actions?.['POST'] || actionFilter === 'POST') && (
+                                        <option value="POST">เพิ่มข้อมูล</option>
+                                    )}
+                                    {(available_actions?.['PUT'] || actionFilter === 'PUT') && (
+                                        <option value="PUT">แก้ไขข้อมูล</option>
+                                    )}
+                                    {(available_actions?.['DELETE'] || actionFilter === 'DELETE') && (
+                                        <option value="DELETE">ลบข้อมูล</option>
+                                    )}
+                                    {(available_actions?.['DEACTIVATE'] || actionFilter === 'DEACTIVATE') && (
+                                        <option value="DEACTIVATE">เปลี่ยนสถานะเป็น Inactive</option>
+                                    )}
                                 </select>
                             </div>
 

@@ -59,8 +59,16 @@ class UserManagementController extends Controller
 
         $users = $query->orderBy($sort, $direction)->paginate(10)->appends($request->query());
 
+        $baseUsers = User::where('role', '!=', 'user');
+        $availableStatuses = [
+            '1' => (clone $baseUsers)->where('is_active', true)->whereNotNull('email_verified_at')->exists(),
+            'unverified' => (clone $baseUsers)->where('is_active', true)->whereNull('email_verified_at')->exists(),
+            '0' => (clone $baseUsers)->where('is_active', false)->exists(),
+        ];
+
         return Inertia::render('Users/Index', [
             'users' => $users,
+            'available_statuses' => $availableStatuses,
             'filters' => [
                 'search' => $request->search,
                 'status_filter' => $request->status_filter,

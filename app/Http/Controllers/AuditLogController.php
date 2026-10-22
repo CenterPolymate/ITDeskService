@@ -242,11 +242,20 @@ class AuditLogController extends Controller
             return $log;
         });
 
-        $users = User::whereIn('role', ['administrator', 'manager', 'manager_software', 'manager_network_hardware'])->orderBy('name')->get(['id', 'name']);
+        $logUserIds = AuditLog::whereNotNull('user_id')->distinct()->pluck('user_id');
+        $users = User::whereIn('id', $logUserIds)->orderBy('name')->get(['id', 'name']);
+
+        $availableActions = [
+            'POST' => AuditLog::where('action', 'like', '%POST%')->exists(),
+            'PUT' => AuditLog::where('action', 'like', '%PUT%')->exists(),
+            'DELETE' => AuditLog::where('action', 'like', '%DELETE%')->exists(),
+            'DEACTIVATE' => AuditLog::where('action', 'like', '%DEACTIVATE%')->exists(),
+        ];
 
         return Inertia::render('AuditLogs/Index', [
             'logs' => $logs,
             'users' => $users,
+            'available_actions' => $availableActions,
             'filters' => [
                 'action_filter' => (string) request('action_filter', ''),
                 'user_id' => (string) request('user_id', ''),
