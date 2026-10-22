@@ -248,10 +248,14 @@ class DashboardController extends Controller
                 $userTeamNames = $user->teams()->pluck('name')->toArray();
                 $baseQuery->whereIn('escalated_to_team', $userTeamNames);
             } else {
+                $netTeamName = Team::where('code', 'NET')->value('name') ?? 'Network production';
+                $hwTeamName = Team::where('code', 'HW')->value('name') ?? 'Hardware';
+                $swTeamName = Team::where('code', 'SW')->value('name') ?? 'Software';
+
                 $teamMapping = [
-                    'team_hardware' => 'Hardware',
-                    'team_network' => 'Network',
-                    'team_software' => 'Software',
+                    'team_hardware' => $hwTeamName,
+                    'team_network' => $netTeamName,
+                    'team_software' => $swTeamName,
                 ];
                 if (isset($teamMapping[$user->role])) {
                     $baseQuery->where('escalated_to_team', $teamMapping[$user->role]);
@@ -345,7 +349,9 @@ class DashboardController extends Controller
                 $technicians = User::whereIn('role', $targetRoles)->where('is_active', true)->orderBy('name')->get();
             } elseif ($user->role === 'manager_network_hardware') {
                 $targetRoles = ['team_hardware', 'team_network'];
-                $teamNames = ['Hardware', 'Network'];
+                $netTeamName = Team::where('code', 'NET')->value('name') ?? 'Network production';
+                $hwTeamName = Team::where('code', 'HW')->value('name') ?? 'Hardware';
+                $teamNames = array_values(array_unique([$hwTeamName, $netTeamName, 'Hardware', 'Network', 'Network production']));
                 $teamTitle = 'ทีม Network & Hardware (Tier 2 ในความรับผิดชอบ)';
                 $technicians = User::whereIn('role', $targetRoles)->where('is_active', true)->orderBy('name')->get();
             } elseif ($managedTeams->isNotEmpty()) {

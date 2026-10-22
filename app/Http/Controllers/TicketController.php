@@ -303,13 +303,19 @@ class TicketController extends Controller
 
                 // 1. Permission check: Check team / role
                 if ($ticket->escalated_to_team) {
+                    $netTeamName = Team::where('code', 'NET')->value('name') ?? 'Network production';
+                    $hwTeamName = Team::where('code', 'HW')->value('name') ?? 'Hardware';
+                    $swTeamName = Team::where('code', 'SW')->value('name') ?? 'Software';
+
                     $teamMap = [
-                        'team_hardware' => 'Hardware',
-                        'team_network' => 'Network',
-                        'team_software' => 'Software',
+                        'team_hardware' => $hwTeamName,
+                        'team_network' => $netTeamName,
+                        'team_software' => $swTeamName,
                     ];
                     $userTeam = $teamMap[$user->role] ?? null;
                     $userBelongsToTeam = ($userTeam === $ticket->escalated_to_team)
+                        || ($ticket->escalated_to_team === 'Network' && in_array($userTeam, ['Network', 'Network production']))
+                        || ($ticket->escalated_to_team === 'Network production' && in_array($userTeam, ['Network', 'Network production']))
                         || ($user->teams()->where('name', $ticket->escalated_to_team)->exists());
 
                     if (! $userBelongsToTeam && ! in_array($user->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware'])) {
@@ -588,13 +594,19 @@ class TicketController extends Controller
             }
 
             if ($ticket->escalated_to_team) {
+                $netTeamName = Team::where('code', 'NET')->value('name') ?? 'Network production';
+                $hwTeamName = Team::where('code', 'HW')->value('name') ?? 'Hardware';
+                $swTeamName = Team::where('code', 'SW')->value('name') ?? 'Software';
+
                 $teamMap = [
-                    'team_hardware' => 'Hardware',
-                    'team_network' => 'Network',
-                    'team_software' => 'Software',
+                    'team_hardware' => $hwTeamName,
+                    'team_network' => $netTeamName,
+                    'team_software' => $swTeamName,
                 ];
                 $userTeam = $teamMap[$user->role] ?? null;
                 $userBelongsToTeam = ($userTeam === $ticket->escalated_to_team)
+                    || ($ticket->escalated_to_team === 'Network' && in_array($userTeam, ['Network', 'Network production']))
+                    || ($ticket->escalated_to_team === 'Network production' && in_array($userTeam, ['Network', 'Network production']))
                     || ($user->teams()->where('name', $ticket->escalated_to_team)->exists());
 
                 if (! $userBelongsToTeam && ! in_array($user->role, ['administrator', 'manager', 'manager_software', 'manager_network_hardware'])) {
