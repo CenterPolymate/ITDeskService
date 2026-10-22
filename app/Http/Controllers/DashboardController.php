@@ -494,7 +494,12 @@ class DashboardController extends Controller
             $query->orderBy('id', 'desc');
         }
 
-        $cases = $query->paginate(10)->withQueryString();
+        $perPage = (int) $request->input('per_page', 10);
+        if (! in_array($perPage, [10, 25, 50], true)) {
+            $perPage = 10;
+        }
+
+        $cases = $query->paginate($perPage)->withQueryString();
 
         // คำนวณเปอร์เซ็นต์สำหรับ Pipeline แยกตามขั้นตอน (อิงจากงานค้างที่เปิดอยู่ open_total)
         $openTotal = $stats['open_total'];
@@ -651,7 +656,7 @@ class DashboardController extends Controller
             'filter_options' => $filterOptions,
             'filters' => array_merge(
                 $request->only(['search', 'status', 'priority', 'category', 'department', 'team', 'preventive', 'technician_id', 'tier2_tab', 'manager_tab', 'view']),
-                ['sort' => $sortField, 'direction' => $sortDirection]
+                ['sort' => $sortField, 'direction' => $sortDirection, 'per_page' => $perPage]
             ),
         ]);
     }

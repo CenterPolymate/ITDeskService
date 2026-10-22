@@ -302,6 +302,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 view: filters.view || undefined,
                 sort: field,
                 direction: direction,
+                per_page: filters.per_page !== 10 ? filters.per_page : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -324,6 +325,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 view: filters.view || undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
                 direction: currentDirection !== 'desc' ? currentDirection : undefined,
+                per_page: filters.per_page !== 10 ? filters.per_page : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -350,6 +352,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 view: filters.view || undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
                 direction: currentDirection !== 'desc' ? currentDirection : undefined,
+                per_page: filters.per_page !== 10 ? filters.per_page : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -411,6 +414,27 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 status: clearedStatus,
                 manager_tab: managerTab,
                 view: filters.view || undefined,
+                per_page: filters.per_page !== 10 ? filters.per_page : undefined,
+            },
+            { preserveState: true, preserveScroll: true }
+        );
+    };
+
+    const handlePerPageChange = (val) => {
+        router.get(
+            route('dashboard'),
+            {
+                status: formFilters.status || undefined,
+                priority: formFilters.priority !== 'all' ? formFilters.priority : undefined,
+                team: formFilters.team !== 'all' ? formFilters.team : undefined,
+                technician_id: formFilters.technician_id !== 'all' ? formFilters.technician_id : undefined,
+                tier2_tab: formFilters.tier2_tab !== 'all' ? formFilters.tier2_tab : undefined,
+                search: formFilters.search || undefined,
+                manager_tab: managerTab || undefined,
+                view: filters.view || undefined,
+                sort: currentSort !== 'created_at' ? currentSort : undefined,
+                direction: currentDirection !== 'desc' ? currentDirection : undefined,
+                per_page: val !== 10 ? val : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -442,6 +466,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                 view: filters.view || undefined,
                 sort: currentSort !== 'created_at' ? currentSort : undefined,
                 direction: currentDirection !== 'desc' ? currentDirection : undefined,
+                per_page: filters.per_page !== 10 ? filters.per_page : undefined,
             },
             { preserveState: true, preserveScroll: true }
         );
@@ -487,24 +512,34 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
     };
 
     const renderSlaStatus = (caseItem) => {
-        if (['closed', 'cancelled'].includes(caseItem.status)) {
+        if (caseItem.status === 'cancelled') {
             return null;
         }
 
-        if (caseItem.status === 'resolved') {
-            if (caseItem.sla_due_at && caseItem.resolved_at) {
-                const resolvedTime = new Date(caseItem.resolved_at).getTime();
-                const dueTime = new Date(caseItem.sla_due_at).getTime();
-                if (resolvedTime > dueTime) {
+        if (caseItem.status === 'resolved' || caseItem.status === 'closed') {
+            if (caseItem.sla_due_at) {
+                const completionTime = caseItem.resolved_at
+                    ? new Date(caseItem.resolved_at).getTime()
+                    : (caseItem.closed_at ? new Date(caseItem.closed_at).getTime() : null);
+
+                if (completionTime) {
+                    const dueTime = new Date(caseItem.sla_due_at).getTime();
+                    if (completionTime > dueTime) {
+                        return (
+                            <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700 border border-rose-200 shadow-2xs">
+                                เกิน SLA
+                            </span>
+                        );
+                    }
                     return (
-                        <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700">
-                            เกิน SLA
+                        <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-2xs">
+                            ตาม SLA
                         </span>
                     );
                 }
             }
             return (
-                <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700">
+                <span className="px-2 py-0.5 inline-flex items-center gap-1 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-2xs">
                     ตาม SLA
                 </span>
             );
@@ -1443,7 +1478,7 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                         )}
 
                         <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
-                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                 <div>
                                     <h3 className="text-lg font-bold text-gray-900">
                                         {managerTab === 'task2' ? 'รายการเคสมาตรการป้องกันปัญหา (Task 2)' : 'รายการแจ้งซ่อมที่ต้องจัดการ'}
@@ -1452,9 +1487,23 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                         {managerTab === 'task2' ? 'ค้นหาและติดตามเคส P-CAR และการป้องกันปัญหาไม่ให้เกิดซ้ำ' : 'ค้นหาและกรองใบงานตามความเร่งด่วน ทีม และสถานะ'}
                                     </p>
                                 </div>
-                                <span className="text-xs font-semibold px-2.5 py-1 bg-white text-gray-600 rounded-lg border border-gray-200">
-                                    พบทั้งหมด {cases.total || 0} รายการ
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white text-gray-600 rounded-lg border border-gray-200 text-xs font-semibold shadow-2xs">
+                                        <span>แสดงหน้าละ:</span>
+                                        <select
+                                            value={filters.per_page || 10}
+                                            onChange={(e) => handlePerPageChange(Number(e.target.value))}
+                                            className="text-xs font-bold py-0.5 px-1.5 border-0 bg-transparent text-indigo-600 focus:ring-0 cursor-pointer"
+                                            aria-label="จำนวนรายการต่อหน้า"
+                                        >
+                                            <option value={10}>10</option>
+                                            <option value={25}>25</option>
+                                            <option value={50}>50</option>
+                                        </select>
+                                        <span className="text-gray-300">|</span>
+                                        <span>พบทั้งหมด {cases.total || 0} รายการ</span>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Comprehensive Filters - Modern Clean Layout */}
@@ -1703,6 +1752,15 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                             <h4 className="text-base font-semibold text-gray-900 mb-1 leading-tight">{caseItem.title}</h4>
                                             <div className="text-xs text-gray-500 mb-3 flex flex-wrap items-center gap-1.5">
                                                 <span>โดย: {caseItem.requester_name} ({caseItem.department || '-'})</span>
+                                                {caseItem.location && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                                        <svg className="w-3 h-3 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        </svg>
+                                                        <span>{caseItem.location}</span>
+                                                    </span>
+                                                )}
                                                 {caseItem.actual_user_name && (
                                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
                                                         <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1794,10 +1852,16 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                             return (
                                                 <tr
                                                     key={caseItem.id}
-                                                    className={`transition-all duration-300 ${
+                                                    onClick={(e) => {
+                                                        if (!e.target.closest('a, button, select, input, textarea')) {
+                                                            markTicketAsViewed(caseItem.id, auth.user?.id);
+                                                            window.location.href = route('tickets.show', caseItem.id);
+                                                        }
+                                                    }}
+                                                    className={`transition-all duration-150 cursor-pointer ${
                                                         isHighlighted
                                                             ? 'bg-amber-50/95 ring-2 ring-inset ring-amber-400 shadow-xs'
-                                                            : 'hover:bg-slate-50'
+                                                            : 'hover:bg-indigo-50/40'
                                                     }`}
                                                 >
                                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -1830,6 +1894,15 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                                         <div className="text-sm font-semibold text-gray-900">{caseItem.title}</div>
                                                         <div className="text-xs text-gray-500 mt-1 flex flex-wrap items-center gap-1.5">
                                                             <span>โดย: {caseItem.requester_name} ({caseItem.department || '-'})</span>
+                                                            {caseItem.location && (
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                                                    <svg className="w-3 h-3 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                    </svg>
+                                                                    <span>{caseItem.location}</span>
+                                                                </span>
+                                                            )}
                                                             {caseItem.actual_user_name && (
                                                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
                                                                     <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1909,8 +1982,22 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                         {/* Pagination */}
                         {cases.links && cases.links.length > 3 && (
                             <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
-                                <div className="text-xs text-gray-500">
-                                    แสดง {cases.from || 0} ถึง {cases.to || 0} จากทั้งหมด {cases.total || 0} รายการ
+                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                    <span>แสดง {cases.from || 0} ถึง {cases.to || 0} จากทั้งหมด {cases.total || 0} รายการ</span>
+                                    <span>·</span>
+                                    <div className="flex items-center gap-1">
+                                        <span>หน้าละ</span>
+                                        <select
+                                            value={filters.per_page || 10}
+                                            onChange={(e) => handlePerPageChange(Number(e.target.value))}
+                                            className="text-xs font-bold py-0.5 px-1.5 border border-gray-200 rounded-md bg-white text-gray-700 shadow-2xs cursor-pointer focus:ring-indigo-500 focus:border-indigo-500"
+                                            aria-label="เปลี่ยนจำนวนรายการต่อหน้า"
+                                        >
+                                            <option value={10}>10</option>
+                                            <option value={25}>25</option>
+                                            <option value={50}>50</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div className="flex flex-wrap gap-1">
                                     {cases.links.map((link, idx) => (
