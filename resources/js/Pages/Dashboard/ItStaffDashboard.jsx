@@ -1226,6 +1226,18 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                 </svg>
                             </div>
+                            <div className="z-10 mt-2.5 pt-2 border-t border-teal-100/80 text-[11px] text-slate-500 font-medium truncate">
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleQuickFilter('task2_cancelled');
+                                    }}
+                                    className="hover:underline hover:text-slate-800 cursor-pointer flex items-center gap-1"
+                                >
+                                    <span>ยกเลิก P-CAR {Number(stats.task2_cancelled || 0).toLocaleString()} เคส</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
