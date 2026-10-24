@@ -367,13 +367,40 @@
 
 ## 📌 รายการรอพิจารณาและเปิด Issue (Pending Issues & Proposals)
 
-### Issue #1: การกำหนดสิทธิ์การจัดการและแก้ไขข้อมูลผู้ใช้งาน IT และทั่วไป
-- **สถานะปัจจุบัน:**
-  - ทีม IT (`users`): สิทธิ์ระดับ Admin และ Manager (`administrator`, `manager`, `manager_software`, `manager_network_hardware`)
-  - ผู้ใช้ทั่วไป (`normal_users`): สิทธิ์การเปิดดู (`index`) และระงับ/ลบ (`destroy`) ให้ Admin, Manager, Helpdesk แต่สิทธิ์การสร้าง (`create/store`), แก้ไข (`edit/update`), และนำเข้า CSV (`import`) กลับล็อกไว้เฉพาะ `administrator` เท่านั้น
-- **ข้อสังเกตและปัญหา:**
-  - Helpdesk (Tier 1) และ Manager ไม่สามารถช่วยผู้ใช้งานแก้ไขข้อมูลพื้นฐาน เช่น อัปเดตเบอร์โทรศัพท์, ย้ายแผนก, ย้ายบริษัท หรือสร้างผู้ใช้ใหม่เมื่อมีพนักงานใหม่เข้าทำงานได้ ทำให้เกิดคอขวดที่ Administrator เพียงคนเดียว
-  - หากเปิดให้ Helpdesk แก้ไขผู้ใช้ทั่วไป ต้องระวังเรื่อง Privilege Escalation (ป้องกันไม่ให้ Helpdesk ปรับ Role ของผู้ใช้ทั่วไปให้กลายเป็นบทบาท IT หรือ Admin)
+### Issue #1: การกำหนดสิทธิ์การจัดการบัญชี, การเลื่อนขั้น (Promote) และลดบทบาท (Demote) พนักงาน IT
+- **สถานะและข้อสรุปความต้องการ (Requirements Finalized):**
+  - **1. บัญชีผู้ใช้งานทั่วไป (Normal Users):**
+    - ให้ผู้ใช้งานสมัครบัญชีเองผ่านระบบลงทะเบียน (`/register`) พร้อมตรวจสอบโดเมนอีเมลบริษัทและยืนยันอีเมล
+    - สงวนสิทธิ์การสร้าง (`create/store`), แก้ไขข้อมูล (`edit/update`), ลบ/ระงับบัญชี (`destroy`), และนำเข้า CSV (`import`) ให้เฉพาะ **Administrator** เท่านั้น
+    - **Helpdesk (Tier 1) และ Manager (Tier 3)** ทำได้เฉพาะ **"ส่งลิงก์รีเซ็ตรหัสผ่าน" (Force Reset Password)** เท่านั้น (ตัดสิทธิ์ `destroy` ของ Helpdesk/Manager ออกเพื่อความปลอดภัย)
+  - **2. บัญชีทีมงานไอที (IT Users):**
+    - การสร้าง (`create/store`), แก้ไข (`edit/update`), และลบ (`destroy`) ในหน้ารายการทีม IT (`users`) ทำได้เฉพาะ **Administrator** เท่านั้น
+    - Tier 3 Manager ไม่ต้องสร้างบัญชีเอง แต่จะใช้วิธีเลื่อนขั้นผู้ใช้งาน (Promote) จากบัญชีผู้ใช้ทั่วไปแทน
+  - **3. ฟังก์ชันเลื่อนขั้นผู้ใช้ทั่วไปเป็นทีมงาน IT (Promote to IT Staff):**
+    - เพิ่มปุ่ม Action **"เลื่อนเป็นทีม IT"** ในหน้า `NormalUsers/Index.jsx` ให้ Administrator และ Tier 3 Manager
+    - มี Modal ให้เลือก Role ปลายทาง และเลือกสังกัดทีม (กรณีเป็นช่าง):
+      - **Tier 3 Manager:** เลื่อนขั้นได้เฉพาะเป็น `helpdesk` หรือ `technician` (หากเลือก technician ต้องเลือกทีมที่ตนเองกำกับดูแล `managedTeams` เท่านั้น ป้องกัน Privilege Escalation)
+      - **Administrator:** เลื่อนขั้นเป็นบทบาทใดก็ได้ และเลือกทีมใดก็ได้
+    - **Security & Business Rules:**
+      - บัญชีเป้าหมายต้องเป็น `role === 'user'`, บัญชี Active และยืนยันอีเมลแล้ว
+      - ตรวจสอบ Separation of Duties: **ห้ามเลื่อนขั้นหากผู้ใช้มีใบงานที่ตนเองแจ้งซ่อมค้างอยู่** (`whereNotIn('status', ['closed', 'cancelled'])`) เพื่อป้องกันผลประโยชน์ทับซ้อน
+    - **Notification & Audit:**
+      - ส่งอีเมลแจ้งเตือนผู้ใช้งานเมื่อได้รับการเลื่อนขั้น (`PromotedToItStaffNotification`)
+      - บันทึกประวัติลง `AuditLog` (Action: `PROMOTE`, ระบุ Role เดิม, Role ใหม่, ทีมที่สังกัด)
+  - **4. ฟังก์ชันลดบทบาทพนักงาน IT กลับเป็นผู้ใช้ทั่วไป (Demote to Normal User):**
+    - เพิ่มปุ่ม Action **"ลดเป็นผู้ใช้ทั่วไป"** ในหน้ารายการทีม IT (`Users/Index.jsx`)
+    - **Administrator:** สามารถลดบทบาทพนักงาน IT คนใดก็ได้กลับเป็น `user`
+    - **Tier 3 Manager:** สามารถลดบทบาทกลับเป็น `user` ได้เฉพาะกับ Helpdesk และช่างเทคนิคที่สังกัดอยู่ในทีมที่ตนเองกำกับดูแลเท่านั้น
+    - เมื่อลดบทบาท ให้ปลดสมาชิกออกจากทีม (`team_user`) อัตโนมัติ พร้อมส่งอีเมลแจ้งเตือนและบันทึก `AuditLog` (Action: `DEMOTE`)
+- **สิ่งที่ต้องดำเนินการในขั้นตอนถัดไป (Implementation Checklist):**
+  - [ ] ปรับแก้ `NormalUserController@destroy`: จำกัดสิทธิ์ลบ/ระงับบัญชีผู้ใช้ทั่วไปให้เฉพาะ Administrator เท่านั้น (Helpdesk และ Manager ถูกปฏิเสธด้วย 403)
+  - [ ] ซ่อนปุ่มลบใน `NormalUsers/Index.jsx` หากผู้ใช้งานไม่ใช่ Administrator
+  - [ ] สร้าง Route และ Controller Method สำหรับ Promote (`POST /normal_users/{user}/promote`)
+  - [ ] สร้าง Route และ Controller Method สำหรับ Demote (`POST /users/{user}/demote`)
+  - [ ] สร้าง Notification สำหรับส่งอีเมลแจ้งการเลื่อนขั้น/ลดบทบาท
+  - [ ] สร้าง Modal UI สำหรับ Promote บน `NormalUsers/Index.jsx` (เลือก Role และทีมที่ Manager ดูแล)
+  - [ ] ปรับปรุงสิทธิ์ใน `UserManagementController` (จำกัดการ create/edit/destroy เฉพาะ Administrator)
+  - [ ] สร้าง Feature Tests ครอบคลุม Promote, Demote, สิทธิ์ของ Tier 3 / Helpdesk / Admin และการบล็อกผู้ใช้ที่มีเคสค้าง
 
 ### [x] Issue #2: ปุ่ม Action สำหรับการส่งลิงก์รีเซ็ตรหัสผ่าน ควรอยู่ที่ไหน (ดำเนินการเรียบร้อยแล้ว)
 - **สรุปการดำเนินการ:**

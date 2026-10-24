@@ -465,3 +465,17 @@
   - [x] ปรับระยะ Padding ขวา (`pl-2.5 pr-8` หรือ `pl-3 pr-9`) ใน Select Dropdown ทุกจุดทั่วทั้งระบบ (Per-page selector, Filters, Mobile Sort, Settings, Audio selector) เพื่อแก้ปัญหาลูกศรทับซ้อนข้อความอย่างสมบูรณ์
 - [x] **การทดสอบความถูกต้องทั้งระบบ (Automated Feature Tests):**
   - [x] รันชุดทดสอบผ่านครบ 100% ทั้ง 164/164 tests (1,054 assertions) พร้อมจัดรูปแบบโค้ดด้วย Pint เรียบร้อย
+
+## Phase 20: IT Users Password Reset, Context-based Ticket Layout & User Management Architecture (✅ ดำเนินการแล้วเสร็จ)
+- [x] **ปุ่มส่งลิงก์รีเซ็ตรหัสผ่านสำหรับทีมงาน IT (`Users/Index.jsx`):**
+  - [x] เพิ่มปุ่ม Action `รีเซ็ตรหัสผ่าน` สีส้มอำพันในคอลัมน์จัดการของหน้ารายการทีม IT ทั้ง Desktop Table และ Mobile Cards
+  - [x] จัดแนวปุ่มการกระทำในแถวของผู้ใช้งานปัจจุบันให้ตรงกันอย่างสมบูรณ์ ด้วยการจองพื้นที่ว่างที่มองไม่เห็น (`invisible px-2 py-1 rounded-md`) แทนปุ่มลบ
+  - [x] เพิ่ม Feature Tests ใน `UserManagementTest.php` ครอบคลุมการส่งลิงก์โดย Admin และ Manager พร้อมบล็อกสิทธิ์ Role `user`
+- [x] **การจัดวางข้อมูลใบงานตามบริบท (Context-based Ticket Layout - `TicketContextMeta`):**
+  - [x] สร้าง Component กลาง `TicketContextMeta.jsx` จัดกลุ่มข้อมูลบุคคล (`👤 [ผู้แจ้ง] ([แผนก]) ↳ แจ้งแทน [ผู้ใช้จริง]`) แยกบรรทัดกับสถานที่เกิดเหตุ (`📍 [สถานที่]`) พร้อม Single-line Truncate และ Hover Tooltip
+  - [x] ติดตั้งบน `ItStaffDashboard.jsx`: ตารางเดสก์ท็อปจำกัดความสูงไม่เกิน 3 บรรทัด และการ์ดมือถือจำกัดชื่อเรื่อง 2 บรรทัด (`line-clamp-2`)
+  - [x] ติดตั้งบน `UserDashboard.jsx`: ซ่อนชื่อผู้แจ้ง จัดสถานที่และแจ้งแทนในบรรทัดเดียวกัน (`layout="inline"`) บนเดสก์ท็อป และแยกบรรทัดบนมือถือ
+  - [x] เปลี่ยนป้ายสีม่วง "แจ้งแทน" เป็นข้อความสีม่วงต่อท้ายชื่อผู้แจ้ง เพื่อลดความรกของแถวตาราง
+- [x] **ข้อกำหนดสถาปัตยกรรมการจัดการบัญชี, Promote และ Demote (Issue #1 Architecture Finalized):**
+  - [x] สรุปขอบเขตความต้องการ: ผู้ใช้ทั่วไปสมัครบัญชีเอง, สงวนสิทธิ์จัดการบัญชีให้ Administrator เท่านั้น, Helpdesk และ Manager ส่งลิงก์รีเซ็ตได้อย่างเดียว, Tier 3 Manager เลื่อนขั้น (Promote) ผู้ใช้ทั่วไปเป็น Helpdesk หรือช่างในทีมที่ตนดูแลได้ (มีระบบตรวจ Separation of Duties ป้องกันผู้มีเคสค้าง) พร้อมระบบลดบทบาท (Demote) คืนสู่ผู้ใช้ทั่วไปและส่งอีเมลแจ้งเตือน
+
