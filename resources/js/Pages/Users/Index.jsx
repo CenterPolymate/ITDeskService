@@ -130,6 +130,14 @@ export default function Index({ users, available_statuses = {}, filters = {} }) 
         router.post(route('impersonate', userId));
     };
 
+    const handleForceResetPassword = (user) => {
+        if (confirm(`ระบบจะส่งลิงก์ตั้งรหัสผ่านใหม่ไปยังอีเมล "${user.email}" ยืนยันหรือไม่?`)) {
+            router.post(route('users.force_reset_password', user.id), {}, {
+                preserveScroll: true,
+            });
+        }
+    };
+
     return (
         <>
             <Head title="จัดการผู้ใช้งานทีม IT (IT Users)" />
@@ -337,6 +345,13 @@ export default function Index({ users, available_statuses = {}, filters = {} }) 
                                                 >
                                                     แก้ไข
                                                 </Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleForceResetPassword(user)}
+                                                    className="flex-1 text-center text-xs text-amber-700 font-medium hover:text-amber-900 transition-colors px-2 py-2 bg-amber-50 hover:bg-amber-100 rounded-lg border border-amber-100"
+                                                >
+                                                    รีเซ็ตรหัสผ่าน
+                                                </button>
                                                 {auth.user?.id !== user.id && (
                                                     <button
                                                         type="button"
@@ -437,7 +452,7 @@ export default function Index({ users, available_statuses = {}, filters = {} }) 
                                                         </div>
                                                     </td>
                                                     <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">
-                                                        <div className="flex items-center justify-end gap-3">
+                                                        <div className="flex items-center justify-end gap-2">
                                                             {auth.user?.role === 'administrator' && user.role !== 'administrator' && (
                                                                 <button
                                                                     type="button"
@@ -453,6 +468,14 @@ export default function Index({ users, available_statuses = {}, filters = {} }) 
                                                             >
                                                                 แก้ไข
                                                             </Link>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleForceResetPassword(user)}
+                                                                title="ส่งลิงก์ตั้งรหัสผ่านใหม่ไปยังอีเมล"
+                                                                className="text-amber-700 hover:text-amber-900 transition-colors px-2 py-1 bg-amber-50 hover:bg-amber-100 rounded-md"
+                                                            >
+                                                                รีเซ็ตรหัสผ่าน
+                                                            </button>
                                                             {auth.user?.id !== user.id && (
                                                                 <button
                                                                     type="button"

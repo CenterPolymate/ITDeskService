@@ -359,6 +359,10 @@
   - [x] แสดง Badge และ Tooltip เหตุผลการยกเลิกเคสในตาราง Desktop รวมถึงกล่องข้อความสีเทา/แดงอ่อนใน Mobile Cards ทั้งใน `UserDashboard.jsx` และ `ItStaffDashboard.jsx` (รวมถึง Task 2 PCAR cancellation)
   - [x] ติดตั้งปุ่มและป้าย `🟢 อัปเดตอัตโนมัติ` พร้อมปุ่มกด Manual Refresh (หมุนแอนิเมชัน) บนส่วนหัวตารางของ `ItStaffDashboard.jsx`, `UserDashboard.jsx`, และ `SuperadminDashboard.jsx` ให้สอดคล้องกันทุก Role
   - [x] เพิ่ม Feature Test `test_cancelling_ticket_records_cancellation_reason_and_system_comment` ใน `TicketManagementTest.php` ผ่านครบ 100% (164/164 เทสต์ทั้งระบบ)
+- [x] เพิ่มปุ่ม Action ส่งลิงก์รีเซ็ตรหัสผ่าน (Password Reset Link) ในหน้าจัดการผู้ใช้งานทีม IT (`Users/Index.jsx`):
+  - [x] เพิ่มปุ่มสีส้มอำพัน `รีเซ็ตรหัสผ่าน` ในคอลัมน์จัดการของ Desktop Table และ Mobile Cards ให้เป็นมาตรฐานเดียวกันกับหน้าผู้ใช้ทั่วไป (`NormalUsers/Index.jsx`)
+  - [x] เชื่อมต่อกับ Route `users.force_reset_password` และ Controller `UserManagementController@forceResetPassword` พร้อมกล่องยืนยันก่อนส่งและ `preserveScroll: true`
+  - [x] เพิ่ม Feature Tests ใน `UserManagementTest.php` ครอบคลุมสิทธิ์ Administrator และ Manager พร้อมทดสอบป้องกัน Role `user` ทั่วไป ผ่าน 100% (165/165 เทสต์ทั้งระบบ)
 ---
 
 ## 📌 รายการรอพิจารณาและเปิด Issue (Pending Issues & Proposals)
@@ -371,13 +375,10 @@
   - Helpdesk (Tier 1) และ Manager ไม่สามารถช่วยผู้ใช้งานแก้ไขข้อมูลพื้นฐาน เช่น อัปเดตเบอร์โทรศัพท์, ย้ายแผนก, ย้ายบริษัท หรือสร้างผู้ใช้ใหม่เมื่อมีพนักงานใหม่เข้าทำงานได้ ทำให้เกิดคอขวดที่ Administrator เพียงคนเดียว
   - หากเปิดให้ Helpdesk แก้ไขผู้ใช้ทั่วไป ต้องระวังเรื่อง Privilege Escalation (ป้องกันไม่ให้ Helpdesk ปรับ Role ของผู้ใช้ทั่วไปให้กลายเป็นบทบาท IT หรือ Admin)
 
-### Issue #2: ปุ่ม Action สำหรับการส่งลิงก์รีเซ็ตรหัสผ่าน ควรอยู่ที่ไหน
-- **สถานะปัจจุบัน:**
-  - หน้าผู้ใช้งานทั่วไป (`NormalUsers/Index.jsx`): มีปุ่ม `รีเซ็ตรหัสผ่าน` สีส้มอำพันในแถวตาราง Desktop และ Mobile Cards เรียบร้อยแล้ว
-  - หน้ารายการทีม IT (`Users/Index.jsx`): **ยังไม่มีปุ่มรีเซ็ตรหัสผ่านในหน้า Index** (มีเฉพาะในหน้าแก้ไข `Edit.jsx`)
-- **ข้อสังเกตและแนวทาง:**
-  - ควรเพิ่มปุ่ม Action "รีเซ็ตรหัสผ่าน" ให้กับหน้ารายการทีม IT (`Users/Index.jsx`) ให้สม่ำเสมอเป็นมาตรฐานเดียวกัน
-  - ตำแหน่งในตาราง Index สะดวกต่อการซัพพอร์ตด่วน (ไม่ต้องกดเข้าหน้า Edit) แต่ต้องพิจารณารูปแบบปุ่ม (Text Badge vs Icon พร้อม Tooltip vs Action Menu Dropdown) เพื่อไม่ให้เปลืองพื้นที่คอลัมน์จัดการ
+### [x] Issue #2: ปุ่ม Action สำหรับการส่งลิงก์รีเซ็ตรหัสผ่าน ควรอยู่ที่ไหน (ดำเนินการเรียบร้อยแล้ว)
+- **สรุปการดำเนินการ:**
+  - วางปุ่ม Action `รีเซ็ตรหัสผ่าน` สีส้มอำพัน (`bg-amber-50 text-amber-700`) ในคอลัมน์จัดการของหน้ารายการทีม IT (`Users/Index.jsx`) ทั้งในตาราง Desktop Table และ Mobile Cards ให้สอดคล้องเป็นมาตรฐานเดียวกันกับหน้าผู้ใช้งานทั่วไป (`NormalUsers/Index.jsx`) 100%
+  - เพิ่ม Feature Test ครอบคลุมความปลอดภัยและการส่งลิงก์ใน `UserManagementTest.php` ผ่านครบถ้วน
 
 ### Issue #3: ตำแหน่งการวางข้อมูล Location และแจ้งแทนใคร ควรวาง Layout แบบไหน
 - **สถานะปัจจุบัน:**

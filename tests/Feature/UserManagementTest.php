@@ -121,4 +121,26 @@ class UserManagementTest extends TestCase
         $this->assertNotNull($log);
         $this->assertStringContainsString('users.update', $log->action);
     }
+
+    public function test_admin_and_manager_can_force_reset_password_for_it_user(): void
+    {
+        $admin = User::factory()->create(['role' => 'administrator']);
+        $manager = User::factory()->create(['role' => 'manager']);
+        $regularUser = User::factory()->create(['role' => 'user']);
+        $itUser1 = User::factory()->create(['role' => 'technician']);
+        $itUser2 = User::factory()->create(['role' => 'helpdesk']);
+
+        // Admin can send reset link
+        $responseAdmin = $this->actingAs($admin)->post(route('users.force_reset_password', $itUser1->id));
+        $responseAdmin->assertSessionHas('success');
+
+        // Manager can send reset link
+        $responseManager = $this->actingAs($manager)->post(route('users.force_reset_password', $itUser2->id));
+        $responseManager->assertSessionHas('success');
+
+        // Regular user cannot
+        $this->actingAs($regularUser)
+            ->post(route('users.force_reset_password', $itUser1->id))
+            ->assertForbidden();
+    }
 }
