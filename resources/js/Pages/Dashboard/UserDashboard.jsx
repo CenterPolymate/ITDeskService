@@ -3,6 +3,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { sendBrowserNotification, markTicketAsViewed } from '@/Utils/webNotification';
 import Modal from '@/Components/Modal';
 import SortableHeader from '@/Components/SortableHeader';
+import TicketContextMeta from '@/Components/TicketContextMeta';
 
 export default function UserDashboard({ cases, stats, active_tickets = [], waiting_tickets = [], filters = {} }) {
     const { auth, flash, branding } = usePage().props;
@@ -774,25 +775,18 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                         {getStatusBadge(c.status, c.status_label)}
                                                     </div>
 
-                                                    <h4 className="text-base font-semibold text-gray-900 mb-1 leading-tight">
+                                                    <h4
+                                                        className="text-base font-semibold text-gray-900 mb-1 leading-tight line-clamp-2"
+                                                        title={c.title}
+                                                    >
                                                         {c.title}
                                                     </h4>
-                                                {c.location && (
-                                                    <div className="flex items-center gap-1 text-xs text-slate-500 mb-2">
-                                                        <span>📍</span>
-                                                        <span className="truncate">{c.location}</span>
-                                                    </div>
-                                                )}
-                                                {c.actual_user_name && (
-                                                    <div className="mb-2">
-                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                                                            <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                            </svg>
-                                                            แจ้งแทน: {c.actual_user_name}
-                                                        </span>
-                                                    </div>
-                                                )}
+                                                <TicketContextMeta
+                                                    actualUserName={c.actual_user_name}
+                                                    location={c.location}
+                                                    showRequester={false}
+                                                    className="mb-2"
+                                                />
 
                                                 {c.status === 'cancelled' && c.cancellation_reason && (
                                                     <div className="mb-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700">
@@ -925,23 +919,14 @@ export default function UserDashboard({ cases, stats, active_tickets = [], waiti
                                                                 </div>
                                                             </td>
                                                             <td className="px-5 py-3.5 text-sm text-gray-900 font-medium max-w-md">
-                                                                <div className="truncate font-semibold">{c.title}</div>
-                                                                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                                                    {c.location && (
-                                                                        <span className="inline-flex items-center gap-1 text-xs text-slate-500 font-normal">
-                                                                            <span>📍</span>
-                                                                            <span className="truncate max-w-[200px]">{c.location}</span>
-                                                                        </span>
-                                                                    )}
-                                                                    {c.actual_user_name && (
-                                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                                                                            <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                                            </svg>
-                                                                            แจ้งแทน: {c.actual_user_name}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
+                                                                <div className="truncate font-semibold" title={c.title}>{c.title}</div>
+                                                                <TicketContextMeta
+                                                                    actualUserName={c.actual_user_name}
+                                                                    location={c.location}
+                                                                    showRequester={false}
+                                                                    layout="inline"
+                                                                    className="mt-1"
+                                                                />
                                                             </td>
                                                             <td className="px-5 py-3.5 whitespace-nowrap text-sm">
                                                                 <div className="flex flex-col gap-1 items-start">

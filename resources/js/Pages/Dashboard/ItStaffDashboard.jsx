@@ -6,6 +6,7 @@ import {
     markTicketAsViewed,
 } from '@/Utils/webNotification';
 import SortableHeader from '@/Components/SortableHeader';
+import TicketContextMeta from '@/Components/TicketContextMeta';
 
 export default function ItStaffDashboard({ cases, stats, teams = [], technician_workload = null, filter_options = {}, filters = {} }) {
     const { auth, flash } = usePage().props;
@@ -1780,27 +1781,19 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                                 </div>
                                             </div>
 
-                                            <h4 className="text-base font-semibold text-gray-900 mb-1 leading-tight">{caseItem.title}</h4>
-                                            <div className="text-xs text-gray-500 mb-3 flex flex-wrap items-center gap-1.5">
-                                                <span>โดย: {caseItem.requester_name} ({caseItem.department || '-'})</span>
-                                                {caseItem.location && (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                                                        <svg className="w-3 h-3 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        </svg>
-                                                        <span>{caseItem.location}</span>
-                                                    </span>
-                                                )}
-                                                {caseItem.actual_user_name && (
-                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                                                        <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                        </svg>
-                                                        แจ้งแทน: {caseItem.actual_user_name}
-                                                    </span>
-                                                )}
-                                            </div>
+                                            <h4
+                                                className="text-base font-semibold text-gray-900 mb-1 leading-tight line-clamp-2"
+                                                title={caseItem.title}
+                                            >
+                                                {caseItem.title}
+                                            </h4>
+                                            <TicketContextMeta
+                                                requesterName={caseItem.requester_name}
+                                                department={caseItem.department}
+                                                actualUserName={caseItem.actual_user_name}
+                                                location={caseItem.location}
+                                                className="mb-3"
+                                            />
 
                                             {caseItem.status === 'cancelled' && caseItem.cancellation_reason && (
                                                 <div className="mb-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700">
@@ -1946,28 +1939,17 @@ export default function ItStaffDashboard({ cases, stats, teams = [], technician_
                                                         </div>
                                                     </td>
 
-                                                    <td className="px-6 py-4">
-                                                        <div className="text-sm font-semibold text-gray-900">{caseItem.title}</div>
-                                                        <div className="text-xs text-gray-500 mt-1 flex flex-wrap items-center gap-1.5">
-                                                            <span>โดย: {caseItem.requester_name} ({caseItem.department || '-'})</span>
-                                                            {caseItem.location && (
-                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                                                                    <svg className="w-3 h-3 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                    </svg>
-                                                                    <span>{caseItem.location}</span>
-                                                                </span>
-                                                            )}
-                                                            {caseItem.actual_user_name && (
-                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                                                                    <svg className="w-3 h-3 text-purple-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                                    </svg>
-                                                                    แจ้งแทน: {caseItem.actual_user_name}
-                                                                </span>
-                                                            )}
+                                                    <td className="px-6 py-4 max-w-xs xl:max-w-md">
+                                                        <div className="text-sm font-semibold text-gray-900 truncate" title={caseItem.title}>
+                                                            {caseItem.title}
                                                         </div>
+                                                        <TicketContextMeta
+                                                            requesterName={caseItem.requester_name}
+                                                            department={caseItem.department}
+                                                            actualUserName={caseItem.actual_user_name}
+                                                            location={caseItem.location}
+                                                            className="mt-1"
+                                                        />
                                                     </td>
 
                                                     <td className="px-6 py-4 whitespace-nowrap">
