@@ -476,7 +476,7 @@ export default function Index({ users, available_statuses = {}, filters = {} }) 
                                                             >
                                                                 รีเซ็ตรหัสผ่าน
                                                             </button>
-                                                            {auth.user?.id !== user.id && (
+                                                            {auth.user?.id !== user.id ? (
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handleDelete(user)}
@@ -484,6 +484,13 @@ export default function Index({ users, available_statuses = {}, filters = {} }) 
                                                                 >
                                                                     ลบ
                                                                 </button>
+                                                            ) : (
+                                                                <span
+                                                                    aria-hidden="true"
+                                                                    className="invisible px-2 py-1 rounded-md"
+                                                                >
+                                                                    ลบ
+                                                                </span>
                                                             )}
                                                         </div>
                                                     </td>
