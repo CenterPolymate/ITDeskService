@@ -1,5 +1,10 @@
 # Current Task Log
 
+- [x] ปรับปรุงเอกสาร `docs/er_diagram.md`: แยกสัดส่วน Mermaid ER Diagram เป็นกลุ่มย่อยตามโดเมนและเพิ่ม Data Dictionary แบบ Markdown Table ครบทุกตารางให้อ่านพรีวิวได้อย่างคมชัด
+- [x] ปรับปรุงเอกสาร `README.md`: แปลงเป็นหน้าหลักทางการของ ITDeskService (Tech Stack, สถาปัตยกรรม 5 Roles, คู่มือติดตั้ง, Seed Accounts และคำสั่ง Artisan)
+- [x] สร้างเอกสาร `docs/system_architecture.md`: รวบรวมสถาปัตยกรรมระบบ, ตารางสิทธิ์ (Permission Matrix), State Machine ของ Ticket & P-CAR, และกลไกความปลอดภัย
+- [x] สร้างเอกสาร `docs/deployment_guide.md`: คู่มือการติดตั้งและ Deploy บน CloudPanel / Production, การตั้งค่า Crontab สำหรับ `sla:check-warnings`, และการกู้คืนฐานข้อมูล
+
 - [x] อัปเดตและปรับปรุง UI หน้าฟอร์มเปิดใบงาน (Create Ticket) ให้เป็นแบบ Minimal Glassmorphism, โล่งสะอาดตา
 - [x] แก้ฟอร์มพิมพ์รายงาน P-CAR Form 4: ปรับที่มาของเวลา T1/T3/T5
 - [x] แก้ไขการประมวลผล Audit Log Middleware เมื่อมีการอัปโหลดไฟล์ (แก้ปัญหา HTTP 500 Error)
